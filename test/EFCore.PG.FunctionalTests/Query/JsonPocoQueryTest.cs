@@ -989,6 +989,37 @@ ORDER BY d."Id" NULLS FIRST
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
+    public void Dictionary_indexer_binary_JsonTypeof(bool jsonb, bool objectValue)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, objectValue) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => EF.Functions.JsonTypeof(e.JsonbBinaryDictionary["Payload"])),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => EF.Functions.JsonTypeof((byte[])e.JsonbDictionary["Payload"])),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => EF.Functions.JsonTypeof(e.JsonBinaryDictionary["Payload"])),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => EF.Functions.JsonTypeof((byte[])e.JsonDictionary["Payload"]))
+        };
+
+        Assert.Equal(["string", "string"], query.ToArray());
+
+        var column = $"{(jsonb ? "Jsonb" : "Json")}{(objectValue ? "" : "Binary")}Dictionary";
+        AssertSql(
+            $"""
+SELECT {(jsonb ? "jsonb_typeof" : "json_typeof")}(d."{column}" -> 'Payload')
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
     public void Dictionary_indexer_binary_parameter_comparison(bool jsonb, bool longPayload)
     {
         using var ctx = CreateContext();
@@ -1211,6 +1242,54 @@ ORDER BY d."Id" NULLS FIRST
         var right = $"""NULLIF({(constant ? """'"2020-01-01T10:30:45.1234567Z"'""" : "@timestamp")}, 'null'::jsonb)""";
         AssertSql(
             (constant ? "" : "@timestamp='2020-01-01T10:30:45.1234567Z' (DbType = Object)\n\n") + $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Dictionary_indexer_temporal_comparison(bool jsonb, bool constant, bool dateTimeOffset)
+    {
+        using var ctx = CreateContext();
+        var duration = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567));
+        var timestamp = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)).AddTicks(1234567);
+        var query = (jsonb, constant, dateTimeOffset) switch
+        {
+            (true, false, false) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Duration"] == (object)EF.Parameter(duration)),
+            (false, false, false) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Duration"] == (object)EF.Parameter(duration)),
+            (true, true, false) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Duration"] == (object)EF.Constant(duration)),
+            (false, true, false) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Duration"] == (object)EF.Constant(duration)),
+            (true, false, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["TimestampOffset"] == (object)EF.Parameter(timestamp)),
+            (false, false, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["TimestampOffset"] == (object)EF.Parameter(timestamp)),
+            (true, true, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["TimestampOffset"] == (object)EF.Constant(timestamp)),
+            (false, true, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["TimestampOffset"] == (object)EF.Constant(timestamp))
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var key = dateTimeOffset ? "TimestampOffset" : "Duration";
+        var serialized = dateTimeOffset ? "2020-01-01T10:30:45.1234567+02:00" : "1.00:00:00.1234567";
+        var parameter = dateTimeOffset ? "timestamp" : "duration";
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{key}'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var literal = dateTimeOffset
+            ? """'"2020-01-01T10:30:45.1234567\u002B02:00"'"""
+            : """'"1.00:00:00.1234567"'""";
+        var right = constant
+            ? $"NULLIF({literal}, 'null'::jsonb)"
+            : $"NULLIF(@{parameter}, 'null'::jsonb)";
+        AssertSql(
+            (constant ? "" : $"@{parameter}='{serialized}' (DbType = Object)\n\n") + $"""
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
 WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
@@ -1810,6 +1889,79 @@ LIMIT 2
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_boxed_scalar_Equals(bool jsonb, bool instance)
+    {
+        using var ctx = CreateContext();
+        var age = 25;
+        var query = (jsonb, instance) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonbDictionary["Age"], EF.Parameter(age))),
+            (false, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonDictionary["Age"], EF.Parameter(age))),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Age"].Equals(EF.Parameter(age))),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Age"].Equals(EF.Parameter(age)))
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Age'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        AssertSql(
+            $"""
+@age='25'
+
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = NULLIF(to_jsonb(@age), 'null'::jsonb) OR ({left} IS NULL AND NULLIF(to_jsonb(@age), 'null'::jsonb) IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Dictionary_indexer_mixed_dom_object_Equals(bool jsonb, bool document, bool reversed)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, document, reversed) switch
+        {
+            (true, true, false) => ctx.DictionaryEntities.Where(e => object.Equals((JsonDocument)e.JsonbDictionary["NullableName"], e.JsonbDictionary["Missing"])),
+            (false, true, false) => ctx.DictionaryEntities.Where(e => object.Equals((JsonDocument)e.JsonDictionary["NullableName"], e.JsonDictionary["Missing"])),
+            (true, false, false) => ctx.DictionaryEntities.Where(e => object.Equals((JsonElement)e.JsonbDictionary["NullableName"], e.JsonbDictionary["Missing"])),
+            (false, false, false) => ctx.DictionaryEntities.Where(e => object.Equals((JsonElement)e.JsonDictionary["NullableName"], e.JsonDictionary["Missing"])),
+            (true, true, true) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonbDictionary["Missing"], (JsonDocument)e.JsonbDictionary["NullableName"])),
+            (false, true, true) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonDictionary["Missing"], (JsonDocument)e.JsonDictionary["NullableName"])),
+            (true, false, true) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonbDictionary["Missing"], (JsonElement)e.JsonbDictionary["NullableName"])),
+            (false, false, true) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonDictionary["Missing"], (JsonElement)e.JsonDictionary["NullableName"]))
+        };
+
+        Assert.Empty(query.Select(e => e.Id).ToArray());
+
+        var dom = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName'""";
+        var domNull = $"{dom} IS NULL";
+        var value = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Missing'""";
+        dom = jsonb ? dom : $"CAST({dom} AS jsonb)";
+        value = $"NULLIF({(jsonb ? value : $"CAST({value} AS jsonb)")}, 'null'::jsonb)";
+        var (left, right) = reversed ? (value, dom) : (dom, value);
+        var nulls = reversed ? $"{value} IS NULL AND {domNull}" : $"{domNull} AND {value} IS NULL";
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({nulls})
+""");
+    }
+
+    [Theory]
     [InlineData(false, false, "NullableCustomer", "Missing")]
     [InlineData(false, true, "NullableCustomer", "Missing")]
     [InlineData(true, false, "NullableCustomer", "Missing")]
@@ -2321,6 +2473,8 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["Age"] = 25,
                         ["StringAge"] = "25",
                         ["Timestamp"] = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567),
+                        ["Duration"] = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567)),
+                        ["TimestampOffset"] = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)).AddTicks(1234567),
                         ["NullableArray"] = null!,
                         ["Collections"] = new Dictionary<string, int[]> { ["Array"] = null! },
                         ["NullableName"] = null!,
@@ -2334,6 +2488,8 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["Age"] = 25,
                         ["StringAge"] = "25",
                         ["Timestamp"] = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567),
+                        ["Duration"] = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567)),
+                        ["TimestampOffset"] = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)).AddTicks(1234567),
                         ["NullableArray"] = null!,
                         ["Collections"] = new Dictionary<string, int[]> { ["Array"] = null! },
                         ["NullableName"] = null!,

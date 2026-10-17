@@ -130,6 +130,57 @@ ORDER BY j."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Boxed_serialized_json_composition(bool jsonb, bool coalesce, bool nullable)
+    {
+        using var ctx = CreateContext();
+        var serialized = """{"Age":25}""";
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = (jsonb, coalesce, nullable) switch
+        {
+            (true, false, _) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJsonb : (object)EF.Parameter(serialized)),
+            (false, false, _) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJson : (object)EF.Parameter(serialized)),
+            (true, true, false) => entities.Select(e => (object)e.CustomerJsonb ?? (object)EF.Parameter(serialized)),
+            (false, true, false) => entities.Select(e => (object)e.CustomerJson ?? (object)EF.Parameter(serialized)),
+            (true, true, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJsonb : null) ?? (object)EF.Parameter(serialized)),
+            (false, true, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJson : null) ?? (object)EF.Parameter(serialized))
+        };
+
+        var values = query.ToArray();
+        Assert.All(values, value => Assert.IsType<string>(value));
+        using var first = JsonDocument.Parse((string)values[0]);
+        using var second = JsonDocument.Parse((string)values[1]);
+        Assert.Equal(25, first.RootElement.GetProperty("Age").GetInt32());
+        Assert.Equal(coalesce && !nullable ? 35 : 25, second.RootElement.GetProperty("Age").GetInt32());
+
+        var column = $"j.\"{(jsonb ? "CustomerJsonb" : "CustomerJson")}\"";
+        var fallback = $"@serialized::{(jsonb ? "jsonb" : "json")}";
+        var conditional = $"""
+CASE
+    WHEN j."Id" = 1 THEN {column}
+{(nullable ? "" : $"    ELSE {fallback}\n")}END
+""";
+        var projection = (coalesce, nullable) switch
+        {
+            (false, _) => conditional,
+            (true, false) => column,
+            (true, true) => $"COALESCE({conditional}, @serialized)"
+        };
+        AssertSql(
+            (coalesce && !nullable ? "" : $"@serialized='{{\"Age\":25}}'{(coalesce ? " (DbType = Object)" : "")}\n\n") + $"""
+SELECT {projection}
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
     #region Functions
 
     [Fact]

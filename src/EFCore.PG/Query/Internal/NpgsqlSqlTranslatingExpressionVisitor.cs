@@ -87,7 +87,10 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         if ((Unbox(sqlIfTrue!).TypeMapping as NpgsqlJsonTypeMapping ?? Unbox(sqlIfFalse!).TypeMapping as NpgsqlJsonTypeMapping)
             is { } jsonMapping)
         {
-            var resultMapping = _jsonPocoTranslator.FindJsonMapping(conditionalExpression.Type, jsonMapping.StoreType);
+            var trueType = Unbox(sqlIfTrue!).Type;
+            var falseType = Unbox(sqlIfFalse!).Type;
+            var resultMapping = _jsonPocoTranslator.FindJsonMapping(
+                trueType == falseType ? trueType : conditionalExpression.Type, jsonMapping.StoreType);
             sqlIfTrue = ConvertToJson(sqlIfTrue!, resultMapping);
             sqlIfFalse = ConvertToJson(sqlIfFalse!, resultMapping);
         }
@@ -393,19 +396,22 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 typeof(JsonElement),
                 jsonbMapping);
 
-            // Compare JSON values without losing their types, treating missing values and JSON null alike.
+            // Preserve DOM JSON null values while normalizing values that materialize as CLR null.
             SqlExpression Normalize(SqlExpression expression)
             {
                 var jsonValue = expression is { TypeMapping: NpgsqlJsonTypeMapping } and not SqlConstantExpression
                     ? expression
                     : ConvertToJson(expression, objectMapping);
-                return _sqlExpressionFactory.Function(
-                    "NULLIF",
-                    [_sqlExpressionFactory.Convert(jsonValue, typeof(JsonElement), jsonbMapping), jsonNull],
-                    nullable: true,
-                    argumentsPropagateNullability: [false, false],
-                    typeof(JsonElement),
-                    jsonbMapping);
+                jsonValue = _sqlExpressionFactory.Convert(jsonValue, typeof(JsonElement), jsonbMapping);
+                return expression.TypeMapping is NpgsqlJsonTypeMapping && !JsonNullIsClrNull(expression)
+                    ? jsonValue
+                    : _sqlExpressionFactory.Function(
+                        "NULLIF",
+                        [jsonValue, jsonNull],
+                        nullable: true,
+                        argumentsPropagateNullability: [false, false],
+                        typeof(JsonElement),
+                        jsonbMapping);
             }
 
             left = Normalize(left);
@@ -426,7 +432,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         left = Unbox(left);
         right = Unbox(right);
         var jsonMapping = (left.TypeMapping as NpgsqlJsonTypeMapping ?? right.TypeMapping as NpgsqlJsonTypeMapping)!;
-        var mapping = _jsonPocoTranslator.FindJsonMapping(type, jsonMapping.StoreType);
+        var mapping = _jsonPocoTranslator.FindJsonMapping(left.Type == right.Type ? left.Type : type, jsonMapping.StoreType);
 
         return _sqlExpressionFactory.Coalesce(
             ConvertToJson(NormalizeJsonNull(left), mapping),
@@ -439,9 +445,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         expression = Unbox(expression);
         if (expression is SqlParameterExpression parameter
             && (expression.Type == typeof(DateTime)
+                || expression.Type == typeof(DateTimeOffset)
+                || expression.Type == typeof(TimeSpan)
                 || expression.TypeMapping is null && _typeMappingSource.FindMapping(expression.Type, Dependencies.Model) is null))
         {
-            // Serialize unmapped parameters and preserve DateTime.Kind and sub-microsecond precision.
+            // Serialize unmapped and temporal parameters without changing their JSON representation.
             return parameter.ApplyTypeMapping(mapping);
         }
 
