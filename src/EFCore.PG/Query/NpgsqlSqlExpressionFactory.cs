@@ -816,10 +816,27 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
                     $"Incorrect {nameof(operatorType)} for {nameof(pgBinaryExpression)}: {operatorType}");
         }
 
+        // Preserve the element converter and store type, but give each operand a converter for its own CLR collection type.
+        // Other concrete collection parameters are materialized to List<T> before conversion in EF8; keep their existing mapping.
+        // Converter-free mappings can keep using the original array/list parameter without copying.
         return new PgBinaryExpression(
             operatorType,
-            ApplyTypeMapping(left, inferredTypeMapping),
-            ApplyTypeMapping(right, inferredTypeMapping),
+            ApplyTypeMapping(
+                left,
+                inferredTypeMapping is NpgsqlArrayTypeMapping { Converter: not null } leftArrayMapping
+                    && left.Type != leftArrayMapping.ClrType
+                    && (left.Type.IsArrayOrGenericList() || left.Type.IsInterface)
+                    ? _typeMappingSource.FindCollectionMapping(
+                        leftArrayMapping.StoreType, left.Type, leftArrayMapping.ElementTypeMapping)
+                    : inferredTypeMapping),
+            ApplyTypeMapping(
+                right,
+                inferredTypeMapping is NpgsqlArrayTypeMapping { Converter: not null } rightArrayMapping
+                    && right.Type != rightArrayMapping.ClrType
+                    && (right.Type.IsArrayOrGenericList() || right.Type.IsInterface)
+                    ? _typeMappingSource.FindCollectionMapping(
+                        rightArrayMapping.StoreType, right.Type, rightArrayMapping.ElementTypeMapping)
+                    : inferredTypeMapping),
             resultType,
             resultTypeMapping ?? _typeMappingSource.FindMapping(resultType));
 
