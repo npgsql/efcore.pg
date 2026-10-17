@@ -808,10 +808,13 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             return QueryCompilationContext.NotTranslatedExpression;
         }
 
-        var stringTypeMapping = ExpressionExtensions.InferTypeMapping(translatedInstance, translatedPattern);
+        var stringTypeMapping = translatedPattern.Type == typeof(char)
+            ? translatedInstance.TypeMapping ?? _typeMappingSource.FindMapping(typeof(string))
+            : ExpressionExtensions.InferTypeMapping(translatedInstance, translatedPattern);
 
         translatedInstance = _sqlExpressionFactory.ApplyTypeMapping(translatedInstance, stringTypeMapping);
-        translatedPattern = _sqlExpressionFactory.ApplyTypeMapping(translatedPattern, stringTypeMapping);
+        translatedPattern = _sqlExpressionFactory.ApplyTypeMapping(
+            translatedPattern, translatedPattern.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
 
         switch (translatedPattern)
         {
@@ -819,7 +822,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             {
                 // The pattern is constant. Aside from null and empty string, we escape all special characters (%, _, \) and send a
                 // simple LIKE
-                return patternConstant.Value switch
+                return patternConstant.Value?.ToString() switch
                 {
                     null => _sqlExpressionFactory.Like(
                         translatedInstance,
@@ -841,35 +844,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                                 StartsEndsWithContains.Contains => $"%{EscapeLikePattern(s)}%",
 
                                 _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-                            })),
-
-                    char s when !IsLikeWildChar(s)
-                        => _sqlExpressionFactory.Like(
-                            translatedInstance,
-                            _sqlExpressionFactory.Constant(
-                                methodType switch
-                                {
-                                    StartsEndsWithContains.StartsWith => s + "%",
-                                    StartsEndsWithContains.EndsWith => "%" + s,
-                                    StartsEndsWithContains.Contains => $"%{s}%",
-
-                                    _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-                                })),
-
-                    char s => _sqlExpressionFactory.Like(
-                        translatedInstance,
-                        _sqlExpressionFactory.Constant(
-                            methodType switch
-                            {
-                                StartsEndsWithContains.StartsWith => LikeEscapeChar + s + "%",
-                                StartsEndsWithContains.EndsWith => "%" + LikeEscapeChar + s,
-                                StartsEndsWithContains.Contains => $"%{LikeEscapeChar}{s}%",
-
-                                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-                            }),
-                        _sqlExpressionFactory.Constant(LikeEscapeChar)),
-
-                    _ => throw new UnreachableException()
+                            }))
                 };
             }
 
@@ -959,7 +934,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         QueryContext queryContext,
         string baseParameterName,
         StartsEndsWithContains methodType)
-        => queryContext.Parameters[baseParameterName] switch
+        => queryContext.Parameters[baseParameterName]?.ToString() switch
         {
             null => null,
 
@@ -973,25 +948,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 StartsEndsWithContains.EndsWith => '%' + EscapeLikePattern(s),
                 StartsEndsWithContains.Contains => $"%{EscapeLikePattern(s)}%",
                 _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-            },
-
-            char s when !IsLikeWildChar(s) => methodType switch
-            {
-                StartsEndsWithContains.StartsWith => s + "%",
-                StartsEndsWithContains.EndsWith => "%" + s,
-                StartsEndsWithContains.Contains => $"%{s}%",
-                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-            },
-
-            char s => methodType switch
-            {
-                StartsEndsWithContains.StartsWith => LikeEscapeChar + s + "%",
-                StartsEndsWithContains.EndsWith => "%" + LikeEscapeChar + s,
-                StartsEndsWithContains.Contains => $"%{LikeEscapeChar}{s}%",
-                _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-            },
-
-            _ => throw new UnreachableException()
+            }
         };
 
     /// <summary>

@@ -57,6 +57,62 @@ WHERE m."TimeSpanAsTime" = @timeSpan
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void String_functions_with_char_columns(bool parameterize)
+    {
+        using var context = CreateContext();
+        context.Database.CreateExecutionStrategy().Execute(
+            () =>
+            {
+                using var transaction = context.Database.BeginTransaction();
+                context.Set<MappedNullableDataTypes>().Add(
+                    new MappedNullableDataTypes { Int = 1001, CharAsText = 'e', CharAsVarchar = 'x' });
+                context.SaveChanges();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var value = "Seattle";
+                var query = context.Set<MappedNullableDataTypes>().Where(e => e.Int == 1001);
+                var result = parameterize
+                    ? query.Select(e => new
+                    {
+                        StartsWith = value.StartsWith(e.CharAsText.Value),
+                        EndsWith = value.EndsWith(e.CharAsText.Value),
+                        Contains = value.Contains(e.CharAsText.Value),
+                        IndexOf = value.IndexOf(e.CharAsText.Value),
+                        Replace = value.Replace(e.CharAsText.Value, e.CharAsVarchar.Value)
+                    }).Single()
+                    : query.Select(e => new
+                    {
+                        StartsWith = "Seattle".StartsWith(e.CharAsText.Value),
+                        EndsWith = "Seattle".EndsWith(e.CharAsText.Value),
+                        Contains = "Seattle".Contains(e.CharAsText.Value),
+                        IndexOf = "Seattle".IndexOf(e.CharAsText.Value),
+                        Replace = "Seattle".Replace(e.CharAsText.Value, e.CharAsVarchar.Value)
+                    }).Single();
+
+                Assert.Equal(new { StartsWith = false, EndsWith = true, Contains = true, IndexOf = 1, Replace = "Sxattlx" }, result);
+
+                AssertSql(
+                    parameterize
+                        ? """
+@value='Seattle'
+
+SELECT m."CharAsText" IS NOT NULL AND left(@value, length(m."CharAsText")) = m."CharAsText" AS "StartsWith", m."CharAsText" IS NOT NULL AND right(@value, length(m."CharAsText")) = m."CharAsText" AS "EndsWith", m."CharAsText" IS NOT NULL AND strpos(@value, m."CharAsText") > 0 AS "Contains", strpos(@value, m."CharAsText") - 1 AS "IndexOf", replace(@value, m."CharAsText", m."CharAsVarchar") AS "Replace"
+FROM "MappedNullableDataTypes" AS m
+WHERE m."Int" = 1001
+LIMIT 2
+"""
+                        : """
+SELECT m."CharAsText" IS NOT NULL AND left('Seattle', length(m."CharAsText")) = m."CharAsText" AS "StartsWith", m."CharAsText" IS NOT NULL AND right('Seattle', length(m."CharAsText")) = m."CharAsText" AS "EndsWith", m."CharAsText" IS NOT NULL AND strpos('Seattle', m."CharAsText") > 0 AS "Contains", strpos('Seattle', m."CharAsText") - 1 AS "IndexOf", replace('Seattle', m."CharAsText", m."CharAsVarchar") AS "Replace"
+FROM "MappedNullableDataTypes" AS m
+WHERE m."Int" = 1001
+LIMIT 2
+""");
+            });
+    }
+
     [Fact]
     public virtual void Can_query_using_any_mapped_data_type()
     {

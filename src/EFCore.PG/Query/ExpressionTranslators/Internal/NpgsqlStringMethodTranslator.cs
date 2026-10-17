@@ -97,15 +97,17 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             case nameof(string.IndexOf) when arguments is [_]:
             {
                 var argument = arguments[0];
-                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, argument);
-                argument = _sqlExpressionFactory.ApplyTypeMapping(argument, argument.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
+                var stringTypeMapping = argument.Type == typeof(char)
+                    ? instance!.TypeMapping ?? _typeMappingSource.FindMapping(typeof(string))
+                    : ExpressionExtensions.InferTypeMapping(instance!, argument);
 
                 return _sqlExpressionFactory.Subtract(
                     _sqlExpressionFactory.Function(
                         "strpos",
                         [
                             _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
-                            _sqlExpressionFactory.ApplyTypeMapping(argument, stringTypeMapping)
+                            _sqlExpressionFactory.ApplyTypeMapping(
+                                argument, argument.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping)
                         ],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
@@ -115,17 +117,17 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 
             case nameof(string.Replace) when arguments is [var oldValue, var newValue]:
             {
-                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, oldValue, newValue);
-
-                oldValue = _sqlExpressionFactory.ApplyTypeMapping(oldValue, oldValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
-                newValue = _sqlExpressionFactory.ApplyTypeMapping(newValue, newValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
+                var stringTypeMapping = oldValue.Type == typeof(char)
+                    ? instance!.TypeMapping ?? _typeMappingSource.FindMapping(typeof(string))
+                    : ExpressionExtensions.InferTypeMapping(instance!, oldValue, newValue);
+                var argumentTypeMapping = oldValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping;
 
                 return _sqlExpressionFactory.Function(
                     "replace",
                     [
                         _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(oldValue, stringTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(newValue, stringTypeMapping)
+                        _sqlExpressionFactory.ApplyTypeMapping(oldValue, argumentTypeMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(newValue, argumentTypeMapping)
                     ],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[3],

@@ -749,6 +749,63 @@ WHERE b."String" LIKE @pattern_contains
 
     #endregion Contains
 
+    [ConditionalFact]
+    public async Task Char_pattern_literals_are_escaped()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Select(b => new
+            {
+                PercentStartsWith = ("%" + b.String).StartsWith('%'),
+                PercentEndsWith = (b.String + "%").EndsWith('%'),
+                PercentContains = (b.String + "%").Contains('%'),
+                UnderscoreStartsWith = ("_" + b.String).StartsWith('_'),
+                UnderscoreEndsWith = (b.String + "_").EndsWith('_'),
+                UnderscoreContains = (b.String + "_").Contains('_'),
+                BackslashStartsWith = ("\\" + b.String).StartsWith('\\'),
+                BackslashEndsWith = (b.String + "\\").EndsWith('\\'),
+                BackslashContains = (b.String + "\\").Contains('\\')
+            }));
+
+        AssertSql(
+            """
+SELECT '%' || b."String" LIKE '\%%' AS "PercentStartsWith", b."String" || '%' LIKE '%\%' AS "PercentEndsWith", b."String" || '%' LIKE '%\%%' AS "PercentContains", '_' || b."String" LIKE '\_%' AS "UnderscoreStartsWith", b."String" || '_' LIKE '%\_' AS "UnderscoreEndsWith", b."String" || '_' LIKE '%\_%' AS "UnderscoreContains", '\' || b."String" LIKE '\\%' AS "BackslashStartsWith", b."String" || '\' LIKE '%\\' AS "BackslashEndsWith", b."String" || '\' LIKE '%\\%' AS "BackslashContains"
+FROM "BasicTypesEntities" AS b
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData('%', @"\%")]
+    [InlineData('_', @"\_")]
+    [InlineData('\\', @"\\")]
+    public async Task Char_pattern_parameter_is_escaped(char pattern, string escapedPattern)
+    {
+        var value = pattern.ToString();
+
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Select(b => new
+            {
+                StartsWith = (EF.Constant(value) + b.String).StartsWith(pattern),
+                EndsWith = (b.String + EF.Constant(value)).EndsWith(pattern),
+                Contains = (b.String + EF.Constant(value)).Contains(pattern)
+            }),
+            ss => ss.Set<BasicTypesEntity>().Select(b => new
+            {
+                StartsWith = (value + b.String).StartsWith(pattern),
+                EndsWith = (b.String + value).EndsWith(pattern),
+                Contains = (b.String + value).Contains(pattern)
+            }));
+
+        AssertSql(
+            $$"""
+@pattern_startswith='{{escapedPattern}}%'
+@pattern_endswith='%{{escapedPattern}}'
+@pattern_contains='%{{escapedPattern}}%'
+
+SELECT '{{pattern}}' || b."String" LIKE @pattern_startswith AS "StartsWith", b."String" || '{{pattern}}' LIKE @pattern_endswith AS "EndsWith", b."String" || '{{pattern}}' LIKE @pattern_contains AS "Contains"
+FROM "BasicTypesEntities" AS b
+""");
+    }
+
     #region TrimStart
 
     public override async Task TrimStart_without_arguments()
