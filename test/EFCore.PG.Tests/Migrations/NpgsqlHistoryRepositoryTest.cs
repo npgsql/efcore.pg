@@ -54,10 +54,10 @@ BEGIN
     IF pg_catalog.to_regclass('"__EFMigrationsHistory"') IS NULL THEN
         BEGIN
             CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
-                "MigrationId" character varying(150) NOT NULL,
-                "ProductVersion" character varying(32) NOT NULL,
-                CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
-            );
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
         EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN
             PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;
         END;
@@ -79,20 +79,20 @@ BEGIN
     IF pg_catalog.to_regclass('my."__EFMigrationsHistory"') IS NULL THEN
         BEGIN
             DO $EF$
-            BEGIN
-                IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'my') THEN
-                    CREATE SCHEMA my;
-                END IF;
-            END $EF$;
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'my') THEN
+        CREATE SCHEMA my;
+    END IF;
+END $EF$;
         EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN
             PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;
         END;
         BEGIN
             CREATE TABLE IF NOT EXISTS my."__EFMigrationsHistory" (
-                "MigrationId" character varying(150) NOT NULL,
-                "ProductVersion" character varying(32) NOT NULL,
-                CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
-            );
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
         EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN
             PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;
         END;
@@ -126,20 +126,20 @@ BEGIN
     IF pg_catalog.to_regclass('some_schema."__EFMigrationsHistory"') IS NULL THEN
         BEGIN
             DO $EF$
-            BEGIN
-                IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
-                    CREATE SCHEMA some_schema;
-                END IF;
-            END $EF$;
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
+        CREATE SCHEMA some_schema;
+    END IF;
+END $EF$;
         EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN
             PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;
         END;
         BEGIN
             CREATE TABLE IF NOT EXISTS some_schema."__EFMigrationsHistory" (
-                "MigrationId" character varying(150) NOT NULL,
-                "ProductVersion" character varying(32) NOT NULL,
-                CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
-            );
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
         EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN
             PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;
         END;
@@ -172,20 +172,20 @@ BEGIN
     IF pg_catalog.to_regclass('some_schema."__EFMigrationsHistory"') IS NULL THEN
         BEGIN
             DO $EF$
-            BEGIN
-                IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
-                    CREATE SCHEMA some_schema;
-                END IF;
-            END $EF$;
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'some_schema') THEN
+        CREATE SCHEMA some_schema;
+    END IF;
+END $EF$;
         EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN
             PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;
         END;
         BEGIN
             CREATE TABLE IF NOT EXISTS some_schema."__EFMigrationsHistory" (
-                "MigrationId" character varying(150) NOT NULL,
-                "ProductVersion" character varying(32) NOT NULL,
-                CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
-            );
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
         EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN
             PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;
         END;

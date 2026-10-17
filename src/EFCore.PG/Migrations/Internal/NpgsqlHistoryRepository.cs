@@ -156,9 +156,7 @@ public class NpgsqlHistoryRepository : HistoryRepository
         // CREATE TABLE IF NOT EXISTS isn't concurrency-safe: concurrent creation can raise duplicate table/object or catalog
         // uniqueness errors. Handle these inside PL/pgSQL exception blocks so only the failed attempt is rolled back.
         // Catching in .NET would leave an enclosing transaction aborted and still log a failed command in EF.
-        var builder = new IndentedStringBuilder()
-            .AppendLine("DO $EFHistory$")
-            .AppendLine("BEGIN");
+        var builder = new IndentedStringBuilder().AppendLine("BEGIN");
 
         using (builder.Indent())
         {
@@ -172,7 +170,8 @@ public class NpgsqlHistoryRepository : HistoryRepository
                     builder.AppendLine("BEGIN");
                     using (builder.Indent())
                     {
-                        builder.AppendLines(command.CommandText.Replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS"));
+                        // Preserve newlines inside quoted identifiers.
+                        builder.AppendLine(command.CommandText.Replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS").TrimEnd());
                     }
 
                     builder.AppendLine("EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN");
@@ -190,7 +189,14 @@ public class NpgsqlHistoryRepository : HistoryRepository
             builder.AppendLine("END IF;");
         }
 
-        return builder.AppendLine("END $EFHistory$;").ToString();
+        var body = builder.Append("END").ToString();
+        var delimiter = "$EFHistory$";
+        for (var suffix = 1; body.Contains(delimiter, StringComparison.Ordinal); suffix++)
+        {
+            delimiter = $"$EFHistory{suffix}$";
+        }
+
+        return $"DO {delimiter}{Environment.NewLine}{body} {delimiter};{Environment.NewLine}";
     }
 
     /// <summary>

@@ -18,15 +18,24 @@ public class NpgsqlHistoryRepositoryTest
     }
 
     [ConditionalTheory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public async Task Creation_in_user_transaction_can_be_rolled_back(bool async, bool script)
+    [InlineData(false, false, "History.Table'\"")]
+    [InlineData(false, true, "History.Table'\"")]
+    [InlineData(true, false, "History.Table'\"")]
+    [InlineData(true, true, "History.Table'\"")]
+    [InlineData(false, false, "History$EFHistory$")]
+    [InlineData(false, true, "History$EFHistory$")]
+    [InlineData(true, false, "History$EFHistory$")]
+    [InlineData(true, true, "History$EFHistory$")]
+    [InlineData(false, false, "History\nTable")]
+    [InlineData(false, true, "History\nTable")]
+    [InlineData(true, false, "History\nTable")]
+    [InlineData(true, true, "History\nTable")]
+    [InlineData(true, true, "History$EFHistory$$EFHistory1$")]
+    public async Task Creation_in_user_transaction_can_be_rolled_back(bool async, bool script, string tableName)
     {
         await using var store = NpgsqlTestStore.Create("HistoryRepositoryTransaction");
         using var logger = new ListLoggerFactory();
-        await using var context = CreateContext(store, "history.schema'\"", "History.Table'\"", logger);
+        await using var context = CreateContext(store, "history.schema'\"", tableName, logger);
         var history = context.GetService<IHistoryRepository>();
         await context.Database.EnsureDeletedAsync();
         await context.GetService<IRelationalDatabaseCreator>().CreateAsync();
