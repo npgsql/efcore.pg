@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Microsoft.EntityFrameworkCore.Query;
@@ -153,6 +155,163 @@ WHERE EXISTS (
             public int Id { get; set; }
             public List<string> Tags { get; set; } = [];
             public List<string> Labels { get; set; } = [];
+        }
+    }
+
+    [ConditionalTheory]
+    [InlineData(nameof(Context3805.Entity.Array), "array")]
+    [InlineData(nameof(Context3805.Entity.Array), "list")]
+    [InlineData(nameof(Context3805.Entity.Array), "immutable")]
+    [InlineData(nameof(Context3805.Entity.Array), "set")]
+    [InlineData(nameof(Context3805.Entity.Array), "enumerable")]
+    [InlineData(nameof(Context3805.Entity.List), "array")]
+    [InlineData(nameof(Context3805.Entity.List), "list")]
+    [InlineData(nameof(Context3805.Entity.List), "immutable")]
+    [InlineData(nameof(Context3805.Entity.List), "set")]
+    [InlineData(nameof(Context3805.Entity.List), "enumerable")]
+    [InlineData(nameof(Context3805.Entity.ReadOnly), "array")]
+    [InlineData(nameof(Context3805.Entity.ReadOnly), "list")]
+    [InlineData(nameof(Context3805.Entity.ReadOnly), "immutable")]
+    [InlineData(nameof(Context3805.Entity.ReadOnly), "set")]
+    [InlineData(nameof(Context3805.Entity.ReadOnly), "enumerable")]
+    public virtual async Task Intersect_any_with_element_converter_and_different_collection_types(
+        string propertyName,
+        string parameterType)
+    {
+        var contextFactory = await InitializeAsync<Context3805>(
+            seed: context => context.Database.ExecuteSqlRawAsync(
+                """
+INSERT INTO "Entities" ("Id", "Array", "List", "ReadOnly")
+VALUES (1, ARRAY[42]::bigint[], ARRAY[42]::bigint[], ARRAY[42]::bigint[]),
+       (2, ARRAY[99]::bigint[], ARRAY[99]::bigint[], ARRAY[99]::bigint[]),
+       (3, ARRAY[]::bigint[], ARRAY[]::bigint[], ARRAY[]::bigint[])
+"""));
+
+        await using var context = contextFactory.CreateContext();
+
+        IEnumerable<Context3805.WrappedId> values = parameterType switch
+        {
+            "array" => new Context3805.WrappedId[] { new(42) },
+            "list" => new List<Context3805.WrappedId> { new(42) },
+            "immutable" => ImmutableList.Create(new Context3805.WrappedId(42)),
+            "set" => new HashSet<Context3805.WrappedId> { new(42) },
+            "enumerable" => new[] { new Context3805.WrappedId(42) }.Where(_ => true),
+            _ => throw new ArgumentOutOfRangeException(nameof(parameterType))
+        };
+
+        var result = await context.Entities
+            .Where(e => EF.Property<IEnumerable<Context3805.WrappedId>>(e, propertyName).Intersect(values).Any())
+            .Select(e => e.Id).ToArrayAsync();
+        var reversed = await context.Entities
+            .Where(e => values.Intersect(EF.Property<IEnumerable<Context3805.WrappedId>>(e, propertyName)).Any())
+            .Select(e => e.Id).ToArrayAsync();
+
+        Assert.Equal([1], result);
+        Assert.Equal([1], reversed);
+
+        AssertSql(
+            $$"""
+@values={ '42' } (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."{{propertyName}}" && @values
+""",
+            //
+            $$"""
+@values={ '42' } (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE @values && e."{{propertyName}}"
+""");
+    }
+
+    protected class Context3805(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities => Set<Entity>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Entity>().PrimitiveCollection(e => e.Array).ElementType().HasConversion<WrappedIdConverter>();
+            modelBuilder.Entity<Entity>().PrimitiveCollection(e => e.List).ElementType().HasConversion<WrappedIdConverter>();
+            modelBuilder.Entity<Entity>().PrimitiveCollection(e => e.ReadOnly).ElementType().HasConversion<WrappedIdConverter>();
+        }
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public WrappedId[] Array { get; set; } = [];
+            public List<WrappedId> List { get; set; } = [];
+            public ReadOnlyCollection<WrappedId> ReadOnly { get; set; } = new([]);
+        }
+
+        public readonly record struct WrappedId(long Value);
+
+        private class WrappedIdConverter() : ValueConverter<WrappedId, long>(v => v.Value, v => new WrappedId(v));
+    }
+
+    [ConditionalTheory]
+    [InlineData(nameof(Context3805Ranges.Entity.Ranges))]
+    [InlineData(nameof(Context3805Ranges.Entity.RangeList))]
+    public virtual async Task Intersect_any_with_range_array_and_list_parameter(string propertyName)
+    {
+        var contextFactory = await InitializeAsync<Context3805Ranges>(
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new Context3805Ranges.Entity { Id = 1, Ranges = [new(1, true, 5, false)], RangeList = [new(1, true, 5, false)] },
+                    new Context3805Ranges.Entity { Id = 2, Ranges = [new(10, true, 15, false)], RangeList = [new(10, true, 15, false)] },
+                    new Context3805Ranges.Entity { Id = 3, Ranges = [], RangeList = [] });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateContext();
+        List<NpgsqlRange<int>> ranges = [new(1, true, 5, false)];
+
+        var result = await context.Entities
+            .Where(e => EF.Property<IEnumerable<NpgsqlRange<int>>>(e, propertyName).Intersect(ranges).Any())
+            .Select(e => e.Id).ToArrayAsync();
+        var reversed = await context.Entities
+            .Where(e => ranges.Intersect(EF.Property<IEnumerable<NpgsqlRange<int>>>(e, propertyName)).Any())
+            .Select(e => e.Id).ToArrayAsync();
+
+        Assert.Equal([1], result);
+        Assert.Equal([1], reversed);
+
+        AssertSql(
+            $$"""
+@ranges={ '[1,5)' } (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."{{propertyName}}" && @ranges
+""",
+            //
+            $$"""
+@ranges={ '[1,5)' } (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE @ranges && e."{{propertyName}}"
+""");
+    }
+
+    protected class Context3805Ranges(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities => Set<Entity>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Entity>().PrimitiveCollection(e => e.Ranges).HasColumnType("int4range[]");
+            modelBuilder.Entity<Entity>().PrimitiveCollection(e => e.RangeList).HasColumnType("int4range[]");
+        }
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public NpgsqlRange<int>[] Ranges { get; set; } = [];
+            public IList<NpgsqlRange<int>> RangeList { get; set; } = [];
         }
     }
 }
