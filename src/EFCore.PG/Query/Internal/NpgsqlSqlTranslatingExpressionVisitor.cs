@@ -96,7 +96,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 _ when trueType == falseType => trueType,
                 _ => conditionalExpression.Type
             };
-            var resultMapping = _jsonPocoTranslator.FindJsonMapping(resultType, jsonMapping.StoreType);
+            var resultMapping = jsonMapping.ClrType == resultType
+                ? jsonMapping
+                : _jsonPocoTranslator.FindJsonMapping(resultType, jsonMapping.StoreType);
             sqlIfTrue = ConvertToJson(sqlIfTrue!, resultMapping);
             sqlIfFalse = ConvertToJson(sqlIfFalse!, resultMapping);
         }
@@ -438,7 +440,10 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         left = Unbox(left);
         right = Unbox(right);
         var jsonMapping = (left.TypeMapping as NpgsqlJsonTypeMapping ?? right.TypeMapping as NpgsqlJsonTypeMapping)!;
-        var mapping = _jsonPocoTranslator.FindJsonMapping(left.Type == right.Type ? left.Type : type, jsonMapping.StoreType);
+        var resultType = left.Type == right.Type ? left.Type : type;
+        var mapping = jsonMapping.ClrType == resultType
+            ? jsonMapping
+            : _jsonPocoTranslator.FindJsonMapping(resultType, jsonMapping.StoreType);
 
         return _sqlExpressionFactory.Coalesce(
             ConvertToJson(NormalizeJsonNull(left), mapping),
@@ -453,10 +458,16 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             && (expression.Type == typeof(DateTime)
                 || expression.Type == typeof(DateTimeOffset)
                 || expression.Type == typeof(TimeSpan)
-                || expression.TypeMapping is null && _typeMappingSource.FindMapping(expression.Type, Dependencies.Model) is null))
+                || (expression.TypeMapping ?? _typeMappingSource.FindMapping(expression.Type, Dependencies.Model))
+                    is null or NpgsqlHstoreTypeMapping))
         {
-            // Serialize unmapped and temporal parameters without changing their JSON representation.
+            // Serialize temporal and non-scalar parameters through the requested JSON mapping.
             return parameter.ApplyTypeMapping(mapping);
+        }
+
+        if (expression is { TypeMapping: NpgsqlIntervalTypeMapping } and not SqlConstantExpression)
+        {
+            throw new InvalidOperationException("Converting PostgreSQL interval expressions to JSON is not supported.");
         }
 
         if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression
@@ -523,7 +534,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     }
 
     private SqlExpression NormalizeJsonNull(SqlExpression expression)
-        // JSON null materializes as CLR null for POCOs and containers, but not for DOM or serialized-string mappings.
+        // Converters reading serialized strings must retain JSON null for the converter to interpret.
         => JsonNullIsClrNull(expression)
             ? _sqlExpressionFactory.Case(
                 [
@@ -536,7 +547,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             : expression;
 
     private static bool JsonNullIsClrNull(SqlExpression expression)
-        => expression.TypeMapping is NpgsqlJsonTypeMapping
+        => expression.TypeMapping is NpgsqlJsonTypeMapping mapping
+            && mapping.Converter?.ProviderClrType != typeof(string)
             && expression.Type.UnwrapNullableType() is var type
             && type != typeof(string) && type != typeof(JsonElement) && type != typeof(JsonDocument);
 
@@ -793,13 +805,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 if (translatedJson is { TypeMapping: not (NpgsqlJsonTypeMapping or NpgsqlStructuralJsonTypeMapping) }
                     && translatedJson.Type != typeof(string))
                 {
-                    translatedJson = _sqlExpressionFactory.Function(
-                        "to_jsonb",
-                        [translatedJson],
-                        nullable: true,
-                        argumentsPropagateNullability: TrueArrays[1],
-                        typeof(JsonElement),
-                        _typeMappingSource.FindMapping("jsonb"));
+                    translatedJson = ConvertToJson(translatedJson, _jsonPocoTranslator.FindJsonMapping(typeof(object), "jsonb"));
                 }
 
                 return translatedJson is null

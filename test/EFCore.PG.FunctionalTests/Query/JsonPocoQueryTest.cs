@@ -1298,6 +1298,21 @@ LIMIT 2
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_interval_expression_comparison_not_supported(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Duration"] == (object)(TimeSpan)e.JsonbDictionary["Duration"])
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Duration"] == (object)(TimeSpan)e.JsonDictionary["Duration"]);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
+        Assert.Equal("Converting PostgreSQL interval expressions to JSON is not supported.", exception.Message);
+        AssertSql();
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -2121,6 +2136,55 @@ ORDER BY d."Id" NULLS FIRST
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
+    public void Dictionary_indexer_string_dictionary_parameter_projection(bool jsonb, bool coalesce)
+    {
+        using var ctx = CreateContext();
+        var fallback = new Dictionary<string, string> { ["Name"] = "Fallback" };
+        var query = (jsonb, coalesce) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? (object)EF.Parameter(fallback) : e.JsonbDictionary["Name"]),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? (object)EF.Parameter(fallback) : e.JsonDictionary["Name"]),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.JsonbDictionary["NullableName"] ?? (object)EF.Parameter(fallback)),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.JsonDictionary["NullableName"] ?? (object)EF.Parameter(fallback))
+        };
+
+        var values = query.ToArray();
+        Assert.Equal("Fallback", Assert.IsType<JsonElement>(values[0]).GetProperty("Name").GetString());
+        Assert.Equal("Moe", Assert.IsType<JsonElement>(values[1]).GetString());
+
+        var column = $"d.\"{(jsonb ? "JsonbDictionary" : "JsonDictionary")}\"";
+        var projection = coalesce
+            ? $"""
+COALESCE(CASE
+    WHEN {column} ->> 'NullableName' IS NULL THEN NULL
+    ELSE {column} -> 'NullableName'
+END, @fallback)
+"""
+            : $"""
+CASE
+    WHEN d."Id" = 1 THEN @fallback
+    ELSE {column} -> 'Name'
+END
+""";
+        AssertSql(
+            $$"""
+@fallback='{"Name":"Fallback"}' (Nullable = true) (DbType = Object)
+
+SELECT {{projection}}
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
     public void Dictionary_indexer_compare_typed_container_null(bool jsonb, bool notEqual)
     {
         using var ctx = CreateContext();
@@ -2410,6 +2474,36 @@ WHERE JSON_EXISTS(d."DictionaryInterface" ->> 'Serialized', '$.Age')
 SELECT count(*)::int
 FROM "DictionaryEntities" AS d
 WHERE JSON_EXISTS(to_jsonb(CAST(d."ReadOnlyDictionary" ->> 'Age' AS integer)), '$')
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [MinimumPostgresVersion(17, 0)]
+    public void Dictionary_indexer_JsonPathExists_binary(bool jsonb, bool objectValue)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, objectValue) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => EF.Functions.JsonPathExists(e.JsonbBinaryDictionary["Payload"], "$ ? (@ == \"AQID\")")),
+            (false, false) => ctx.DictionaryEntities.Where(e => EF.Functions.JsonPathExists(e.JsonBinaryDictionary["Payload"], "$ ? (@ == \"AQID\")")),
+            (true, true) => ctx.DictionaryEntities.Where(e => EF.Functions.JsonPathExists((byte[])e.JsonbDictionary["Payload"], "$ ? (@ == \"AQID\")")),
+            (false, true) => ctx.DictionaryEntities.Where(e => EF.Functions.JsonPathExists((byte[])e.JsonDictionary["Payload"], "$ ? (@ == \"AQID\")"))
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var column = $"{(jsonb ? "Jsonb" : "Json")}{(objectValue ? "" : "Binary")}Dictionary";
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE JSON_EXISTS(to_jsonb(replace(encode(decode(d."{column}" ->> 'Payload', 'base64'), 'base64'), '
+', '')), '$ ? (@ == "AQID")')
+LIMIT 2
 """);
     }
 

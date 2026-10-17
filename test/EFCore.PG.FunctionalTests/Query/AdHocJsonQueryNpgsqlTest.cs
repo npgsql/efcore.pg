@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 #pragma warning disable EF8001 // ToJson on owned entities is obsolete
 
 namespace Microsoft.EntityFrameworkCore.Query;
@@ -75,6 +77,72 @@ LIMIT 2
 """);
         }
     }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Converted_json_composition(bool jsonb, bool coalesce)
+    {
+        var contextFactory = await InitializeNonSharedTest<ConvertedJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<ConvertedJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json")
+                .HasConversion(value => value.Json, value => new JsonWrapper(value)),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new ConvertedJsonEntity { Id = 1, Payload = new JsonWrapper("""{"Age":25}""") },
+                    new ConvertedJsonEntity { Id = 2 },
+                    new ConvertedJsonEntity { Id = 3, Payload = new JsonWrapper("null") });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var fallback = new JsonWrapper("""{"Age":99}""");
+        var entities = context.Entities.OrderBy(e => e.Id);
+        var query = coalesce
+            ? entities.Select(e => e.Payload ?? EF.Parameter(fallback))
+            : entities.Select(e => e.Id == 2 ? EF.Parameter(fallback) : e.Payload);
+
+        var values = await query.ToArrayAsync();
+        using var first = JsonDocument.Parse(values[0].Json);
+        using var second = JsonDocument.Parse(values[1].Json);
+        using var third = JsonDocument.Parse(values[2].Json);
+        Assert.Equal(25, first.RootElement.GetProperty("Age").GetInt32());
+        Assert.Equal(99, second.RootElement.GetProperty("Age").GetInt32());
+        Assert.Equal(JsonValueKind.Null, third.RootElement.ValueKind);
+
+        var projection = coalesce
+            ? """COALESCE(e."Payload", @fallback)"""
+            : """
+CASE
+    WHEN e."Id" = 2 THEN @fallback
+    ELSE e."Payload"
+END
+""";
+        AssertSql(
+            $$"""
+@fallback='{"Age":99}' (DbType = Object)
+
+SELECT {{projection}}
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    protected class ConvertedJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<ConvertedJsonEntity> Entities { get; set; }
+    }
+
+    public class ConvertedJsonEntity
+    {
+        public int Id { get; set; }
+        public JsonWrapper Payload { get; set; }
+    }
+
+    public record JsonWrapper(string Json);
 
     protected class TypesDbContext(DbContextOptions options) : DbContext(options)
     {
