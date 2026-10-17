@@ -1921,6 +1921,52 @@ LIMIT 2
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_conditional_null_projection(bool jsonb, bool objectValue)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, objectValue) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 2 ? null : (object)e.NestedDictionary["Customer"]),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 2 ? null : (object)e.JsonNestedDictionary["Customer"]),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 2 ? null : e.JsonbDictionary["Customer"]),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 2 ? null : e.JsonDictionary["Customer"])
+        };
+
+        var values = query.ToArray();
+        Assert.Equal(
+            25,
+            objectValue
+                ? Assert.IsType<JsonElement>(values[0]).GetProperty("Age").GetInt32()
+                : Assert.IsType<Dictionary<string, int>>(values[0])["Age"]);
+        Assert.Null(values[1]);
+
+        var column = (jsonb, objectValue) switch
+        {
+            (true, false) => "NestedDictionary",
+            (false, false) => "JsonNestedDictionary",
+            (true, true) => "JsonbDictionary",
+            (false, true) => "JsonDictionary"
+        };
+        AssertSql(
+            $"""
+SELECT CASE
+    WHEN d."Id" = 2 THEN NULL
+    ELSE d."{column}" -> 'Customer'
+END
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
     [InlineData(false, false, false)]
     [InlineData(false, false, true)]
     [InlineData(false, true, false)]

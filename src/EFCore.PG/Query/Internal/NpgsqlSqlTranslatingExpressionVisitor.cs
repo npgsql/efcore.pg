@@ -89,8 +89,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         {
             var trueType = Unbox(sqlIfTrue!).Type;
             var falseType = Unbox(sqlIfFalse!).Type;
-            var resultMapping = _jsonPocoTranslator.FindJsonMapping(
-                trueType == falseType ? trueType : conditionalExpression.Type, jsonMapping.StoreType);
+            var resultType = (sqlIfTrue, sqlIfFalse) switch
+            {
+                (SqlConstantExpression { Value: null }, _) => falseType,
+                (_, SqlConstantExpression { Value: null }) => trueType,
+                _ when trueType == falseType => trueType,
+                _ => conditionalExpression.Type
+            };
+            var resultMapping = _jsonPocoTranslator.FindJsonMapping(resultType, jsonMapping.StoreType);
             sqlIfTrue = ConvertToJson(sqlIfTrue!, resultMapping);
             sqlIfFalse = ConvertToJson(sqlIfFalse!, resultMapping);
         }

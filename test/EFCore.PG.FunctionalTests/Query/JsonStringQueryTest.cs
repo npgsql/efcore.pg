@@ -181,6 +181,40 @@ ORDER BY j."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Boxed_serialized_json_conditional_null(bool jsonb, bool reversed)
+    {
+        using var ctx = CreateContext();
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = (jsonb, reversed) switch
+        {
+            (true, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJsonb : null),
+            (false, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJson : null),
+            (true, true) => entities.Select(e => e.Id == 2 ? null : (object)e.CustomerJsonb),
+            (false, true) => entities.Select(e => e.Id == 2 ? null : (object)e.CustomerJson)
+        };
+
+        var values = query.ToArray();
+        using var document = JsonDocument.Parse(Assert.IsType<string>(values[0]));
+        Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        Assert.Null(values[1]);
+
+        var column = $"j.\"{(jsonb ? "CustomerJsonb" : "CustomerJson")}\"";
+        AssertSql(
+            $"""
+SELECT CASE
+    WHEN j."Id" = {(reversed ? 2 : 1)} THEN {(reversed ? "NULL" : column)}
+{(reversed ? $"    ELSE {column}\n" : "")}END
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
     #region Functions
 
     [Fact]
