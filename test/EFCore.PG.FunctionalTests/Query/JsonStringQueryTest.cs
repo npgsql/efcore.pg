@@ -91,6 +91,45 @@ LIMIT 2
 """);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Conditional_serialized_json(bool jsonb, bool constant)
+    {
+        using var ctx = CreateContext();
+        var serialized = """{"Age":25}""";
+        var query = (jsonb, constant) switch
+        {
+            (true, false) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJsonb : EF.Parameter(serialized)),
+            (false, false) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJson : EF.Parameter(serialized)),
+            (true, true) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJsonb : EF.Constant(serialized)),
+            (false, true) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJson : EF.Constant(serialized))
+        };
+
+        foreach (var value in query.ToArray())
+        {
+            using var document = JsonDocument.Parse(value);
+            Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        }
+
+        var fallback = $"""{(constant ? """'{"Age":25}'""" : "@serialized")}::{(jsonb ? "jsonb" : "json")}""";
+        AssertSql(
+            (constant ? "" : "@serialized='{\"Age\":25}'\n\n") + $"""
+SELECT CASE
+    WHEN j."Id" = 1 THEN j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"
+    ELSE {fallback}
+END
+FROM "JsonEntities" AS j
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
     #region Functions
 
     [Fact]

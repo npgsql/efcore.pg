@@ -1190,6 +1190,140 @@ ORDER BY d."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_timestamp_comparison(bool jsonb, bool constant)
+    {
+        using var ctx = CreateContext();
+        var timestamp = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567);
+        var query = (jsonb, constant) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Timestamp"] == (object)EF.Parameter(timestamp)),
+            (false, false) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Timestamp"] == (object)EF.Parameter(timestamp)),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Timestamp"] == (object)EF.Constant(timestamp)),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Timestamp"] == (object)EF.Constant(timestamp))
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Timestamp'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var right = $"""NULLIF({(constant ? """'"2020-01-01T10:30:45.1234567Z"'""" : "@timestamp")}, 'null'::jsonb)""";
+        AssertSql(
+            (constant ? "" : "@timestamp='2020-01-01T10:30:45.1234567Z' (DbType = Object)\n\n") + $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_timestamp_expression_projection(bool jsonb, bool missing)
+    {
+        using var ctx = CreateContext();
+        var key = missing ? "Missing" : "Timestamp";
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonbDictionary["Timestamp"] : (object)((DateTime)e.JsonbDictionary[key]).AddSeconds(1))
+            : ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonDictionary["Timestamp"] : (object)((DateTime)e.JsonDictionary[key]).AddSeconds(1));
+
+        Assert.Equal(
+            ["2020-01-01T10:30:45.1234567Z", missing ? null : "1990-03-03T17:10:16.123456Z"],
+            query.ToArray().Select(v => v is null ? null : Assert.IsType<JsonElement>(v).GetString()));
+
+        var column = $"d.\"{(jsonb ? "JsonbDictionary" : "JsonDictionary")}\"";
+        AssertSql(
+            $$"""
+SELECT CASE
+    WHEN d."Id" = 1 THEN {{column}} -> 'Timestamp'
+    ELSE {{(jsonb ? "to_jsonb" : "to_json")}}(regexp_replace(to_jsonb((CAST({{column}} ->> '{{key}}' AS timestamp with time zone) + INTERVAL '1 secs') AT TIME ZONE 'UTC') #>> '{}', '$', 'Z'))
+END
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_document_root_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => ((JsonDocument)e.JsonbDictionary["Name"]).RootElement)
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => ((JsonDocument)e.JsonDictionary["Name"]).RootElement);
+
+        Assert.Equal(["Joe", "Moe"], query.ToArray().Select(v => v.GetString()));
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Dictionary_indexer_nullable_collection_projection(bool jsonb, bool typed, bool list)
+    {
+        using var ctx = CreateContext();
+        if (list)
+        {
+            var query = (jsonb, typed) switch
+            {
+                (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (List<int>)e.JsonbDictionary["NullableArray"]),
+                (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (List<int>)e.JsonDictionary["NullableArray"]),
+                (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => ((Dictionary<string, List<int>>)e.JsonbDictionary["Collections"])["Array"]),
+                (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => ((Dictionary<string, List<int>>)e.JsonDictionary["Collections"])["Array"])
+            };
+            var values = query.ToArray();
+            Assert.Null(values[0]);
+            Assert.Equal([3, 4], values[1]);
+        }
+        else
+        {
+            var query = (jsonb, typed) switch
+            {
+                (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (int[])e.JsonbDictionary["NullableArray"]),
+                (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (int[])e.JsonDictionary["NullableArray"]),
+                (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => ((Dictionary<string, int[]>)e.JsonbDictionary["Collections"])["Array"]),
+                (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => ((Dictionary<string, int[]>)e.JsonDictionary["Collections"])["Array"])
+            };
+            var values = query.ToArray();
+            Assert.Null(values[0]);
+            Assert.Equal([3, 4], values[1]);
+        }
+
+        var path = typed ? """#> '{Collections,Array}'""" : """-> 'NullableArray'""";
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" {path}
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
     [Fact]
     public void Dictionary_indexer_interface()
     {
@@ -2053,6 +2187,9 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["Name"] = "Joe",
                         ["Age"] = 25,
                         ["StringAge"] = "25",
+                        ["Timestamp"] = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567),
+                        ["NullableArray"] = null!,
+                        ["Collections"] = new Dictionary<string, int[]> { ["Array"] = null! },
                         ["NullableName"] = null!,
                         ["Payload"] = (byte[])[1, 2, 3],
                         ["LongPayload"] = longPayload,
@@ -2063,6 +2200,9 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["Name"] = "Joe",
                         ["Age"] = 25,
                         ["StringAge"] = "25",
+                        ["Timestamp"] = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567),
+                        ["NullableArray"] = null!,
+                        ["Collections"] = new Dictionary<string, int[]> { ["Array"] = null! },
                         ["NullableName"] = null!,
                         ["Payload"] = (byte[])[1, 2, 3],
                         ["LongPayload"] = longPayload,
@@ -2088,6 +2228,9 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["Name"] = "Moe",
                         ["Age"] = 35,
                         ["StringAge"] = "35",
+                        ["Timestamp"] = new DateTime(1990, 3, 3, 17, 10, 15, DateTimeKind.Utc).AddTicks(1234560),
+                        ["NullableArray"] = (int[])[3, 4],
+                        ["Collections"] = new Dictionary<string, int[]> { ["Array"] = [3, 4] },
                         ["NullableName"] = "Moe",
                         ["Payload"] = (byte[])[4, 5, 6],
                         ["LongPayload"] = (byte[])[],
@@ -2098,6 +2241,9 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["Name"] = "Moe",
                         ["Age"] = 35,
                         ["StringAge"] = "35",
+                        ["Timestamp"] = new DateTime(1990, 3, 3, 17, 10, 15, DateTimeKind.Utc).AddTicks(1234560),
+                        ["NullableArray"] = (int[])[3, 4],
+                        ["Collections"] = new Dictionary<string, int[]> { ["Array"] = [3, 4] },
                         ["NullableName"] = "Moe",
                         ["Payload"] = (byte[])[4, 5, 6],
                         ["LongPayload"] = (byte[])[],

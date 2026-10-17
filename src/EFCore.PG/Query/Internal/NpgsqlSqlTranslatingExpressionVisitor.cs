@@ -445,6 +445,40 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     private SqlExpression ConvertToJson(SqlExpression expression, RelationalTypeMapping mapping)
     {
         expression = Unbox(expression);
+        if (expression is SqlParameterExpression parameter && expression.Type == typeof(DateTime))
+        {
+            // Serialize before sending to PostgreSQL, preserving DateTime.Kind and sub-microsecond precision.
+            return _sqlExpressionFactory.Convert(
+                parameter.ApplyTypeMapping(_jsonPocoTranslator.FindJsonMapping(expression.Type, mapping.StoreType)),
+                mapping.ClrType,
+                mapping);
+        }
+
+        if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression
+            && expression.Type == typeof(DateTime))
+        {
+            var textMapping = _typeMappingSource.FindMapping("text")!;
+            var utcJson = _sqlExpressionFactory.Function(
+                "to_jsonb",
+                [_sqlExpressionFactory.AtUtc(expression)],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[1],
+                typeof(JsonElement),
+                _typeMappingSource.FindMapping(typeof(JsonElement), "jsonb"));
+            // Append the serializer's UTC suffix without string concatenation's null-to-empty compensation.
+            expression = _sqlExpressionFactory.Function(
+                "regexp_replace",
+                [
+                    ConvertJsonToScalar(utcJson, typeof(string), textMapping),
+                    _sqlExpressionFactory.Constant("$", textMapping),
+                    _sqlExpressionFactory.Constant("Z", textMapping)
+                ],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[3],
+                typeof(string),
+                textMapping);
+        }
+
         if (expression is { TypeMapping: NpgsqlByteArrayTypeMapping } and not SqlConstantExpression)
         {
             var textMapping = _typeMappingSource.FindMapping("text")!;
@@ -471,6 +505,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 => expression.Type == mapping.ClrType
                     ? expression
                     : _sqlExpressionFactory.Convert(expression, mapping.ClrType, mapping),
+            _ when expression.Type == typeof(string) && mapping.ClrType == typeof(string)
+                => _sqlExpressionFactory.Convert(expression, mapping.ClrType, mapping),
             _ => _sqlExpressionFactory.Function(
                 mapping.StoreType == "jsonb" ? "to_jsonb" : "to_json",
                 [_sqlExpressionFactory.ApplyDefaultTypeMapping(expression)],

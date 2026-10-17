@@ -40,10 +40,17 @@ public class NpgsqlJsonDomTranslator(
         }
 
         if (member.Name == nameof(JsonDocument.RootElement)
-            && instance?.TypeMapping is NpgsqlJsonTypeMapping)
+            && instance?.TypeMapping is NpgsqlJsonTypeMapping mapping)
         {
-            // Simply get rid of the RootElement member access
-            return instance;
+            var elementMapping = _typeMappingSource.FindMapping(typeof(JsonElement), mapping.StoreType)!;
+            return instance switch
+            {
+                PgJsonTraversalExpression traversal => _sqlExpressionFactory.JsonTraversal(
+                    traversal.Expression, traversal.Path, returnsText: false, typeof(JsonElement), elementMapping),
+                ColumnExpression column => new ColumnExpression(
+                    column.Name, column.TableAlias, typeof(JsonElement), elementMapping, column.IsNullable),
+                _ => _sqlExpressionFactory.Convert(instance, typeof(JsonElement), elementMapping)
+            };
         }
 
         return null;
