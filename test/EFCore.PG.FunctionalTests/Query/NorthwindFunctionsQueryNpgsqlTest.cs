@@ -381,6 +381,24 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public Task PadLeft_with_parameter_does_not_truncate(bool async)
+    {
+        var length = 5;
+
+        return AssertQuery(
+            async,
+            ss => ss.Set<Customer>()
+                .Where(x => x.Address == "Walserweg 21")
+                .Select(x => new
+                {
+                    DefaultPadding = x.Address.PadLeft(length),
+                    ExplicitPadding = x.Address.PadLeft(length, '0'),
+                    Padded = x.Address.PadLeft(20, '0')
+                }));
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public Task PadLeft_char_with_parameter(bool async)
     {
         var length = 20;
@@ -413,6 +431,24 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST
         return AssertQuery(
             async,
             ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")));
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public Task PadRight_with_parameter_does_not_truncate(bool async)
+    {
+        var length = 5;
+
+        return AssertQuery(
+            async,
+            ss => ss.Set<Customer>()
+                .Where(x => x.Address == "Walserweg 21")
+                .Select(x => new
+                {
+                    DefaultPadding = x.Address.PadRight(length),
+                    ExplicitPadding = x.Address.PadRight(length, '0'),
+                    Padded = x.Address.PadRight(20, '0')
+                }));
     }
 
     [ConditionalTheory]
