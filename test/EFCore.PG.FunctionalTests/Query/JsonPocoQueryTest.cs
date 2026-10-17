@@ -47,8 +47,36 @@ public class JsonPocoQueryTest : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFi
             """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE NULLIF(j."Customer", 'null'::jsonb) = NULLIF('{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-0000-000000000000","is_vip":false,"Statistics":null,"Orders":null,"VariousTypes":null}'::jsonb, 'null'::jsonb) OR (NULLIF(j."Customer", 'null'::jsonb) IS NULL AND NULLIF('{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-0000-000000000000","is_vip":false,"Statistics":null,"Orders":null,"VariousTypes":null}'::jsonb, 'null'::jsonb) IS NULL)
+WHERE j."Customer" = '{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-0000-000000000000","is_vip":false,"Statistics":null,"Orders":null,"VariousTypes":null}'
 """);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Literal_uses_jsonb_index(bool reversed)
+    {
+        await using var ctx = CreateContext();
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
+        await ctx.Database.ExecuteSqlRawAsync(
+            """CREATE INDEX "IX_JsonbEntities_Customer_Literal" ON "JsonbEntities" ("Customer")""");
+        await ctx.Database.ExecuteSqlRawAsync("SET LOCAL enable_seqscan = off");
+
+        var query = reversed
+            ? ctx.JsonbEntities.Where(e => new Customer { Name = "Test customer", Age = 80 } == e.Customer)
+            : ctx.JsonbEntities.Where(e => e.Customer == new Customer { Name = "Test customer", Age = 80 });
+
+        await using var command = ctx.Database.GetDbConnection().CreateCommand();
+        command.Transaction = transaction.GetDbTransaction();
+        command.CommandText = "EXPLAIN " + query.ToQueryString();
+        await using var reader = await command.ExecuteReaderAsync();
+        List<string> plan = [];
+        while (await reader.ReadAsync())
+        {
+            plan.Add(reader.GetString(0));
+        }
+
+        Assert.Contains(plan, line => line.Contains("Index Cond:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -1594,6 +1622,62 @@ SELECT CASE
     WHEN d."Id" = 1 THEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Age'
     ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
 END
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_conditional_mixed_typed_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? (object)e.NestedDictionary["Customer"] : (object)e.Name)
+            : ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? (object)e.JsonNestedDictionary["Customer"] : (object)e.Name);
+
+        var values = query.ToArray();
+        Assert.Equal(25, Assert.IsType<Dictionary<string, int>>(values[0])["Age"]);
+        Assert.Equal("Moe", Assert.IsType<string>(values[1]));
+
+        AssertSql(
+            $"""
+SELECT d."Id" = 1, d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'Customer', d."Name"
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_coalesce_mixed_typed_projection(bool jsonb, bool boxFallback)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, boxFallback) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (object)e.NestedDictionary["NullableCustomer"] ?? e.Name),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (object)e.JsonNestedDictionary["NullableCustomer"] ?? e.Name),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (object)e.NestedDictionary["NullableCustomer"] ?? (object)e.Name),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (object)e.JsonNestedDictionary["NullableCustomer"] ?? (object)e.Name)
+        };
+
+        var values = query.ToArray();
+        Assert.Equal("Joe", Assert.IsType<string>(values[0]));
+        Assert.Equal(35, Assert.IsType<Dictionary<string, int>>(values[1])["Age"]);
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'NullableCustomer', d."Name"
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);

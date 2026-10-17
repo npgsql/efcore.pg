@@ -96,6 +96,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 _ when trueType == falseType => trueType,
                 _ => conditionalExpression.Type
             };
+            if (resultType == typeof(object) && trueType != typeof(object) && falseType != typeof(object))
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
             var resultMapping = jsonMapping.ClrType == resultType
                 ? jsonMapping
                 : _jsonPocoTranslator.FindJsonMapping(resultType, jsonMapping.StoreType);
@@ -274,6 +279,19 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             binaryExpression.NodeType != ExpressionType.ArrayIndex,
             "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. Should never see ArrayIndex.");
 
+        // Check before base translation can erase a boxed JSON operand's mapping.
+        if (binaryExpression.NodeType == ExpressionType.Coalesce && binaryExpression.Type == typeof(object))
+        {
+            var left = RemoveObjectConvert(binaryExpression.Left);
+            var right = RemoveObjectConvert(binaryExpression.Right);
+            if (left.Type != right.Type && left.Type != typeof(object) && right.Type != typeof(object)
+                && (Visit(left) is SqlExpression { TypeMapping: NpgsqlJsonTypeMapping }
+                    || Visit(right) is SqlExpression { TypeMapping: NpgsqlJsonTypeMapping }))
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+        }
+
         // We pattern match date subtraction before calling base.VisitBinary() as that would produce the default a - b translation, but that
         // yields the number of days as an integer; this is incompatible with the .NET side, where LocalDate - LocalDate = Period, and Period
         // is mapped to PG interval. So we override subtraction to add make_interval.
@@ -381,6 +399,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         var left = Unbox(comparison.Left);
         var right = Unbox(comparison.Right);
 
+        // Keep ordinary column indexes usable when a JSON literal needs no null compensation.
+        if (comparison.OperatorType == ExpressionType.Equal
+            && (CanCompareDirectly(left, right) || CanCompareDirectly(right, left)))
+        {
+            translation = _sqlExpressionFactory.Equal(left, right);
+            return true;
+        }
+
         if (right is SqlConstantExpression { Value: null } && JsonNullIsClrNull(left))
         {
             var textMapping = _typeMappingSource.FindMapping("text")!;
@@ -433,6 +459,17 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
         translation = _sqlExpressionFactory.MakeBinary(comparison.OperatorType, left, right, typeMapping: null);
         return translation is not null;
+
+        static bool CanCompareDirectly(SqlExpression column, SqlExpression literal)
+            => column is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping { IsJsonb: true, Converter: null } }
+                && column.Type != typeof(object)
+                && literal is SqlConstantExpression
+                {
+                    Value: not null,
+                    TypeMapping: NpgsqlJsonTypeMapping { IsJsonb: true, Converter: null }
+                } constant
+                && constant.Type == column.Type
+                && JsonSerializer.SerializeToElement(constant.Value).ValueKind != JsonValueKind.Null;
     }
 
     private SqlExpression TranslateJsonCoalesce(SqlExpression left, SqlExpression right, Type type)
