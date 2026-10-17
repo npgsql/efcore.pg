@@ -1096,7 +1096,7 @@ public static class NpgsqlPropertyExtensions
     /// <param name="property">The property.</param>
     /// <returns>The included property names, or <c>null</c> if this is not a Generated tsvector column.</returns>
     public static IReadOnlyList<string>? GetTsVectorProperties(this IReadOnlyProperty property)
-        => (string[]?)property[NpgsqlAnnotationNames.TsVectorProperties];
+        => (IReadOnlyList<string>?)property[NpgsqlAnnotationNames.TsVectorProperties];
 
     /// <summary>
     ///     Sets the properties included in this generated tsvector property, or <c>null</c> to make this a regular,
