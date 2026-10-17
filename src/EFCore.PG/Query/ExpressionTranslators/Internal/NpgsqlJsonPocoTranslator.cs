@@ -122,8 +122,8 @@ public class NpgsqlJsonPocoTranslator(
                 // Type mapping not found - this isn't a scalar
                 null => expression,
 
-                // Arrays are dealt with as JSON arrays, not array scalars
-                NpgsqlArrayTypeMapping => expression,
+                // Arrays and dictionaries remain JSON containers rather than PostgreSQL array/hstore scalars.
+                NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping => expression,
 
                 // Text types don't a a conversion to string
                 { StoreTypeNameBase: "text" or "varchar" or "char" } => expression,

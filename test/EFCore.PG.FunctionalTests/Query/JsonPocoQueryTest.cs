@@ -877,6 +877,111 @@ LIMIT 2
 """);
     }
 
+    [Fact]
+    public void Dictionary_indexer_nested_string()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(1, ctx.DictionaryEntities.Where(e => e.NestedStringDictionary["Customer"]["Name"] == "Joe").Select(e => e.Id).Single());
+
+        AssertSql(
+            """
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."NestedStringDictionary" #>> '{Customer,Name}' = 'Joe'
+LIMIT 2
+""");
+    }
+
+    [Fact]
+    public void Dictionary_indexer_dictionary_projection()
+    {
+        using var ctx = CreateContext();
+
+        var dictionaries = ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.NestedDictionary["Customer"]).ToArray();
+
+        Assert.Equal([25, 35], dictionaries.Select(d => d["Age"]));
+
+        AssertSql(
+            """
+SELECT d."NestedDictionary"
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Fact]
+    public void Dictionary_indexer_string_dictionary_projection()
+    {
+        using var ctx = CreateContext();
+
+        var dictionaries = ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.NestedStringDictionary["Customer"]).ToArray();
+
+        Assert.Equal(["Joe", "Moe"], dictionaries.Select(d => d["Name"]));
+
+        AssertSql(
+            """
+SELECT d."NestedStringDictionary"
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_object_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => new { Name = e.JsonbDictionary["Name"], Age = e.JsonbDictionary["Age"] })
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => new { Name = e.JsonDictionary["Name"], Age = e.JsonDictionary["Age"] });
+
+        var values = query.ToArray();
+
+        Assert.Equal(["Joe", "Moe"], values.Select(v => Assert.IsType<JsonElement>(v.Name).GetString()));
+        Assert.Equal([25, 35], values.Select(v => Assert.IsType<JsonElement>(v.Age).GetInt32()));
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}"
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Fact]
+    public void Dictionary_indexer_JsonTypeof()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(2, ctx.DictionaryEntities.Count(e => EF.Functions.JsonTypeof(e.NestedStringDictionary["Customer"]) == "object"));
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "DictionaryEntities" AS d
+WHERE jsonb_typeof(d."NestedStringDictionary" -> 'Customer') = 'object'
+""");
+    }
+
+    [Fact]
+    [MinimumPostgresVersion(17, 0)]
+    public void Dictionary_indexer_JsonPathExists()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(2, ctx.DictionaryEntities.Count(e => EF.Functions.JsonPathExists(e.NestedDictionary["Customer"], "$.Age")));
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "DictionaryEntities" AS d
+WHERE JSON_EXISTS(d."NestedDictionary" ->> 'Customer', '$.Age')
+""");
+    }
+
     #endregion Dictionaries
 
     #region Support
@@ -919,7 +1024,8 @@ LIMIT 2
                     JsonDictionary = new() { ["Name"] = "Joe", ["Age"] = 25 },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Joe" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 25 },
-                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 } }
+                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 } },
+                    NestedStringDictionary = new() { ["Customer"] = new() { ["Name"] = "Joe" } }
                 },
                 new DictionaryEntity
                 {
@@ -928,7 +1034,8 @@ LIMIT 2
                     JsonDictionary = new() { ["Name"] = "Moe", ["Age"] = 35 },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Moe" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 35 },
-                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 } }
+                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 } },
+                    NestedStringDictionary = new() { ["Customer"] = new() { ["Name"] = "Moe" } }
                 });
 
             await context.SaveChangesAsync();
@@ -1042,6 +1149,9 @@ LIMIT 2
 
         [Column(TypeName = "jsonb")]
         public required Dictionary<string, Dictionary<string, int>> NestedDictionary { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public required Dictionary<string, Dictionary<string, string>> NestedStringDictionary { get; set; }
     }
 
     public class JsonbEntity

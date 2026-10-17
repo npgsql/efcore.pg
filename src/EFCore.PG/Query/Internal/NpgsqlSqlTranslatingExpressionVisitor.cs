@@ -49,6 +49,20 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 ? array
                 : base.VisitExtension(extensionExpression);
 
+    /// <inheritdoc />
+#pragma warning disable EF1001 // TranslateProjection() is pubternal
+    public override Expression? TranslateProjection(Expression expression, bool applyDefaultTypeMapping = true)
+    {
+        var translation = base.TranslateProjection(expression, applyDefaultTypeMapping);
+
+        // Keep non-scalar JSON projections on the client so they retain JSON deserialization.
+        return translation is PgJsonTraversalExpression { ReturnsText: true }
+            && expression.Type != typeof(string)
+                ? null
+                : translation;
+    }
+#pragma warning restore EF1001
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -383,7 +397,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                     && asQueryable.IsGenericMethod
                     && asQueryable.GetGenericMethodDefinition() == QueryableMethods.AsQueryable
                         ? Visit(collection)
-                        : TranslateProjection(argument, applyDefaultTypeMapping: false);
+                        : base.TranslateProjection(argument, applyDefaultTypeMapping: false);
 #pragma warning restore EF1001
 
                 var jsonQuery = projection switch
@@ -515,7 +529,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 }
 
 #pragma warning disable EF1001 // TranslateProjection() is pubternal
-                var translatedJson = TranslateProjection(json) switch
+                var translatedJson = base.TranslateProjection(json) switch
                 {
                     // The JSON argument is a scalar string property
                     SqlExpression scalar => scalar,
