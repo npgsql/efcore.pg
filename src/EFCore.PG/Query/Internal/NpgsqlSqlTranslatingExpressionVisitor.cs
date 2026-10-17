@@ -55,9 +55,10 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     {
         var translation = base.TranslateProjection(expression, applyDefaultTypeMapping);
 
-        // Keep non-scalar JSON projections on the client so they retain JSON deserialization.
-        return translation is PgJsonTraversalExpression { ReturnsText: true }
-            && expression.Type != typeof(string)
+        // Text-valued translations cannot materialize non-string projections, including composed JSON traversals.
+        return translation is SqlExpression { Type: var translatedType }
+            && translatedType == typeof(string)
+            && expression.Type != translatedType
                 ? null
                 : translation;
     }
@@ -528,9 +529,18 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                     return QueryCompilationContext.NotTranslatedExpression;
                 }
 
+                var jsonType = json is UnaryExpression { NodeType: ExpressionType.Convert, Operand: var operand }
+                    && json.Type == typeof(object)
+                        ? operand.Type
+                        : json.Type;
+
 #pragma warning disable EF1001 // TranslateProjection() is pubternal
                 var translatedJson = base.TranslateProjection(json) switch
                 {
+                    PgJsonTraversalExpression { ReturnsText: true } traversal when jsonType != typeof(string)
+                        => new PgJsonTraversalExpression(
+                            traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping),
+
                     // The JSON argument is a scalar string property
                     SqlExpression scalar => scalar,
 
