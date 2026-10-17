@@ -258,6 +258,70 @@ LIMIT 2
         public TimeSpan Interval { get; set; }
     }
 
+    [ConditionalTheory]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public virtual async Task Owned_collection_with_explicit_column_type(string storeType)
+    {
+        var contextFactory = await InitializeAsync<Context3475>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<Context3475.Entity>()
+                .OwnsMany(e => e.Blogs, b => b.ToJson().HasColumnType(storeType)),
+            seed: async context =>
+            {
+                context.Entities.Add(
+                    new Context3475.Entity
+                    {
+                        Blogs =
+                        [
+                            new() { Title = "First", Content = "First content" },
+                            new() { Title = "Second", Content = "Second content" }
+                        ]
+                    });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateContext();
+
+        var entity = await context.Entities.SingleAsync();
+
+        Assert.Collection(
+            entity.Blogs,
+            b =>
+            {
+                Assert.Equal("First", b.Title);
+                Assert.Equal("First content", b.Content);
+            },
+            b =>
+            {
+                Assert.Equal("Second", b.Title);
+                Assert.Equal("Second content", b.Content);
+            });
+
+        AssertSql(
+            """
+SELECT e."Id", e."Blogs"
+FROM "Entities" AS e
+LIMIT 2
+""");
+    }
+
+    protected class Context3475(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities => Set<Entity>();
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public List<Blog> Blogs { get; set; }
+        }
+
+        public class Blog
+        {
+            public string Title { get; set; }
+            public string Content { get; set; }
+        }
+    }
+
     #region Problematc tests (Unspecified DateTime)
 
     // These tests use a model with a non-UTC DateTime, which isn't supported in PG's timestamp with time zone
