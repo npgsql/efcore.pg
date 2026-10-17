@@ -86,6 +86,36 @@ LIMIT 2
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void Typed_poco_json_null(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var count = jsonb
+            ? ctx.JsonbEntities.FromSqlRaw(
+                    """
+SELECT 3 AS "Id", jsonb_build_object('Statistics', NULL) AS "Customer"
+""")
+                .Count(e => e.Customer.Statistics == null)
+            : ctx.JsonEntities.FromSqlRaw(
+                    """
+SELECT 3 AS "Id", json_build_object('Statistics', NULL) AS "Customer"
+""")
+                .Count(e => e.Customer.Statistics == null);
+
+        Assert.Equal(1, count);
+
+        AssertSql(
+            $"""
+SELECT count(*)::int
+FROM (
+    SELECT 3 AS "Id", {(jsonb ? "jsonb_build_object" : "json_build_object")}('Statistics', NULL) AS "Customer"
+) AS m
+WHERE m."Customer" ->> 'Statistics' IS NULL
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void Output_json_fragments(bool jsonb)
     {
         using var ctx = CreateContext();
@@ -1117,6 +1147,233 @@ ORDER BY d."Id" NULLS FIRST
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_coalesce_scalar_projection(bool jsonb, bool boxed)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, boxed) switch
+        {
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonbDictionary["NullableName"] ?? (object)e.Name),
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonbDictionary["NullableName"] ?? e.Name),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonDictionary["NullableName"] ?? (object)e.Name),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonDictionary["NullableName"] ?? e.Name)
+        };
+
+        Assert.Equal(["Joe", "Moe"], query.ToArray().Select(v => Assert.IsType<JsonElement>(v).GetString()));
+
+        AssertSql(
+            $"""
+SELECT COALESCE(CASE
+    WHEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'NullableName' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName'
+END, {(jsonb ? "to_jsonb" : "to_json")}(d."Name"))
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_coalesce_constant_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonbDictionary["NullableName"] ?? "fallback")
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonDictionary["NullableName"] ?? "fallback");
+
+        Assert.Equal(["fallback", "Moe"], query.ToArray().Select(v => Assert.IsType<JsonElement>(v).GetString()));
+
+        AssertSql(
+            $"""
+SELECT COALESCE(CASE
+    WHEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'NullableName' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName'
+END, '"fallback"')
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_conditional_scalar_projection(bool jsonb, bool reversed)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, reversed) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.Id == 1 ? e.JsonbDictionary["Name"] : (object)e.Name),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.Id == 1 ? (object)e.Name : e.JsonbDictionary["Name"]),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.Id == 1 ? e.JsonDictionary["Name"] : (object)e.Name),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.Id == 1 ? (object)e.Name : e.JsonDictionary["Name"])
+        };
+
+        Assert.Equal(["Joe", "Moe"], query.ToArray().Select(v => Assert.IsType<JsonElement>(v).GetString()));
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'""";
+        var scalar = $"""{(jsonb ? "to_jsonb" : "to_json")}(d."Name")""";
+        AssertSql(
+            $"""
+SELECT CASE
+    WHEN d."Id" = 1 THEN {(reversed ? scalar : traversal)}
+    ELSE {(reversed ? traversal : scalar)}
+END
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, "Name", "NullableName")]
+    [InlineData(false, true, "Name", "NullableName")]
+    [InlineData(true, false, "Name", "NullableName")]
+    [InlineData(true, true, "Name", "NullableName")]
+    [InlineData(false, false, "NullableName", "Missing")]
+    [InlineData(false, true, "NullableName", "Missing")]
+    [InlineData(true, false, "NullableName", "Missing")]
+    [InlineData(true, true, "NullableName", "Missing")]
+    [InlineData(false, false, "Age", "StringAge")]
+    [InlineData(false, true, "Age", "StringAge")]
+    [InlineData(true, false, "Age", "StringAge")]
+    [InlineData(true, true, "Age", "StringAge")]
+    public void Dictionary_indexer_compare_indexers(bool jsonb, bool notEqual, string leftKey, string rightKey)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, notEqual) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary[leftKey] == e.JsonbDictionary[rightKey]),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary[leftKey] != e.JsonbDictionary[rightKey]),
+            (false, false) => ctx.DictionaryEntities.Where(e => e.JsonDictionary[leftKey] == e.JsonDictionary[rightKey]),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary[leftKey] != e.JsonDictionary[rightKey])
+        };
+        int[] expected = (leftKey, notEqual) switch
+        {
+            ("Name", false) or ("NullableName", true) => [2],
+            ("Name", true) or ("NullableName", false) => [1],
+            ("Age", false) => [],
+            ("Age", true) => [1, 2],
+            _ => throw new UnreachableException()
+        };
+
+        Assert.Equal(expected, query.OrderBy(e => e.Id).Select(e => e.Id).ToArray());
+
+        var left = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{leftKey}'""";
+        var right = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{rightKey}'""";
+        if (!jsonb)
+        {
+            left = $"CAST({left} AS jsonb)";
+            right = $"CAST({right} AS jsonb)";
+        }
+
+        left = $"NULLIF({left}, 'null'::jsonb)";
+        right = $"NULLIF({right}, 'null'::jsonb)";
+        var predicate = notEqual
+            ? $"({left} <> {right} OR {left} IS NULL OR {right} IS NULL) AND ({left} IS NOT NULL OR {right} IS NOT NULL)"
+            : $"{left} = {right} OR ({left} IS NULL AND {right} IS NULL)";
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {predicate}
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_coalesce_typed_container(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.NestedDictionary["NullableCustomer"] ?? e.NestedDictionary["Customer"])
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonNestedDictionary["NullableCustomer"] ?? e.JsonNestedDictionary["Customer"]);
+
+        Assert.Equal([25, 35], query.ToArray().Select(d => d["Age"]));
+
+        AssertSql(
+            $"""
+SELECT COALESCE(CASE
+    WHEN d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" ->> 'NullableCustomer' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'NullableCustomer'
+END, d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'Customer')
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_compare_typed_container_null(bool jsonb, bool notEqual)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, notEqual) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => e.NestedDictionary["NullableCustomer"] == null),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.NestedDictionary["NullableCustomer"] != null),
+            (false, false) => ctx.DictionaryEntities.Where(e => e.JsonNestedDictionary["NullableCustomer"] == null),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonNestedDictionary["NullableCustomer"] != null)
+        };
+
+        Assert.Equal(notEqual ? 2 : 1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" ->> 'NullableCustomer' IS {(notEqual ? "NOT NULL" : "NULL")}
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_JsonDom_null_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => (JsonDocument)e.JsonbDictionary["NullableName"] != null).OrderBy(e => e.Id).Select(e => new
+            {
+                Element = (JsonElement)e.JsonbDictionary["NullableName"],
+                Document = (JsonDocument)e.JsonbDictionary["NullableName"]
+            })
+            : ctx.DictionaryEntities.Where(e => (JsonDocument)e.JsonDictionary["NullableName"] != null).OrderBy(e => e.Id).Select(e => new
+            {
+                Element = (JsonElement)e.JsonDictionary["NullableName"],
+                Document = (JsonDocument)e.JsonDictionary["NullableName"]
+            });
+
+        var values = query.ToArray();
+        Assert.Equal(JsonValueKind.Null, values[0].Element.ValueKind);
+        Assert.Equal(JsonValueKind.Null, values[0].Document.RootElement.ValueKind);
+        Assert.Equal("Moe", values[1].Element.GetString());
+        Assert.Equal("Moe", values[1].Document.RootElement.GetString());
+        foreach (var value in values)
+        {
+            value.Document.Dispose();
+        }
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName' AS "Element", d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName' AS "Document"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName' IS NOT NULL
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void Dictionary_indexer_JsonElement_projection(bool jsonb)
@@ -1390,11 +1647,12 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                 {
                     Id = 1,
                     Name = "Joe",
-                    JsonbDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["NullableName"] = null! },
-                    JsonDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["NullableName"] = null! },
+                    JsonbDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["StringAge"] = "25", ["NullableName"] = null! },
+                    JsonDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["StringAge"] = "25", ["NullableName"] = null! },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Joe", ["Serialized"] = """{"Age":25}""" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 25 },
-                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 } },
+                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 }, ["NullableCustomer"] = null! },
+                    JsonNestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 }, ["NullableCustomer"] = null! },
                     NestedStringDictionary = new()
                     {
                         ["Customer"] = new() { ["Name"] = "Joe", [""] = "Joe", ["NULL"] = "Joe", ["null"] = "Joe", ["NuLl"] = "Joe" }
@@ -1404,11 +1662,12 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                 {
                     Id = 2,
                     Name = "Moe",
-                    JsonbDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["NullableName"] = "Moe" },
-                    JsonDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["NullableName"] = "Moe" },
+                    JsonbDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["StringAge"] = "35", ["NullableName"] = "Moe" },
+                    JsonDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["StringAge"] = "35", ["NullableName"] = "Moe" },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Moe", ["Serialized"] = """{"Age":35}""" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 35 },
-                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 } },
+                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 }, ["NullableCustomer"] = new() { ["Age"] = 35 } },
+                    JsonNestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 }, ["NullableCustomer"] = new() { ["Age"] = 35 } },
                     NestedStringDictionary = new()
                     {
                         ["Customer"] = new() { ["Name"] = "Moe", [""] = "Moe", ["NULL"] = "Moe", ["null"] = "Moe", ["NuLl"] = "Moe" }
@@ -1528,6 +1787,9 @@ END, d."JsonbDictionary" -> 'Name'), '$')
 
         [Column(TypeName = "jsonb")]
         public required Dictionary<string, Dictionary<string, int>> NestedDictionary { get; set; }
+
+        [Column(TypeName = "json")]
+        public required Dictionary<string, Dictionary<string, int>> JsonNestedDictionary { get; set; }
 
         [Column(TypeName = "jsonb")]
         public required Dictionary<string, Dictionary<string, string>> NestedStringDictionary { get; set; }

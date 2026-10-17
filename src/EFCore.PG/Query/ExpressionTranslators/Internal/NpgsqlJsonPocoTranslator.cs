@@ -121,15 +121,16 @@ public class NpgsqlJsonPocoTranslator(
                 : _sqlExpressionFactory.Convert(text, returnType, mapping);
         }
 
-        var storeType = root.TypeMapping!.StoreType;
-        mapping = returnType == typeof(object)
+        return _sqlExpressionFactory.JsonTraversal(
+            root, path, returnsText: false, returnType, FindJsonMapping(returnType, root.TypeMapping!.StoreType));
+    }
+
+    internal RelationalTypeMapping FindJsonMapping(Type type, string storeType)
+        => type == typeof(object)
             // Reading JSON as object defaults to string in Npgsql; dictionary values need deserialized JSON instead.
             ? (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(JsonElement), storeType)!
                 .WithComposedConverter(ObjectJsonConverter)
-            : _typeMappingSource.FindMapping(returnType, storeType)!;
-
-        return _sqlExpressionFactory.JsonTraversal(root, path, returnsText: false, returnType, mapping);
-    }
+            : _typeMappingSource.FindMapping(type, storeType)!;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
