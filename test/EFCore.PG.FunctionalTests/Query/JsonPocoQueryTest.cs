@@ -47,7 +47,7 @@ public class JsonPocoQueryTest : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFi
             """
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer" = '{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-0000-000000000000","is_vip":false,"Statistics":null,"Orders":null,"VariousTypes":null}'
+WHERE NULLIF(j."Customer", 'null'::jsonb) = NULLIF('{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-0000-000000000000","is_vip":false,"Statistics":null,"Orders":null,"VariousTypes":null}'::jsonb, 'null'::jsonb) OR (NULLIF(j."Customer", 'null'::jsonb) IS NULL AND NULLIF('{"Name":"Test customer","Age":80,"ID":"00000000-0000-0000-0000-000000000000","is_vip":false,"Statistics":null,"Orders":null,"VariousTypes":null}'::jsonb, 'null'::jsonb) IS NULL)
 """);
     }
 
@@ -76,10 +76,7 @@ LIMIT 1
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE CASE
-    WHEN j."Customer" #>> '{}' IS NULL THEN NULL
-    ELSE j."Customer"
-END = @expected
+WHERE NULLIF(j."Customer", 'null'::jsonb) = NULLIF(@expected, 'null'::jsonb) OR (NULLIF(j."Customer", 'null'::jsonb) IS NULL AND NULLIF(@expected, 'null'::jsonb) IS NULL)
 LIMIT 2
 """);
     }
@@ -1758,6 +1755,147 @@ LIMIT 2
     }
 
     [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Dictionary_indexer_scalar_Equals(bool jsonb, bool parameter, bool instance)
+    {
+        using var ctx = CreateContext();
+        var name = "Joe";
+        var query = (jsonb, parameter, instance) switch
+        {
+            (true, false, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonbDictionary["Name"], "Joe")),
+            (false, false, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonDictionary["Name"], "Joe")),
+            (true, true, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonbDictionary["Name"], EF.Parameter(name))),
+            (false, true, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonDictionary["Name"], EF.Parameter(name))),
+            (true, false, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Name"].Equals("Joe")),
+            (false, false, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Name"].Equals("Joe")),
+            (true, true, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Name"].Equals(EF.Parameter(name))),
+            (false, true, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Name"].Equals(EF.Parameter(name)))
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var right = parameter ? """NULLIF(to_jsonb(@name), 'null'::jsonb)""" : """NULLIF('"Joe"'::jsonb, 'null'::jsonb)""";
+        AssertSql(
+            (parameter ? "@name='Joe'\n\n" : "") + $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Fact]
+    public void Non_json_object_Equals()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(1, ctx.DictionaryEntities.Where(e => object.Equals(e.Name, "Joe")).Select(e => e.Id).Single());
+
+        AssertSql(
+            """
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."Name" = 'Joe'
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, "NullableCustomer", "Missing")]
+    [InlineData(false, true, "NullableCustomer", "Missing")]
+    [InlineData(true, false, "NullableCustomer", "Missing")]
+    [InlineData(true, true, "NullableCustomer", "Missing")]
+    [InlineData(false, false, "Customer", "NullableCustomer")]
+    [InlineData(false, true, "Customer", "NullableCustomer")]
+    [InlineData(true, false, "Customer", "NullableCustomer")]
+    [InlineData(true, true, "Customer", "NullableCustomer")]
+    public void Dictionary_indexer_compare_typed_containers(bool jsonb, bool notEqual, string leftKey, string rightKey)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, notEqual) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => e.NestedDictionary[leftKey] == e.NestedDictionary[rightKey]),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.NestedDictionary[leftKey] != e.NestedDictionary[rightKey]),
+            (false, false) => ctx.DictionaryEntities.Where(e => e.JsonNestedDictionary[leftKey] == e.JsonNestedDictionary[rightKey]),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonNestedDictionary[leftKey] != e.JsonNestedDictionary[rightKey])
+        };
+
+        Assert.Equal((leftKey == "Customer") == notEqual ? 1 : 2, query.Select(e => e.Id).Single());
+
+        var left = $"""d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> '{leftKey}'""";
+        var right = $"""d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> '{rightKey}'""";
+        left = $"NULLIF({(jsonb ? left : $"CAST({left} AS jsonb)")}, 'null'::jsonb)";
+        right = $"NULLIF({(jsonb ? right : $"CAST({right} AS jsonb)")}, 'null'::jsonb)";
+        var predicate = notEqual
+            ? $"({left} <> {right} OR {left} IS NULL OR {right} IS NULL) AND ({left} IS NOT NULL OR {right} IS NOT NULL)"
+            : $"{left} = {right} OR ({left} IS NULL AND {right} IS NULL)";
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {predicate}
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_container_parameter_projection(bool jsonb, bool coalesce)
+    {
+        using var ctx = CreateContext();
+        Dictionary<string, int> fallback = new() { ["Age"] = 99 };
+        var query = (jsonb, coalesce) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? (object)EF.Parameter(fallback) : e.JsonbDictionary["Name"]),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? (object)EF.Parameter(fallback) : e.JsonDictionary["Name"]),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.JsonbDictionary["NullableName"] ?? (object)EF.Parameter(fallback)),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.JsonDictionary["NullableName"] ?? (object)EF.Parameter(fallback))
+        };
+
+        var values = query.ToArray();
+        Assert.Equal(99, Assert.IsType<JsonElement>(values[0]).GetProperty("Age").GetInt32());
+        Assert.Equal("Moe", Assert.IsType<JsonElement>(values[1]).GetString());
+
+        var projection = coalesce
+            ? $"""
+COALESCE(CASE
+    WHEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'NullableName' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName'
+END, @fallback)
+"""
+            : $"""
+CASE
+    WHEN d."Id" = 1 THEN @fallback
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
+END
+""";
+        AssertSql(
+            $$"""
+@fallback='{"Age":99}' (Nullable = true) (DbType = Object)
+
+SELECT {{projection}}
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void Dictionary_indexer_coalesce_typed_container(bool jsonb)
@@ -1810,6 +1948,8 @@ LIMIT 2
     [Theory]
     [InlineData(false, false, false)]
     [InlineData(false, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, true)]
     [InlineData(true, false, false)]
     [InlineData(true, true, false)]
     [InlineData(true, false, true)]
@@ -1828,19 +1968,12 @@ LIMIT 2
 
         Assert.Equal(nonNull == notEqual ? 1 : 2, query.Select(e => e.Id).Single());
 
-        var left = $"""
-CASE
-    WHEN d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" ->> 'NullableCustomer' IS NULL THEN NULL
-    ELSE d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'NullableCustomer'
-END
-""";
-        var predicate = (nonNull, notEqual) switch
-        {
-            (false, false) => $"{left} IS NULL",
-            (false, true) => $"{left} IS NOT NULL",
-            (true, false) => $"{left} = @expected",
-            (true, true) => $"{left} <> @expected OR {left} IS NULL"
-        };
+        var traversal = $"""d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'NullableCustomer'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var right = $"NULLIF({(nonNull ? "@expected" : "NULL")}{(jsonb ? "" : "::jsonb")}, 'null'::jsonb)";
+        var predicate = notEqual
+            ? $"({left} <> {right} OR {left} IS NULL OR {right} IS NULL) AND ({left} IS NOT NULL OR {right} IS NOT NULL)"
+            : $"{left} = {right} OR ({left} IS NULL AND {right} IS NULL)";
         var parameter = nonNull
             ? "@expected='System.Collections.Generic.Dictionary`2[System.String,System.Int32]' (DbType = Object)\n\n"
             : "";

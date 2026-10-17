@@ -382,8 +382,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             left = _sqlExpressionFactory.Constant(null, typeof(string), textMapping);
             right = ConvertJsonToScalar(right, typeof(string), textMapping);
         }
-        else if (left.Type == typeof(object) && left is { TypeMapping: NpgsqlJsonTypeMapping } and not SqlConstantExpression
-            || right.Type == typeof(object) && right is { TypeMapping: NpgsqlJsonTypeMapping } and not SqlConstantExpression)
+        else if (JsonNullIsClrNull(left) && left is not SqlConstantExpression
+            || JsonNullIsClrNull(right) && right is not SqlConstantExpression)
         {
             var jsonbMapping = _typeMappingSource.FindMapping("jsonb")!;
             var objectMapping = _jsonPocoTranslator.FindJsonMapping(typeof(object), "jsonb");
@@ -411,14 +411,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             left = Normalize(left);
             right = Normalize(right);
         }
-        else if (JsonNullIsClrNull(left) && right is SqlParameterExpression)
-        {
-            left = NormalizeJsonNull(left);
-        }
-        else if (JsonNullIsClrNull(right) && left is SqlParameterExpression)
-        {
-            right = NormalizeJsonNull(right);
-        }
         else
         {
             translation = null;
@@ -445,13 +437,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     private SqlExpression ConvertToJson(SqlExpression expression, RelationalTypeMapping mapping)
     {
         expression = Unbox(expression);
-        if (expression is SqlParameterExpression parameter && expression.Type == typeof(DateTime))
+        if (expression is SqlParameterExpression parameter
+            && (expression.Type == typeof(DateTime)
+                || expression.TypeMapping is null && _typeMappingSource.FindMapping(expression.Type, Dependencies.Model) is null))
         {
-            // Serialize before sending to PostgreSQL, preserving DateTime.Kind and sub-microsecond precision.
-            return _sqlExpressionFactory.Convert(
-                parameter.ApplyTypeMapping(_jsonPocoTranslator.FindJsonMapping(expression.Type, mapping.StoreType)),
-                mapping.ClrType,
-                mapping);
+            // Serialize unmapped parameters and preserve DateTime.Kind and sub-microsecond precision.
+            return parameter.ApplyTypeMapping(mapping);
         }
 
         if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression
@@ -691,6 +682,17 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             return Dependencies.MethodCallTranslatorProvider.Translate(
                     Dependencies.Model, null, method, translatedArguments, _queryCompilationContext.Logger)
                 ?? QueryCompilationContext.NotTranslatedExpression;
+        }
+
+        if (declaringType == typeof(object)
+            && method.Name == nameof(object.Equals)
+            && Visit(@object ?? arguments[0]) is SqlExpression equalsLeft
+            && Visit(arguments[^1]) is SqlExpression equalsRight
+            && TryTranslateJsonComparison(
+                new SqlBinaryExpression(ExpressionType.Equal, equalsLeft, equalsRight, typeof(bool), typeMapping: null),
+                out var jsonComparison))
+        {
+            return jsonComparison;
         }
 
         if (base.VisitMethodCall(methodCallExpression) is var translation
