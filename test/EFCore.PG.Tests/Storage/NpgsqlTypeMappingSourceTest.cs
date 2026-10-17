@@ -292,11 +292,15 @@ public class NpgsqlTypeMappingSourceTest
 
     #region JSON
 
-    [Fact]
-    public void Json_structural()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public void Json_structural(string storeType)
     {
-        var mapping = CreateTypeMappingSource().FindMapping(typeof(JsonTypePlaceholder));
-        Assert.Equal("jsonb", mapping.StoreType);
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(JsonTypePlaceholder), storeType);
+        Assert.IsType<NpgsqlStructuralJsonTypeMapping>(mapping);
+        Assert.Equal(storeType ?? "jsonb", mapping.StoreType);
         Assert.Same(typeof(JsonTypePlaceholder), mapping.ClrType);
     }
 
