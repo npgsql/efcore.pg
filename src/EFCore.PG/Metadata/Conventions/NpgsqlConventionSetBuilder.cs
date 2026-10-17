@@ -51,7 +51,9 @@ public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
         conventionSet.ModelInitializedConventions.Add(
             new RelationalMaxIdentifierLengthConvention(63, Dependencies, RelationalDependencies));
 
-        conventionSet.PropertyAddedConventions.Add(new NpgsqlJsonElementHackConvention());
+        var jsonElementHackConvention = new NpgsqlJsonElementHackConvention();
+        conventionSet.PropertyAddedConventions.Add(jsonElementHackConvention);
+        conventionSet.PropertyAnnotationChangedConventions.Add(jsonElementHackConvention);
 
         ValueGenerationConvention valueGenerationConvention = new NpgsqlValueGenerationConvention(Dependencies, RelationalDependencies);
         ReplaceConvention(conventionSet.EntityTypeBaseTypeChangedConventions, valueGenerationConvention);

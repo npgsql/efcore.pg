@@ -96,8 +96,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly NpgsqlJsonTypeMapping _jsonString = new("json", typeof(string));
     private readonly NpgsqlJsonTypeMapping _jsonbDocument = new("jsonb", typeof(JsonDocument));
     private readonly NpgsqlJsonTypeMapping _jsonDocument = new("json", typeof(JsonDocument));
-    private readonly NpgsqlJsonTypeMapping _jsonbElement = new("jsonb", typeof(JsonElement));
-    private readonly NpgsqlJsonTypeMapping _jsonElement = new("json", typeof(JsonElement));
 
     // Date/Time types
     private readonly NpgsqlDateTimeDateTypeMapping _dateDateTime = NpgsqlDateTimeDateTypeMapping.Default;
@@ -236,8 +234,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { "decimal", [_numeric, _bigInteger, _numericAsFloat, _numericAsDouble] },
             { "money", [_money] },
             { "text", [_text] },
-            { "jsonb", [_jsonbString, _jsonbDocument, _jsonbElement] },
-            { "json", [_jsonString, _jsonDocument, _jsonElement] },
+            { "jsonb", [_jsonbString, _jsonbDocument, _jsonbOwned] },
+            { "json", [_jsonString, _jsonDocument, _jsonOwned] },
             { "jsonpath", [_jsonpath] },
             { "xml", [_xml] },
             { "citext", [_citext] },
@@ -314,7 +312,6 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(BigInteger), _bigInteger },
             { typeof(string), _text },
             { typeof(JsonDocument), _jsonbDocument },
-            // { typeof(JsonElement),                         _jsonbElement         },
             { typeof(JsonElement), _jsonbOwned },
             { typeof(char), _singleChar },
             { typeof(DateTime), LegacyTimestampBehavior ? _timestamp : _timestamptz },
