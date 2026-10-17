@@ -439,6 +439,57 @@ LIMIT 2
         public TimeSpan Interval { get; set; }
     }
 
+    [ConditionalTheory]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public virtual async Task Owned_collection_with_explicit_json_column_type(string columnType)
+    {
+        var contextFactory = await InitializeAsync<Context3475>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<Context3475.Entity>()
+                .OwnsMany(e => e.Blogs, b => b.ToJson().HasColumnType(columnType)),
+            seed: async context =>
+            {
+                context.Entities.Add(
+                    new Context3475.Entity { Blogs = [new Context3475.Blog { Title = "Title", Content = "Content" }] });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateContext();
+        var entity = await context.Entities.SingleAsync();
+
+        Assert.Collection(
+            entity.Blogs,
+            blog =>
+            {
+                Assert.Equal("Title", blog.Title);
+                Assert.Equal("Content", blog.Content);
+            });
+
+        AssertSql(
+            """
+SELECT e."Id", e."Blogs"
+FROM "Entities" AS e
+LIMIT 2
+""");
+    }
+
+    protected class Context3475(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities { get; set; }
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public List<Blog> Blogs { get; set; }
+        }
+
+        public class Blog
+        {
+            public string Title { get; set; }
+            public string Content { get; set; }
+        }
+    }
+
     protected void AssertSql(params string[] expected)
         => TestSqlLoggerFactory.AssertBaseline(expected);
 }

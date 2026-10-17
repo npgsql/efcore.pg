@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
@@ -120,6 +121,28 @@ public class NpgsqlTypeMappingSourceTest
         var mapping = CreateTypeMappingSource().FindMapping(clrType);
         Assert.Equal(expectedStoreType, mapping.StoreType);
         Assert.Same(clrType, mapping.ClrType);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public void JsonElement_properties_use_weakly_typed_mapping(string storeType)
+    {
+        var modelBuilder = CreateModelBuilder();
+        var entityBuilder = modelBuilder.Entity("Entity").HasNoKey();
+        entityBuilder.Property<JsonElement>("Json").HasColumnType(storeType);
+        entityBuilder.Property<JsonElement?>("NullableJson").HasColumnType(storeType);
+        entityBuilder.Property<JsonElement>("ReconfiguredJson").HasColumnType("jsonb").HasColumnType("json").HasColumnType(storeType);
+        entityBuilder.Property<JsonElement?>("ReconfiguredNullableJson").HasColumnType("jsonb").HasColumnType("json").HasColumnType(storeType);
+
+        var model = modelBuilder.FinalizeModel();
+
+        foreach (var property in model.FindEntityType("Entity")!.GetProperties())
+        {
+            var mapping = Assert.IsType<NpgsqlJsonTypeMapping>(property.GetTypeMapping());
+            Assert.Equal(storeType ?? "jsonb", mapping.StoreType);
+        }
     }
 
     [Theory]
