@@ -1147,7 +1147,7 @@ WHERE upper(n."Interval") = TIMESTAMPTZ '2018-04-25T10:31:33.666Z'
 
                 AssertSql(
                     """
-SELECT lower(n."Interval") AS "Start", upper(n."Interval") AS "End"
+SELECT lower(n."Interval")::timestamptz AS "Start", upper(n."Interval")::timestamptz AS "End"
 FROM "NodaTimeTypes" AS n
 WHERE lower(n."Interval") IS NULL AND upper(n."Interval") IS NULL
 LIMIT 2
