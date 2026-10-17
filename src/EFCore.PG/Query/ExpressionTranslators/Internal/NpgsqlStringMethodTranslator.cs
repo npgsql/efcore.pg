@@ -211,13 +211,17 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                         ? new SqlExpression[] { instance!, padCount }
                         : new[] { instance!, arguments[0], arguments[1] };
 
-                return _sqlExpressionFactory.Function(
+                var padFunc = _sqlExpressionFactory.Function(
                     method.Name is nameof(string.PadLeft) ? "lpad" : "rpad",
                     args,
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[args.Length],
                     instance!.Type,
                     instance.TypeMapping);
+                var lengthFunc = _sqlExpressionFactory.Function("length", [instance], true, [true], typeof(int));
+                return _sqlExpressionFactory.Case(
+                    [new CaseWhenClause(_sqlExpressionFactory.GreaterThanOrEqual(lengthFunc, arguments[0]), instance)],
+                    padFunc);
             }
 
             case nameof(string.Join)
