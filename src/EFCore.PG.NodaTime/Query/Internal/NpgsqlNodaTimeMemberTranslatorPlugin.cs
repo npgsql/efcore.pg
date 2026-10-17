@@ -159,12 +159,13 @@ public class NpgsqlNodaTimeMemberTranslator(
             _ => null
         };
 
+        // Unbounded intervals have null bounds even when the interval itself isn't null.
         SqlExpression Lower()
             => _sqlExpressionFactory.Function(
                 "lower",
                 [instance],
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
+                argumentsPropagateNullability: [false],
                 typeof(Interval),
                 _typeMappingSource.FindMapping(typeof(Instant)));
 
@@ -173,7 +174,7 @@ public class NpgsqlNodaTimeMemberTranslator(
                 "upper",
                 [instance],
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
+                argumentsPropagateNullability: [false],
                 typeof(Interval),
                 _typeMappingSource.FindMapping(typeof(Instant)));
     }

@@ -47,6 +47,39 @@ WHERE upper(n."Interval") = TIMESTAMPTZ '2018-04-25T10:31:33.666Z'
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Interval_Start_and_End_is_null(bool async)
+    {
+        await using var context = CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.NodaTimeTypes.SingleAsync();
+                entity.Interval = new Interval(null, null);
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = context.NodaTimeTypes
+                    .Select(t => new { Start = (Instant?)t.Interval.Start, End = (Instant?)t.Interval.End })
+                    .Where(t => t.Start == null && t.End == null);
+
+                var result = async ? await query.SingleAsync() : query.Single();
+                Assert.Null(result.Start);
+                Assert.Null(result.End);
+
+                AssertSql(
+                    """
+SELECT lower(n."Interval") AS "Start", upper(n."Interval") AS "End"
+FROM "NodaTimeTypes" AS n
+WHERE lower(n."Interval") IS NULL AND upper(n."Interval") IS NULL
+LIMIT 2
+""");
+            });
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task Interval_HasStart(bool async)
     {
         await AssertQuery(
