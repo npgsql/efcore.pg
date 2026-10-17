@@ -14,14 +14,6 @@ public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTe
         Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", ActiveProvider);
     }
 
-    // See #3407
-    public override void Can_apply_two_migrations_in_transaction()
-        => Assert.ThrowsAny<Exception>(() => base.Can_apply_two_migrations_in_transaction());
-
-    // See #3407
-    public override Task Can_apply_two_migrations_in_transaction_async()
-        => Assert.ThrowsAnyAsync<Exception>(() => base.Can_apply_two_migrations_in_transaction_async());
-
     // This tests uses Fixture.CreateEmptyContext(), which does not go through MigrationsInfrastructureNpgsqlFixture.CreateContext()
     // and therefore does not set the PostgresVersion in the context options. As a result, we try to drop the database with
     // WITH (FORCE), which is only supported starting with PG 13.
