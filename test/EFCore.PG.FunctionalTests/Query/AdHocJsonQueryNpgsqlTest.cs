@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 #pragma warning disable EF8001 // ToJson on owned entities is obsolete
 
 namespace Microsoft.EntityFrameworkCore.Query;
@@ -74,6 +76,103 @@ WHERE (CAST(e."JsonEntity" ->> 'Interval' AS interval)) = INTERVAL '2 02:03:04.1
 LIMIT 2
 """);
         }
+    }
+
+    [ConditionalTheory]
+    [InlineData("jsonb")]
+    [InlineData("json")]
+    public virtual async Task Byte_array_mapped_to_json_column(string storeType)
+    {
+        var contextFactory = await InitializeNonSharedTest<ByteArrayJsonDbContext>(
+            onModelCreating: mb => mb.Entity<ByteArrayJsonEntity>().Property(e => e.Json).HasColumnType(storeType),
+            seed: async context =>
+            {
+                context.Entities.Add(new ByteArrayJsonEntity { Id = 1, Json = """{"Foo":"Bar"}"""u8.ToArray() });
+                await context.SaveChangesAsync();
+
+                // Simulate a JSON document which wasn't written via EF
+                await context.Database.ExecuteSqlRawAsync("""INSERT INTO "Entities" ("Id", "Json") VALUES (2, '{{"Foo":"Baz"}}')""");
+            });
+
+        using var context = contextFactory.CreateDbContext();
+
+        // The byte array must be written as the raw UTF-8 JSON document, and not as a JSON array of byte values
+        Assert.Equal(
+            "Bar",
+            await context.Database.SqlQueryRaw<string>("""SELECT "Json" ->> 'Foo' AS "Value" FROM "Entities" WHERE "Id" = 1""")
+                .SingleAsync());
+
+        var entities = await context.Entities.OrderBy(e => e.Id).ToListAsync();
+
+        Assert.Collection(
+            entities,
+            e => Assert.Equal("Bar", JsonDocument.Parse(e.Json).RootElement.GetProperty("Foo").GetString()),
+            e => Assert.Equal("Baz", JsonDocument.Parse(e.Json).RootElement.GetProperty("Foo").GetString()));
+
+        entities[1].Json = """{"Foo":"Qux"}"""u8.ToArray();
+        await context.SaveChangesAsync();
+
+        Assert.Equal(
+            "Qux",
+            await context.Database.SqlQueryRaw<string>("""SELECT "Json" ->> 'Foo' AS "Value" FROM "Entities" WHERE "Id" = 2""")
+                .SingleAsync());
+    }
+
+    [ConditionalTheory]
+    [InlineData("jsonb")]
+    [InlineData("json")]
+    public virtual async Task Json_aggregate_over_byte_values(string storeType)
+    {
+        var contextFactory = await InitializeNonSharedTest<ByteAggregateDbContext>(
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new ByteAggregateEntity { Id = 1, GroupId = 1, Value = 2 },
+                    new ByteAggregateEntity { Id = 2, GroupId = 1, Value = 1 });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+
+        // json_agg/jsonb_agg return a JSON array, so the byte[] result must contain the aggregated values, and not the raw UTF-8 bytes
+        // of the JSON array text (as with a byte[] property mapped to json/jsonb above)
+        var groups = context.Entities.GroupBy(e => e.GroupId);
+        var values = storeType == "jsonb"
+            ? await groups.Select(g => EF.Functions.JsonbAgg(g.Select(e => e.Value).OrderBy(v => v))).SingleAsync()
+            : await groups.Select(g => EF.Functions.JsonAgg(g.Select(e => e.Value).OrderBy(v => v))).SingleAsync();
+
+        Assert.Equal(new byte[] { 1, 2 }, values);
+
+        AssertSql(
+            $"""
+SELECT {storeType}_agg(e."Value" ORDER BY e."Value" NULLS FIRST)
+FROM "Entities" AS e
+GROUP BY e."GroupId"
+LIMIT 2
+""");
+    }
+
+    protected class ByteArrayJsonDbContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<ByteArrayJsonEntity> Entities { get; set; }
+    }
+
+    public class ByteArrayJsonEntity
+    {
+        public int Id { get; set; }
+        public byte[] Json { get; set; }
+    }
+
+    protected class ByteAggregateDbContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<ByteAggregateEntity> Entities { get; set; }
+    }
+
+    public class ByteAggregateEntity
+    {
+        public int Id { get; set; }
+        public int GroupId { get; set; }
+        public byte Value { get; set; }
     }
 
     protected class TypesDbContext(DbContextOptions options) : DbContext(options)

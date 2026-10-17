@@ -314,6 +314,36 @@ public class NpgsqlTypeMappingSourceTest
     }
 
     [Theory]
+    [InlineData("jsonb")]
+    [InlineData("json")]
+    public void Json_byte_array(string storeType)
+    {
+        // byte[] mapped to json/jsonb is the raw UTF-8 JSON document, not a primitive collection of bytes
+        var mapping = CreateTypeMappingSource().FindMapping(typeof(byte[]), storeType);
+        Assert.IsType<NpgsqlJsonTypeMapping>(mapping);
+        Assert.Equal(storeType, mapping.StoreType);
+        Assert.Same(typeof(byte[]), mapping.ClrType);
+        Assert.Null(mapping.ElementTypeMapping);
+    }
+
+    [Fact]
+    public void Json_byte_array_configured_as_primitive_collection()
+    {
+        var modelBuilder = CreateModelBuilder();
+        modelBuilder.Entity<ByteArrayEntity>().PrimitiveCollection(e => e.Bytes).HasColumnType("jsonb");
+        var model = modelBuilder.FinalizeModel();
+
+        var mapping = model.FindEntityType(typeof(ByteArrayEntity))!.FindProperty(nameof(ByteArrayEntity.Bytes))!
+            .GetRelationalTypeMapping();
+        Assert.Equal("jsonb", mapping.StoreType);
+
+        var elementMapping = (RelationalTypeMapping)mapping.ElementTypeMapping;
+        Assert.NotNull(elementMapping);
+        Assert.Equal("smallint", elementMapping.StoreType);
+        Assert.Same(typeof(byte), elementMapping.ClrType);
+    }
+
+    [Theory]
     [InlineData(typeof(JsonDocument[]))]
     [InlineData(typeof(List<JsonDocument>))]
     [InlineData(typeof(JsonElement[]))]
@@ -463,6 +493,12 @@ public class NpgsqlTypeMappingSourceTest
     private class DummyType;
 
     private class UnknownType;
+
+    private class ByteArrayEntity
+    {
+        public int Id { get; set; }
+        public byte[] Bytes { get; set; }
+    }
 
     protected IModel CreateEmptyModel()
         => CreateModelBuilder().Model.FinalizeModel();

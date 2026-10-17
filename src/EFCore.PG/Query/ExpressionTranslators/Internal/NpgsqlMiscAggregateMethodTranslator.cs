@@ -1,4 +1,5 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -104,7 +105,7 @@ public class NpgsqlMiscAggregateMethodTranslator(
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
                         returnType: method.ReturnType,
-                        _typeMappingSource.FindMapping(method.ReturnType, "json"));
+                        FindJsonArrayMapping(method.ReturnType, "json"));
 
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.JsonbAgg):
                     return _sqlExpressionFactory.AggregateFunction(
@@ -114,7 +115,7 @@ public class NpgsqlMiscAggregateMethodTranslator(
                         nullable: true,
                         argumentsPropagateNullability: FalseArrays[1],
                         returnType: method.ReturnType,
-                        _typeMappingSource.FindMapping(method.ReturnType, "jsonb"));
+                        FindJsonArrayMapping(method.ReturnType, "jsonb"));
 
                 case nameof(NpgsqlAggregateDbFunctionsExtensions.Sum):
                     return _sqlExpressionFactory.AggregateFunction(
@@ -191,4 +192,15 @@ public class NpgsqlMiscAggregateMethodTranslator(
 
         return null;
     }
+
+    // json_agg/jsonb_agg return a JSON array of the aggregated values, so we explicitly request a JSON collection mapping by passing
+    // the element mapping. Without it, byte[] (from JsonAgg<byte>/JsonbAgg<byte>) would get the opaque mapping used for byte[]
+    // properties mapped to json/jsonb, which reads the raw UTF-8 bytes of the JSON array instead of its elements.
+    // If there's no collection mapping for the element type, we fall back to the regular mapping lookup.
+    private RelationalTypeMapping? FindJsonArrayMapping(Type arrayType, string storeType)
+        => _typeMappingSource.FindMapping(arrayType.GetElementType()!) is { } elementMapping
+            && ((NpgsqlTypeMappingSource)_typeMappingSource).FindCollectionMapping(
+                storeType, arrayType, providerClrType: null, elementMapping) is { } collectionMapping
+                ? collectionMapping
+                : _typeMappingSource.FindMapping(arrayType, storeType);
 }
