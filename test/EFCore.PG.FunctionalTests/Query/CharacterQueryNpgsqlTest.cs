@@ -141,6 +141,53 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
         }
     }
 
+    [Theory]
+    [InlineData('e', "Seattle")]
+    [InlineData(' ', "Seattle")]
+    [InlineData(' ', " Seattle ")]
+    public void String_functions_with_char_column(char character, string value)
+    {
+        Fixture.ClearEntities();
+
+        using var context = CreateContext();
+        context.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678", Character = character });
+        context.SaveChanges();
+        Fixture.TestSqlLoggerFactory.Clear();
+
+        var result = context.CharacterTestEntities.Select(e => new
+        {
+            StartsWith = value.StartsWith(e.Character),
+            EndsWith = value.EndsWith(e.Character),
+            Contains = value.Contains(e.Character),
+            IndexOf = value.IndexOf(e.Character),
+            ReplaceOld = value.Replace(e.Character, 'x'),
+            ReplaceNew = value.Replace('e', e.Character)
+        }).Single();
+
+        Assert.Equal(
+            new
+            {
+                StartsWith = value.StartsWith(character),
+                EndsWith = value.EndsWith(character),
+                Contains = value.Contains(character),
+                IndexOf = value.IndexOf(character),
+                ReplaceOld = value.Replace(character, 'x'),
+                ReplaceNew = value.Replace('e', character)
+            },
+            result);
+
+        Fixture.TestSqlLoggerFactory.AssertBaseline(
+            [
+                $$"""
+@value='{{value}}'
+
+SELECT left(@value, length(rpad(c."Character", 1))) = rpad(c."Character", 1) AS "StartsWith", right(@value, length(rpad(c."Character", 1))) = rpad(c."Character", 1) AS "EndsWith", strpos(@value, rpad(c."Character", 1)) > 0 AS "Contains", strpos(@value, rpad(c."Character", 1)) - 1 AS "IndexOf", replace(@value, rpad(c."Character", 1), 'x') AS "ReplaceOld", replace(@value, 'e', rpad(c."Character", 1)) AS "ReplaceNew"
+FROM "CharacterTestEntities" AS c
+LIMIT 2
+"""
+            ]);
+    }
+
     #region Fixture
 
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -178,6 +225,7 @@ public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.C
     {
         public string? Character8 { get; set; }
         public string? Character6 { get; set; }
+        public char Character { get; set; } = ' ';
     }
 
     public class CharacterContext : PoolableDbContext

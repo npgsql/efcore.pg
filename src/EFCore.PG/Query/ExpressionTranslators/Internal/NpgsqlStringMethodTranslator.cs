@@ -106,8 +106,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                         "strpos",
                         [
                             _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
-                            _sqlExpressionFactory.ApplyTypeMapping(
-                                argument, argument.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping)
+                            argument.Type == typeof(char)
+                                ? TranslateCharArgument(argument, _sqlExpressionFactory)
+                                : _sqlExpressionFactory.ApplyTypeMapping(argument, stringTypeMapping)
                         ],
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
@@ -120,14 +121,17 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 var stringTypeMapping = oldValue.Type == typeof(char)
                     ? instance!.TypeMapping ?? _typeMappingSource.FindMapping(typeof(string))
                     : ExpressionExtensions.InferTypeMapping(instance!, oldValue, newValue);
-                var argumentTypeMapping = oldValue.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping;
 
                 return _sqlExpressionFactory.Function(
                     "replace",
                     [
                         _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(oldValue, argumentTypeMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(newValue, argumentTypeMapping)
+                        oldValue.Type == typeof(char)
+                            ? TranslateCharArgument(oldValue, _sqlExpressionFactory)
+                            : _sqlExpressionFactory.ApplyTypeMapping(oldValue, stringTypeMapping),
+                        newValue.Type == typeof(char)
+                            ? TranslateCharArgument(newValue, _sqlExpressionFactory)
+                            : _sqlExpressionFactory.ApplyTypeMapping(newValue, stringTypeMapping)
                     ],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[3],
@@ -328,6 +332,17 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 _typeMappingSource.FindMapping(typeof(DateTime))),
             _ => null,
         };
+
+    // Converting character(1) to text strips spaces; pad back to one character.
+    internal static SqlExpression TranslateCharArgument(SqlExpression argument, ISqlExpressionFactory sqlExpressionFactory)
+        => argument.TypeMapping is NpgsqlCharacterCharTypeMapping { StoreTypeNameBase: "character" or "char" }
+            ? sqlExpressionFactory.Function(
+                "rpad",
+                [argument, sqlExpressionFactory.Constant(1)],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                typeof(string))
+            : sqlExpressionFactory.ApplyTypeMapping(argument, CharTypeMapping.Default);
 
     private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
         => expression is SqlConstantExpression constant

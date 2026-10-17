@@ -813,8 +813,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             : ExpressionExtensions.InferTypeMapping(translatedInstance, translatedPattern);
 
         translatedInstance = _sqlExpressionFactory.ApplyTypeMapping(translatedInstance, stringTypeMapping);
-        translatedPattern = _sqlExpressionFactory.ApplyTypeMapping(
-            translatedPattern, translatedPattern.Type == typeof(char) ? CharTypeMapping.Default : stringTypeMapping);
+        translatedPattern = translatedPattern.Type == typeof(char)
+            ? NpgsqlStringMethodTranslator.TranslateCharArgument(translatedPattern, _sqlExpressionFactory)
+            : _sqlExpressionFactory.ApplyTypeMapping(translatedPattern, stringTypeMapping);
 
         switch (translatedPattern)
         {
