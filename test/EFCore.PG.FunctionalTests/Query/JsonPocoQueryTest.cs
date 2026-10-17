@@ -76,7 +76,10 @@ LIMIT 1
 
 SELECT j."Id", j."Customer", j."ToplevelArray"
 FROM "JsonbEntities" AS j
-WHERE j."Customer" = @expected
+WHERE CASE
+    WHEN j."Customer" #>> '{}' IS NULL THEN NULL
+    ELSE j."Customer"
+END = @expected
 LIMIT 2
 """);
     }
@@ -840,6 +843,31 @@ LIMIT 2
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void Dictionary_indexer_object_forced_constant_comparison(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var name = "Joe";
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Name"] == (object)EF.Constant(name))
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Name"] == (object)EF.Constant(name));
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var left = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'""";
+        left = $"NULLIF({(jsonb ? left : $"CAST({left} AS jsonb)")}, 'null'::jsonb)";
+        const string right = "NULLIF(to_jsonb('Joe'::text), 'null'::jsonb)";
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void Dictionary_indexer_object_int_comparison(bool jsonb)
     {
         using var ctx = CreateContext();
@@ -954,6 +982,94 @@ LIMIT 2
         AssertSql(
             $"""
 SELECT decode(d."{column}" ->> 'Payload', 'base64')
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_binary_parameter_comparison(bool jsonb, bool longPayload)
+    {
+        using var ctx = CreateContext();
+        byte[] payload = longPayload ? [.. Enumerable.Range(0, 80).Select(i => (byte)i)] : [1, 2, 3];
+        var key = longPayload ? "LongPayload" : "Payload";
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary[key] == (object)EF.Parameter(payload))
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary[key] == (object)EF.Parameter(payload));
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var left = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{key}'""";
+        left = $"NULLIF({(jsonb ? left : $"CAST({left} AS jsonb)")}, 'null'::jsonb)";
+        const string right =
+            """
+NULLIF(to_jsonb(replace(encode(@payload, 'base64'), '
+', '')), 'null'::jsonb)
+""";
+        var loggedPayload = longPayload ? "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F..." : "010203";
+
+        AssertSql(
+            $"""
+@payload='0x{loggedPayload}'
+
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_binary_composed_projection(bool jsonb, bool coalesce)
+    {
+        using var ctx = CreateContext();
+        byte[] payload = [.. Enumerable.Range(0, 80).Select(i => (byte)i)];
+        var query = (jsonb, coalesce) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (byte[])(e.Id == 1 ? e.JsonbDictionary["Payload"] : (object)EF.Parameter(payload))),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (byte[])(e.Id == 1 ? e.JsonDictionary["Payload"] : (object)EF.Parameter(payload))),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (byte[])(e.JsonbDictionary["Missing"] ?? (object)EF.Parameter(payload))),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (byte[])(e.JsonDictionary["Missing"] ?? (object)EF.Parameter(payload)))
+        };
+
+        var values = query.ToArray();
+        Assert.Equal<byte>(coalesce ? payload : [1, 2, 3], values[0]);
+        Assert.Equal(payload, values[1]);
+
+        var scalar = $"""
+{(jsonb ? "to_jsonb" : "to_json")}(replace(encode(@payload, 'base64'), '
+', ''))
+""";
+        var projection = coalesce
+            ? $"""
+COALESCE(CASE
+    WHEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Missing' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Missing'
+END, {scalar})
+"""
+            : $"""
+CASE
+    WHEN d."Id" = 1 THEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Payload'
+    ELSE {scalar}
+END
+""";
+        AssertSql(
+            $$"""
+@payload='0x000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F...'
+
+SELECT decode({{projection}} #>> '{}', 'base64')
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
@@ -1366,6 +1482,52 @@ ORDER BY d."Id" NULLS FIRST
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_forced_constant_projection(bool jsonb, bool coalesce)
+    {
+        using var ctx = CreateContext();
+        var guid = Guid.Empty;
+        var query = (jsonb, coalesce) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonbDictionary["Name"] : (object)EF.Constant(guid)),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonDictionary["Name"] : (object)EF.Constant(guid)),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.JsonbDictionary["Missing"] ?? (object)EF.Constant(guid)),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.JsonDictionary["Missing"] ?? (object)EF.Constant(guid))
+        };
+
+        string[] expected = coalesce ? [guid.ToString(), guid.ToString()] : ["Joe", guid.ToString()];
+        Assert.Equal(expected, query.ToArray().Select(v => Assert.IsType<JsonElement>(v).GetString()));
+
+        var scalar = $"""{(jsonb ? "to_jsonb" : "to_json")}('00000000-0000-0000-0000-000000000000'::uuid)""";
+        var projection = coalesce
+            ? $"""
+COALESCE(CASE
+    WHEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Missing' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Missing'
+END, {scalar})
+"""
+            : $"""
+CASE
+    WHEN d."Id" = 1 THEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
+    ELSE {scalar}
+END
+""";
+        AssertSql(
+            $"""
+SELECT {projection}
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
     [InlineData(false, false, "Name", "NullableName")]
     [InlineData(false, true, "Name", "NullableName")]
     [InlineData(true, false, "Name", "NullableName")]
@@ -1423,6 +1585,45 @@ ORDER BY d."Id" NULLS FIRST
     }
 
     [Theory]
+    [InlineData(false, false, "Name", "NullableName")]
+    [InlineData(false, true, "Name", "NullableName")]
+    [InlineData(true, false, "Name", "NullableName")]
+    [InlineData(true, true, "Name", "NullableName")]
+    [InlineData(false, false, "NullableName", "Missing")]
+    [InlineData(false, true, "NullableName", "Missing")]
+    [InlineData(true, false, "NullableName", "Missing")]
+    [InlineData(true, true, "NullableName", "Missing")]
+    public void Dictionary_indexer_object_Equals(bool jsonb, bool notEqual, string leftKey, string rightKey)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, notEqual) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonbDictionary[leftKey], e.JsonbDictionary[rightKey])),
+            (true, true) => ctx.DictionaryEntities.Where(e => !object.Equals(e.JsonbDictionary[leftKey], e.JsonbDictionary[rightKey])),
+            (false, false) => ctx.DictionaryEntities.Where(e => object.Equals(e.JsonDictionary[leftKey], e.JsonDictionary[rightKey])),
+            (false, true) => ctx.DictionaryEntities.Where(e => !object.Equals(e.JsonDictionary[leftKey], e.JsonDictionary[rightKey]))
+        };
+
+        Assert.Equal((leftKey == "Name") == notEqual ? 1 : 2, query.Select(e => e.Id).Single());
+
+        var left = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{leftKey}'""";
+        var right = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{rightKey}'""";
+        left = $"NULLIF({(jsonb ? left : $"CAST({left} AS jsonb)")}, 'null'::jsonb)";
+        right = $"NULLIF({(jsonb ? right : $"CAST({right} AS jsonb)")}, 'null'::jsonb)";
+        var predicate = notEqual
+            ? $"({left} <> {right} OR {left} IS NULL OR {right} IS NULL) AND ({left} IS NOT NULL OR {right} IS NOT NULL)"
+            : $"{left} = {right} OR ({left} IS NULL AND {right} IS NULL)";
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {predicate}
+LIMIT 2
+""");
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void Dictionary_indexer_coalesce_typed_container(bool jsonb)
@@ -1468,6 +1669,53 @@ ORDER BY d."Id" NULLS FIRST
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
 WHERE d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" ->> 'NullableCustomer' IS {(notEqual ? "NOT NULL" : "NULL")}
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public void Dictionary_indexer_compare_typed_container_parameter(bool jsonb, bool notEqual, bool nonNull)
+    {
+        using var ctx = CreateContext();
+        Dictionary<string, int>? expected = nonNull ? new() { ["Age"] = 35 } : null;
+        var query = (jsonb, notEqual) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => e.NestedDictionary["NullableCustomer"] == EF.Parameter(expected)),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.NestedDictionary["NullableCustomer"] != EF.Parameter(expected)),
+            (false, false) => ctx.DictionaryEntities.Where(e => e.JsonNestedDictionary["NullableCustomer"] == EF.Parameter(expected)),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonNestedDictionary["NullableCustomer"] != EF.Parameter(expected))
+        };
+
+        Assert.Equal(nonNull == notEqual ? 1 : 2, query.Select(e => e.Id).Single());
+
+        var left = $"""
+CASE
+    WHEN d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" ->> 'NullableCustomer' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'NullableCustomer'
+END
+""";
+        var predicate = (nonNull, notEqual) switch
+        {
+            (false, false) => $"{left} IS NULL",
+            (false, true) => $"{left} IS NOT NULL",
+            (true, false) => $"{left} = @expected",
+            (true, true) => $"{left} <> @expected OR {left} IS NULL"
+        };
+        var parameter = nonNull
+            ? "@expected='System.Collections.Generic.Dictionary`2[System.String,System.Int32]' (DbType = Object)\n\n"
+            : "";
+
+        AssertSql(
+            $"""
+{parameter}SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {predicate}
 LIMIT 2
 """);
     }
@@ -1778,6 +2026,7 @@ END, d."JsonbDictionary" -> 'Name'), '$')
 
         public static async Task SeedAsync(JsonPocoQueryContext context)
         {
+            byte[] longPayload = [.. Enumerable.Range(0, 80).Select(i => (byte)i)];
             context.JsonbEntities.AddRange(
                 new JsonbEntity
                 {
@@ -1806,6 +2055,7 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["StringAge"] = "25",
                         ["NullableName"] = null!,
                         ["Payload"] = (byte[])[1, 2, 3],
+                        ["LongPayload"] = longPayload,
                         ["Customer"] = new Dictionary<string, int> { ["Age"] = 25 }
                     },
                     JsonDictionary = new()
@@ -1815,6 +2065,7 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["StringAge"] = "25",
                         ["NullableName"] = null!,
                         ["Payload"] = (byte[])[1, 2, 3],
+                        ["LongPayload"] = longPayload,
                         ["Customer"] = new Dictionary<string, int> { ["Age"] = 25 }
                     },
                     JsonbBinaryDictionary = new() { ["Payload"] = [1, 2, 3] },
@@ -1839,6 +2090,7 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["StringAge"] = "35",
                         ["NullableName"] = "Moe",
                         ["Payload"] = (byte[])[4, 5, 6],
+                        ["LongPayload"] = (byte[])[],
                         ["Customer"] = new Dictionary<string, int> { ["Age"] = 35 }
                     },
                     JsonDictionary = new()
@@ -1848,6 +2100,7 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                         ["StringAge"] = "35",
                         ["NullableName"] = "Moe",
                         ["Payload"] = (byte[])[4, 5, 6],
+                        ["LongPayload"] = (byte[])[],
                         ["Customer"] = new Dictionary<string, int> { ["Age"] = 35 }
                     },
                     JsonbBinaryDictionary = new() { ["Payload"] = [4, 5, 6] },

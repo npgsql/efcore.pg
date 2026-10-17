@@ -35,7 +35,7 @@ WHERE (CAST(r."RequiredAssociate" #>> '{Ints,0}' AS integer)) = 1
             """
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredAssociate" -> 'Ints') @> to_jsonb(3)
+WHERE (r."RequiredAssociate" -> 'Ints') @> to_jsonb(3::int)
 """);
     }
 
@@ -47,7 +47,7 @@ WHERE (r."RequiredAssociate" -> 'Ints') @> to_jsonb(3)
             """
 SELECT r."Id", r."Name", r."AssociateCollection", r."OptionalAssociate", r."RequiredAssociate"
 FROM "RootEntity" AS r
-WHERE (r."RequiredAssociate" -> 'Ints') @> to_jsonb(2)
+WHERE (r."RequiredAssociate" -> 'Ints') @> to_jsonb(2::int)
 """);
     }
 

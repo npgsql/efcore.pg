@@ -411,6 +411,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             left = Normalize(left);
             right = Normalize(right);
         }
+        else if (JsonNullIsClrNull(left) && right is SqlParameterExpression)
+        {
+            left = NormalizeJsonNull(left);
+        }
+        else if (JsonNullIsClrNull(right) && left is SqlParameterExpression)
+        {
+            right = NormalizeJsonNull(right);
+        }
         else
         {
             translation = null;
@@ -437,6 +445,25 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     private SqlExpression ConvertToJson(SqlExpression expression, RelationalTypeMapping mapping)
     {
         expression = Unbox(expression);
+        if (expression is { TypeMapping: NpgsqlByteArrayTypeMapping } and not SqlConstantExpression)
+        {
+            var textMapping = _typeMappingSource.FindMapping("text")!;
+            var base64 = _sqlExpressionFactory.Function(
+                "encode",
+                [expression, _sqlExpressionFactory.Constant("base64", textMapping)],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                typeof(string),
+                textMapping);
+            expression = _sqlExpressionFactory.Function(
+                "replace",
+                [base64, _sqlExpressionFactory.Constant("\n", textMapping), _sqlExpressionFactory.Constant("", textMapping)],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[3],
+                typeof(string),
+                textMapping);
+        }
+
         return expression switch
         {
             SqlConstantExpression constant => _sqlExpressionFactory.Constant(constant.Value, mapping.ClrType, mapping),
@@ -633,7 +660,13 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         if (base.VisitMethodCall(methodCallExpression) is var translation
             && translation != QueryCompilationContext.NotTranslatedExpression)
         {
-            return translation;
+            return translation switch
+            {
+                SqlBinaryExpression { OperatorType: ExpressionType.Equal or ExpressionType.NotEqual } comparison
+                    when TryTranslateJsonComparison(comparison, out var translatedComparison)
+                    => translatedComparison,
+                _ => translation
+            };
         }
 
         switch (method.Name)

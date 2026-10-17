@@ -416,12 +416,12 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         if (visitedBase is SqlFunctionExpression
             {
                 IsBuiltIn: true,
-                Name: "JSON_EXISTS",
-                Arguments: [SqlFunctionExpression { Name: "to_jsonb", Arguments: [SqlConstantExpression constant] } toJson, var path]
-            } jsonExists)
+                Name: "to_json" or "to_jsonb",
+                Arguments: [SqlConstantExpression constant]
+            } toJson)
         {
             var typedConstant = new SqlUnaryExpression(ExpressionType.Convert, constant, constant.Type, constant.TypeMapping);
-            return jsonExists.Update(jsonExists.Instance, [toJson.Update(toJson.Instance, [typedConstant]), path]);
+            return toJson.Update(toJson.Instance, [typedConstant]);
         }
 
         // base.VisitSqlFunction has some special logic for SUM which wraps it in a COALESCE
