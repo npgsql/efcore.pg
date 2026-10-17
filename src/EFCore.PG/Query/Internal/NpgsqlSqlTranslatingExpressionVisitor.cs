@@ -487,8 +487,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             case nameof(string.StartsWith) or nameof(string.EndsWith) or nameof(string.Contains)
                 when declaringType == typeof(string)
                     && @object is not null
-                    && arguments is [Expression value]
-                    && value.Type == typeof(string):
+                    && arguments is [Expression value]:
             {
                 return TranslateStartsEndsWithContains(
                     @object,
@@ -809,10 +808,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             return QueryCompilationContext.NotTranslatedExpression;
         }
 
-        var stringTypeMapping = ExpressionExtensions.InferTypeMapping(translatedInstance, translatedPattern);
+        var stringTypeMapping = translatedPattern.Type == typeof(char)
+            ? translatedInstance.TypeMapping ?? _typeMappingSource.FindMapping(typeof(string))
+            : ExpressionExtensions.InferTypeMapping(translatedInstance, translatedPattern);
 
         translatedInstance = _sqlExpressionFactory.ApplyTypeMapping(translatedInstance, stringTypeMapping);
-        translatedPattern = _sqlExpressionFactory.ApplyTypeMapping(translatedPattern, stringTypeMapping);
+        translatedPattern = translatedPattern.Type == typeof(char)
+            ? NpgsqlStringMethodTranslator.TranslateCharArgument(translatedPattern, _sqlExpressionFactory)
+            : _sqlExpressionFactory.ApplyTypeMapping(translatedPattern, stringTypeMapping);
 
         switch (translatedPattern)
         {
@@ -820,7 +823,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             {
                 // The pattern is constant. Aside from null and empty string, we escape all special characters (%, _, \) and send a
                 // simple LIKE
-                return patternConstant.Value switch
+                return patternConstant.Value?.ToString() switch
                 {
                     null => _sqlExpressionFactory.Like(
                         translatedInstance,
@@ -842,9 +845,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                                 StartsEndsWithContains.Contains => $"%{EscapeLikePattern(s)}%",
 
                                 _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-                            })),
-
-                    _ => throw new UnreachableException()
+                            }))
                 };
             }
 
@@ -934,7 +935,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         QueryContext queryContext,
         string baseParameterName,
         StartsEndsWithContains methodType)
-        => queryContext.Parameters[baseParameterName] switch
+        => queryContext.Parameters[baseParameterName]?.ToString() switch
         {
             null => null,
 
@@ -948,9 +949,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 StartsEndsWithContains.EndsWith => '%' + EscapeLikePattern(s),
                 StartsEndsWithContains.Contains => $"%{EscapeLikePattern(s)}%",
                 _ => throw new ArgumentOutOfRangeException(nameof(methodType), methodType, null)
-            },
-
-            _ => throw new UnreachableException()
+            }
         };
 
     /// <summary>

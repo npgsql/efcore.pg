@@ -131,9 +131,17 @@ WHERE strpos(b."String", 'eattl') - 1 <> -1
 """);
     }
 
-    // TODO: #3547
-    public override Task IndexOf_Char()
-        => Assert.ThrowsAsync<InvalidCastException>(() => base.IndexOf_Char());
+    public override async Task IndexOf_Char()
+    {
+        await base.IndexOf_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE strpos(b."String", 'e') - 1 <> -1
+""");
+    }
 
     public override async Task IndexOf_with_empty_string()
     {
@@ -245,9 +253,17 @@ WHERE replace(b."String", 'Sea', 'Rea') = 'Reattle'
 """);
     }
 
-    // TODO: #3547
-    public override Task Replace_Char()
-        => AssertTranslationFailed(() => base.Replace_Char());
+    public override async Task Replace_Char()
+    {
+        await base.Replace_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE replace(b."String", 'S', 'R') = 'Reattle'
+""");
+    }
 
     public override async Task Replace_with_empty_string()
     {
@@ -455,9 +471,17 @@ WHERE b."String" LIKE 'Se%'
 """);
     }
 
-    // TODO: #3547
-    public override Task StartsWith_Literal_Char()
-        => AssertTranslationFailed(() => base.StartsWith_Literal_Char());
+    public override async Task StartsWith_Literal_Char()
+    {
+        await base.StartsWith_Literal_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE 'S%'
+""");
+    }
 
     public override async Task StartsWith_Parameter()
     {
@@ -473,8 +497,19 @@ WHERE b."String" LIKE @pattern_startswith
 """);
     }
 
-    public override Task StartsWith_Parameter_Char()
-        => AssertTranslationFailed(() => base.StartsWith_Parameter_Char());
+    public override async Task StartsWith_Parameter_Char()
+    {
+        await base.StartsWith_Parameter_Char();
+
+        AssertSql(
+            """
+@pattern_startswith='S%'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE @pattern_startswith
+""");
+    }
 
     public override async Task StartsWith_Column()
     {
@@ -525,9 +560,17 @@ WHERE b."String" LIKE '%le'
 """);
     }
 
-    // TODO: #3547
-    public override Task EndsWith_Literal_Char()
-        => AssertTranslationFailed(() => base.EndsWith_Literal_Char());
+    public override async Task EndsWith_Literal_Char()
+    {
+        await base.EndsWith_Literal_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE '%e'
+""");
+    }
 
     public override async Task EndsWith_Parameter()
     {
@@ -543,9 +586,19 @@ WHERE b."String" LIKE @pattern_endswith
 """);
     }
 
-    // TODO: #3547
-    public override Task EndsWith_Parameter_Char()
-        => AssertTranslationFailed(() => base.EndsWith_Parameter_Char());
+    public override async Task EndsWith_Parameter_Char()
+    {
+        await base.EndsWith_Parameter_Char();
+
+        AssertSql(
+            """
+@pattern_endswith='%e'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE @pattern_endswith
+""");
+    }
 
     public override async Task EndsWith_Column()
     {
@@ -601,9 +654,17 @@ WHERE b."String" LIKE '%eattl%'
 """);
     }
 
-    // TODO: #3547
-    public override Task Contains_Literal_Char()
-        => AssertTranslationFailed(() => base.Contains_Literal_Char());
+    public override async Task Contains_Literal_Char()
+    {
+        await base.Contains_Literal_Char();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" LIKE '%e%'
+""");
+    }
 
     public override async Task Contains_Column()
     {
@@ -687,6 +748,63 @@ WHERE b."String" LIKE @pattern_contains
     }
 
     #endregion Contains
+
+    [ConditionalFact]
+    public async Task Char_pattern_literals_are_escaped()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Select(b => new
+            {
+                PercentStartsWith = ("%" + b.String).StartsWith('%'),
+                PercentEndsWith = (b.String + "%").EndsWith('%'),
+                PercentContains = (b.String + "%").Contains('%'),
+                UnderscoreStartsWith = ("_" + b.String).StartsWith('_'),
+                UnderscoreEndsWith = (b.String + "_").EndsWith('_'),
+                UnderscoreContains = (b.String + "_").Contains('_'),
+                BackslashStartsWith = ("\\" + b.String).StartsWith('\\'),
+                BackslashEndsWith = (b.String + "\\").EndsWith('\\'),
+                BackslashContains = (b.String + "\\").Contains('\\')
+            }));
+
+        AssertSql(
+            """
+SELECT '%' || b."String" LIKE '\%%' AS "PercentStartsWith", b."String" || '%' LIKE '%\%' AS "PercentEndsWith", b."String" || '%' LIKE '%\%%' AS "PercentContains", '_' || b."String" LIKE '\_%' AS "UnderscoreStartsWith", b."String" || '_' LIKE '%\_' AS "UnderscoreEndsWith", b."String" || '_' LIKE '%\_%' AS "UnderscoreContains", '\' || b."String" LIKE '\\%' AS "BackslashStartsWith", b."String" || '\' LIKE '%\\' AS "BackslashEndsWith", b."String" || '\' LIKE '%\\%' AS "BackslashContains"
+FROM "BasicTypesEntities" AS b
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData('%', @"\%")]
+    [InlineData('_', @"\_")]
+    [InlineData('\\', @"\\")]
+    public async Task Char_pattern_parameter_is_escaped(char pattern, string escapedPattern)
+    {
+        var value = pattern.ToString();
+
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Select(b => new
+            {
+                StartsWith = (EF.Constant(value) + b.String).StartsWith(pattern),
+                EndsWith = (b.String + EF.Constant(value)).EndsWith(pattern),
+                Contains = (b.String + EF.Constant(value)).Contains(pattern)
+            }),
+            ss => ss.Set<BasicTypesEntity>().Select(b => new
+            {
+                StartsWith = (value + b.String).StartsWith(pattern),
+                EndsWith = (b.String + value).EndsWith(pattern),
+                Contains = (b.String + value).Contains(pattern)
+            }));
+
+        AssertSql(
+            $$"""
+@pattern_startswith='{{escapedPattern}}%'
+@pattern_endswith='%{{escapedPattern}}'
+@pattern_contains='%{{escapedPattern}}%'
+
+SELECT '{{pattern}}' || b."String" LIKE @pattern_startswith AS "StartsWith", b."String" || '{{pattern}}' LIKE @pattern_endswith AS "EndsWith", b."String" || '{{pattern}}' LIKE @pattern_contains AS "Contains"
+FROM "BasicTypesEntities" AS b
+""");
+    }
 
     #region TrimStart
 
