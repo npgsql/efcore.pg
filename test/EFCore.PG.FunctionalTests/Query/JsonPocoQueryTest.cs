@@ -694,6 +694,191 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
 
     #endregion Functions
 
+    #region Dictionaries
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_string(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => (string)e.JsonbDictionary["Name"] == "Joe")
+            : ctx.DictionaryEntities.Where(e => (string)e.JsonDictionary["Name"] == "Joe");
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name' = 'Joe'
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_object_comparison(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Name"] == (object)"Joe")
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Name"] == (object)"Joe");
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name' = 'Joe'::text
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_int(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => (int)e.JsonbDictionary["Age"] < 30)
+            : ctx.DictionaryEntities.Where(e => (int)e.JsonDictionary["Age"] < 30);
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE CAST(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Age' AS integer) < 30
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_parameter(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var key = "Name";
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => (string)e.JsonbDictionary[EF.Parameter(key)] == "Joe")
+            : ctx.DictionaryEntities.Where(e => (string)e.JsonDictionary[EF.Parameter(key)] == "Joe");
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+@key='Name'
+
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> @key = 'Joe'
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_missing_key(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => (string)e.JsonbDictionary["Missing"] == null)
+            : ctx.DictionaryEntities.Where(e => (string)e.JsonDictionary["Missing"] == null);
+
+        Assert.Equal(2, query.Select(e => e.Id).Count());
+
+        AssertSql(
+            $"""
+SELECT count(*)::int
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Missing' IS NULL
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (int)e.JsonbDictionary["Age"])
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (int)e.JsonDictionary["Age"]);
+
+        Assert.Equal([25, 35], query.ToArray());
+
+        AssertSql(
+            $"""
+SELECT CAST(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Age' AS integer)
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Fact]
+    public void Dictionary_indexer_interface()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(1, ctx.DictionaryEntities.Where(e => e.DictionaryInterface["Name"] == "Joe").Select(e => e.Id).Single());
+
+        AssertSql(
+            """
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."DictionaryInterface" ->> 'Name' = 'Joe'
+LIMIT 2
+""");
+    }
+
+    [Fact]
+    public void Dictionary_indexer_readonly_interface()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(1, ctx.DictionaryEntities.Where(e => e.ReadOnlyDictionary["Age"] < 30).Select(e => e.Id).Single());
+
+        AssertSql(
+            """
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE CAST(d."ReadOnlyDictionary" ->> 'Age' AS integer) < 30
+LIMIT 2
+""");
+    }
+
+    [Fact]
+    public void Dictionary_indexer_nested()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(1, ctx.DictionaryEntities.Where(e => e.NestedDictionary["Customer"]["Age"] < 30).Select(e => e.Id).Single());
+
+        AssertSql(
+            """
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE CAST(d."NestedDictionary" #>> '{Customer,Age}' AS integer) < 30
+LIMIT 2
+""");
+    }
+
+    #endregion Dictionaries
+
     #region Support
 
     protected JsonPocoQueryContext CreateContext()
@@ -706,6 +891,7 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
     {
         public DbSet<JsonbEntity> JsonbEntities { get; set; }
         public DbSet<JsonEntity> JsonEntities { get; set; }
+        public DbSet<DictionaryEntity> DictionaryEntities { get; set; }
 
         public static async Task SeedAsync(JsonPocoQueryContext context)
         {
@@ -725,6 +911,25 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                     ToplevelArray = ["one", "two", "three"]
                 },
                 new JsonEntity { Id = 2, Customer = CreateCustomer2(), ToplevelArray = [] });
+            context.DictionaryEntities.AddRange(
+                new DictionaryEntity
+                {
+                    Id = 1,
+                    JsonbDictionary = new() { ["Name"] = "Joe", ["Age"] = 25 },
+                    JsonDictionary = new() { ["Name"] = "Joe", ["Age"] = 25 },
+                    DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Joe" },
+                    ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 25 },
+                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 } }
+                },
+                new DictionaryEntity
+                {
+                    Id = 2,
+                    JsonbDictionary = new() { ["Name"] = "Moe", ["Age"] = 35 },
+                    JsonDictionary = new() { ["Name"] = "Moe", ["Age"] = 35 },
+                    DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Moe" },
+                    ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 35 },
+                    NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 } }
+                });
 
             await context.SaveChangesAsync();
 
@@ -817,6 +1022,26 @@ WHERE json_typeof(j."Customer" #> '{Statistics,Visits}') = 'number'
                     }
                 };
         }
+    }
+
+    public class DictionaryEntity
+    {
+        public int Id { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public required Dictionary<string, object> JsonbDictionary { get; set; }
+
+        [Column(TypeName = "json")]
+        public required Dictionary<string, object> JsonDictionary { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public required IDictionary<string, string> DictionaryInterface { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public required IReadOnlyDictionary<string, int> ReadOnlyDictionary { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public required Dictionary<string, Dictionary<string, int>> NestedDictionary { get; set; }
     }
 
     public class JsonbEntity

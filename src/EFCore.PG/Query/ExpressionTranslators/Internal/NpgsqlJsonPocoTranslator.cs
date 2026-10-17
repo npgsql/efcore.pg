@@ -33,13 +33,27 @@ public class NpgsqlJsonPocoTranslator(
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    {
+        if (instance is not null
+            && method is { Name: "get_Item", DeclaringType.IsGenericType: true }
+            && arguments is [var key]
+            && key.Type == typeof(string)
+            && method.DeclaringType.GetGenericTypeDefinition() is var declaringType
+            && (declaringType == typeof(Dictionary<,>)
+                || declaringType == typeof(IDictionary<,>)
+                || declaringType == typeof(IReadOnlyDictionary<,>)))
+        {
+            return TranslateMemberAccess(instance, key, method.ReturnType);
+        }
+
         // Predicate-less Any - translate to a simple length check.
-        => method is { IsGenericMethod: true, Name: nameof(Enumerable.Any) }
+        return method is { IsGenericMethod: true, Name: nameof(Enumerable.Any) }
             && method.DeclaringType == typeof(Enumerable)
             && arguments is [var source]
             && TranslateArrayLength(source) is SqlExpression arrayLengthTranslation
             ? _sqlExpressionFactory.GreaterThan(arrayLengthTranslation, _sqlExpressionFactory.Constant(0))
             : null;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
