@@ -29,6 +29,10 @@ public class NpgsqlSharedTableConvention : SharedTableConvention
         => true;
 
     /// <inheritdoc />
+    protected override bool KeysUniqueAcrossSchemas
+        => false;
+
+    /// <inheritdoc />
     protected override bool ForeignKeysUniqueAcrossTables
         => false;
 
