@@ -685,14 +685,20 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         }
 
         if (declaringType == typeof(object)
-            && method.Name == nameof(object.Equals)
-            && Visit(@object ?? arguments[0]) is SqlExpression equalsLeft
-            && Visit(arguments[^1]) is SqlExpression equalsRight
-            && TryTranslateJsonComparison(
-                new SqlBinaryExpression(ExpressionType.Equal, equalsLeft, equalsRight, typeof(bool), typeMapping: null),
-                out var jsonComparison))
+            && method.Name == nameof(object.Equals))
         {
-            return jsonComparison;
+            var left = RemoveObjectConvert(@object ?? arguments[0]);
+            var right = RemoveObjectConvert(arguments[^1]);
+
+            if (left.Type != right.Type
+                && Visit(left) is SqlExpression equalsLeft
+                && Visit(right) is SqlExpression equalsRight
+                && TryTranslateJsonComparison(
+                    new SqlBinaryExpression(ExpressionType.Equal, equalsLeft, equalsRight, typeof(bool), typeMapping: null),
+                    out var jsonComparison))
+            {
+                return jsonComparison;
+            }
         }
 
         if (base.VisitMethodCall(methodCallExpression) is var translation
@@ -1302,6 +1308,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     #endregion GREATEST/LEAST
 
     #region Copied from RelationalSqlTranslatingExpressionVisitor
+
+    private static Expression RemoveObjectConvert(Expression expression)
+        => expression is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked, Type: var type } unary
+            && type == typeof(object)
+                ? unary.Operand
+                : expression;
 
     private static Expression TryRemoveImplicitConvert(Expression expression)
     {
