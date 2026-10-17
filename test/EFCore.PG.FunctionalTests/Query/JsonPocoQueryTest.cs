@@ -83,6 +83,33 @@ LIMIT 2
 
     #region Output
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Output_json_fragments(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.JsonbEntities.OrderBy(e => e.Id)
+                .Select(e => new { e.Customer.Statistics, e.Customer.Statistics.Nested.IntArray, e.Customer.Orders })
+            : ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => new { e.Customer.Statistics, e.Customer.Statistics.Nested.IntArray, e.Customer.Orders });
+
+        var values = query.ToArray();
+        Assert.Equal([3, 25], values.Select(v => v.Statistics.Purchases));
+        Assert.Equal([3, 4], values[0].IntArray);
+        Assert.Equal([5, 6, 7], values[1].IntArray);
+        Assert.Equal([99.5m, 23m], values[0].Orders.Select(o => o.Price));
+        Assert.Equal(5m, Assert.Single(values[1].Orders).Price);
+
+        AssertSql(
+            $$"""
+SELECT j."Customer" -> 'Statistics' AS "Statistics", j."Customer" #> '{Statistics,Nested,IntArray}' AS "IntArray", j."Customer" -> 'Orders' AS "Orders"
+FROM "{{(jsonb ? "JsonbEntities" : "JsonEntities")}}" AS j
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
     [Fact]
     public void Output_string_with_jsonb()
     {
@@ -735,7 +762,59 @@ LIMIT 2
             $"""
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
-WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name' = 'Joe'::text
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name' = 'Joe'
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_object_parameter_comparison(bool jsonb, bool reversed)
+    {
+        using var ctx = CreateContext();
+        var name = "Joe";
+        var query = (jsonb, reversed) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Name"] == (object)EF.Parameter(name)),
+            (true, true) => ctx.DictionaryEntities.Where(e => (object)EF.Parameter(name) == e.JsonbDictionary["Name"]),
+            (false, false) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Name"] == (object)EF.Parameter(name)),
+            (false, true) => ctx.DictionaryEntities.Where(e => (object)EF.Parameter(name) == e.JsonDictionary["Name"])
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name'""";
+        AssertSql(
+            $"""
+@name='Joe'
+
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {(reversed ? $"@name = {traversal}" : $"{traversal} = @name")}
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_object_int_comparison(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Age"] == (object)25)
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Age"] == (object)25);
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE CAST(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Age' AS integer) = 25
 LIMIT 2
 """);
     }
@@ -909,6 +988,25 @@ LIMIT 2
 """);
     }
 
+    [Theory]
+    [InlineData("NULL")]
+    [InlineData("null")]
+    [InlineData("NuLl")]
+    public void Dictionary_indexer_nested_null_key(string key)
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(1, ctx.DictionaryEntities.Where(e => e.NestedStringDictionary["Customer"][key] == "Joe").Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."NestedStringDictionary" #>> ARRAY['Customer','{key}']::text[] = 'Joe'
+LIMIT 2
+""");
+    }
+
     [Fact]
     public void Dictionary_indexer_dictionary_projection()
     {
@@ -920,7 +1018,7 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT d."NestedDictionary"
+SELECT d."NestedDictionary" -> 'Customer'
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
@@ -937,7 +1035,7 @@ ORDER BY d."Id" NULLS FIRST
 
         AssertSql(
             """
-SELECT d."NestedStringDictionary"
+SELECT d."NestedStringDictionary" -> 'Customer'
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
@@ -961,7 +1059,7 @@ ORDER BY d."Id" NULLS FIRST
 
         AssertSql(
             $"""
-SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}"
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name' AS "Name", d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Age' AS "Age"
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
@@ -985,7 +1083,10 @@ ORDER BY d."Id" NULLS FIRST
 
         AssertSql(
             $"""
-SELECT d."Id" = 1, d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}"
+SELECT CASE
+    WHEN d."Id" = 1 THEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Age'
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
+END
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
@@ -999,16 +1100,123 @@ ORDER BY d."Id" NULLS FIRST
         using var ctx = CreateContext();
 
         var query = jsonb
-            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonbDictionary["Name"] ?? e.JsonbDictionary["Age"])
-            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonDictionary["Name"] ?? e.JsonDictionary["Age"]);
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonbDictionary["NullableName"] ?? e.JsonbDictionary["Name"])
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonDictionary["NullableName"] ?? e.JsonDictionary["Name"]);
 
         Assert.Equal(["Joe", "Moe"], query.ToArray().Select(v => Assert.IsType<JsonElement>(v).GetString()));
 
         AssertSql(
             $"""
-SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}"
+SELECT COALESCE(CASE
+    WHEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'NullableName' IS NULL THEN NULL
+    ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName'
+END, d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name')
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_JsonElement_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (JsonElement)e.JsonbDictionary["Name"])
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (JsonElement)e.JsonDictionary["Name"]);
+
+        Assert.Equal(["Joe", "Moe"], query.ToArray().Select(v => v.GetString()));
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_json_null(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonbDictionary["NullableName"])
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonDictionary["NullableName"]);
+
+        var values = query.ToArray();
+        Assert.Null(values[0]);
+        Assert.Equal("Moe", Assert.IsType<JsonElement>(values[1]).GetString());
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableName'
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_compare_json_null(bool jsonb)
+    {
+        using var ctx = CreateContext();
+
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["NullableName"] == null)
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["NullableName"] == null);
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'NullableName' IS NULL
+LIMIT 2
+""");
+    }
+
+    [Fact]
+    public void String_to_object_projection_union()
+    {
+        using var ctx = CreateContext();
+        var query = ctx.DictionaryEntities.Select(e => (object)e.Name);
+
+        Assert.Equal(["Joe", "Moe"], query.Union(query).ToArray().Cast<string>().Order());
+
+        AssertSql(
+            """
+SELECT d."Name"
+FROM "DictionaryEntities" AS d
+UNION
+SELECT d0."Name"
+FROM "DictionaryEntities" AS d0
+""");
+    }
+
+    [Fact]
+    public void Group_by_string_to_object_projection()
+    {
+        using var ctx = CreateContext();
+
+        var groups = ctx.DictionaryEntities.GroupBy(e => (object)e.Name)
+            .Select(g => new { g.Key, Count = g.Count() }).OrderBy(g => g.Key).ToArray();
+
+        Assert.Equal(["Joe", "Moe"], groups.Select(g => Assert.IsType<string>(g.Key)));
+        Assert.All(groups, g => Assert.Equal(1, g.Count));
+
+        AssertSql(
+            """
+SELECT d."Name" AS "Key", count(*)::int AS "Count"
+FROM "DictionaryEntities" AS d
+GROUP BY d."Name"
+ORDER BY d."Name" NULLS FIRST
 """);
     }
 
@@ -1044,16 +1252,18 @@ WHERE JSON_EXISTS(d."NestedDictionary" -> 'Customer', '$.Age')
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [InlineData(false, "Name")]
+    [InlineData(true, "Name")]
+    [InlineData(false, "NullableName")]
+    [InlineData(true, "NullableName")]
     [MinimumPostgresVersion(17, 0)]
-    public void Dictionary_indexer_JsonPathExists_object_string(bool jsonb)
+    public void Dictionary_indexer_JsonPathExists_object(bool jsonb, string key)
     {
         using var ctx = CreateContext();
 
         var count = jsonb
-            ? ctx.DictionaryEntities.Count(e => EF.Functions.JsonPathExists(e.JsonbDictionary["Name"], "$"))
-            : ctx.DictionaryEntities.Count(e => EF.Functions.JsonPathExists(e.JsonDictionary["Name"], "$"));
+            ? ctx.DictionaryEntities.Count(e => EF.Functions.JsonPathExists(e.JsonbDictionary[key], "$"))
+            : ctx.DictionaryEntities.Count(e => EF.Functions.JsonPathExists(e.JsonDictionary[key], "$"));
 
         Assert.Equal(2, count);
 
@@ -1061,7 +1271,7 @@ WHERE JSON_EXISTS(d."NestedDictionary" -> 'Customer', '$.Age')
             $"""
 SELECT count(*)::int
 FROM "DictionaryEntities" AS d
-WHERE JSON_EXISTS(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name', '$')
+WHERE JSON_EXISTS(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{key}', '$')
 """);
     }
 
@@ -1078,6 +1288,66 @@ WHERE JSON_EXISTS(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
 SELECT count(*)::int
 FROM "DictionaryEntities" AS d
 WHERE JSON_EXISTS(d."DictionaryInterface" ->> 'Serialized', '$.Age')
+""");
+    }
+
+    [Fact]
+    [MinimumPostgresVersion(17, 0)]
+    public void Dictionary_indexer_JsonPathExists_int()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(2, ctx.DictionaryEntities.Count(e => EF.Functions.JsonPathExists(e.ReadOnlyDictionary["Age"], "$")));
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "DictionaryEntities" AS d
+WHERE JSON_EXISTS(to_jsonb(CAST(d."ReadOnlyDictionary" ->> 'Age' AS integer)), '$')
+""");
+    }
+
+    [Fact]
+    [MinimumPostgresVersion(17, 0)]
+    public void Dictionary_indexer_JsonPathExists_conditional()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(
+            2,
+            ctx.DictionaryEntities.Count(
+                e => EF.Functions.JsonPathExists(e.Id == 1 ? e.JsonbDictionary["Age"] : e.JsonbDictionary["Name"], "$")));
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "DictionaryEntities" AS d
+WHERE JSON_EXISTS(CASE
+    WHEN d."Id" = 1 THEN d."JsonbDictionary" -> 'Age'
+    ELSE d."JsonbDictionary" -> 'Name'
+END, '$')
+""");
+    }
+
+    [Fact]
+    [MinimumPostgresVersion(17, 0)]
+    public void Dictionary_indexer_JsonPathExists_coalesce()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(
+            2,
+            ctx.DictionaryEntities.Count(
+                e => EF.Functions.JsonPathExists(e.JsonbDictionary["NullableName"] ?? e.JsonbDictionary["Name"], "$")));
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "DictionaryEntities" AS d
+WHERE JSON_EXISTS(COALESCE(CASE
+    WHEN d."JsonbDictionary" ->> 'NullableName' IS NULL THEN NULL
+    ELSE d."JsonbDictionary" -> 'NullableName'
+END, d."JsonbDictionary" -> 'Name'), '$')
 """);
     }
 
@@ -1119,22 +1389,30 @@ WHERE JSON_EXISTS(d."DictionaryInterface" ->> 'Serialized', '$.Age')
                 new DictionaryEntity
                 {
                     Id = 1,
-                    JsonbDictionary = new() { ["Name"] = "Joe", ["Age"] = 25 },
-                    JsonDictionary = new() { ["Name"] = "Joe", ["Age"] = 25 },
+                    Name = "Joe",
+                    JsonbDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["NullableName"] = null! },
+                    JsonDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["NullableName"] = null! },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Joe", ["Serialized"] = """{"Age":25}""" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 25 },
                     NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 } },
-                    NestedStringDictionary = new() { ["Customer"] = new() { ["Name"] = "Joe", [""] = "Joe" } }
+                    NestedStringDictionary = new()
+                    {
+                        ["Customer"] = new() { ["Name"] = "Joe", [""] = "Joe", ["NULL"] = "Joe", ["null"] = "Joe", ["NuLl"] = "Joe" }
+                    }
                 },
                 new DictionaryEntity
                 {
                     Id = 2,
-                    JsonbDictionary = new() { ["Name"] = "Moe", ["Age"] = 35 },
-                    JsonDictionary = new() { ["Name"] = "Moe", ["Age"] = 35 },
+                    Name = "Moe",
+                    JsonbDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["NullableName"] = "Moe" },
+                    JsonDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["NullableName"] = "Moe" },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Moe", ["Serialized"] = """{"Age":35}""" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 35 },
                     NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 } },
-                    NestedStringDictionary = new() { ["Customer"] = new() { ["Name"] = "Moe", [""] = "Moe" } }
+                    NestedStringDictionary = new()
+                    {
+                        ["Customer"] = new() { ["Name"] = "Moe", [""] = "Moe", ["NULL"] = "Moe", ["null"] = "Moe", ["NuLl"] = "Moe" }
+                    }
                 });
 
             await context.SaveChangesAsync();
@@ -1233,6 +1511,8 @@ WHERE JSON_EXISTS(d."DictionaryInterface" ->> 'Serialized', '$.Age')
     public class DictionaryEntity
     {
         public int Id { get; set; }
+
+        public required string Name { get; set; }
 
         [Column(TypeName = "jsonb")]
         public required Dictionary<string, object> JsonbDictionary { get; set; }

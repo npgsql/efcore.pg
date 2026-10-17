@@ -49,21 +49,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 ? array
                 : base.VisitExtension(extensionExpression);
 
-    /// <inheritdoc />
-#pragma warning disable EF1001 // TranslateProjection() is pubternal
-    public override Expression? TranslateProjection(Expression expression, bool applyDefaultTypeMapping = true)
-    {
-        var translation = base.TranslateProjection(expression, applyDefaultTypeMapping);
-
-        // Text-valued translations cannot materialize non-string projections, including composed JSON traversals.
-        return translation is SqlExpression { Type: var translatedType }
-            && translatedType == typeof(string)
-            && expression.Type != translatedType
-                ? null
-                : translation;
-    }
-#pragma warning restore EF1001
-
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -157,6 +142,27 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         if (base.VisitUnary(unaryExpression) is var translation
             && translation != QueryCompilationContext.NotTranslatedExpression)
         {
+            if (unaryExpression.Type != typeof(object)
+                && translation is SqlUnaryExpression
+                {
+                    OperatorType: ExpressionType.Convert,
+                    Operand: { TypeMapping: NpgsqlJsonTypeMapping jsonMapping, Type: var operandType } json
+                }
+                && operandType == typeof(object))
+            {
+                var mapping = _typeMappingSource.FindMapping(unaryExpression.Type, Dependencies.Model);
+                if (mapping is not (null or NpgsqlJsonTypeMapping or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping))
+                {
+                    return ConvertJsonToScalar(json, unaryExpression.Type, mapping);
+                }
+
+                mapping = _typeMappingSource.FindMapping(unaryExpression.Type, jsonMapping.StoreType)!;
+                return json is PgJsonTraversalExpression traversal
+                    ? _sqlExpressionFactory.JsonTraversal(
+                        traversal.Expression, traversal.Path, returnsText: false, unaryExpression.Type, mapping)
+                    : _sqlExpressionFactory.Convert(json, unaryExpression.Type, mapping);
+            }
+
             return translation;
         }
 
@@ -274,6 +280,31 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
         return base.VisitBinary(binaryExpression) switch
         {
+            SqlBinaryExpression { OperatorType: ExpressionType.Equal or ExpressionType.NotEqual } comparison
+                when TryTranslateJsonComparison(comparison, out var translatedComparison)
+                => translatedComparison,
+
+            SqlUnaryExpression
+            {
+                OperatorType: ExpressionType.Equal or ExpressionType.NotEqual,
+                Operand: { TypeMapping: NpgsqlJsonTypeMapping, Type: var type } operand
+            } unary when type == typeof(object)
+                => unary.Update(ConvertJsonToScalar(operand, typeof(string), _typeMappingSource.FindMapping("text")!)),
+
+            // JSON null materializes as CLR null, but must become SQL NULL before coalescing.
+            SqlFunctionExpression { Name: "COALESCE", Arguments: [var left, var right] }
+                when left.Type == typeof(object) && left.TypeMapping is NpgsqlJsonTypeMapping mapping
+                => _sqlExpressionFactory.Coalesce(
+                    _sqlExpressionFactory.Case(
+                        [
+                            new CaseWhenClause(
+                                _sqlExpressionFactory.IsNull(
+                                    ConvertJsonToScalar(left, typeof(string), _typeMappingSource.FindMapping("text")!)),
+                                _sqlExpressionFactory.Constant(null, left.Type, mapping))
+                        ],
+                        left),
+                    right),
+
             // Optimize (x - c) - (y - c) to x - y.
             // This is particularly useful for DateOnly.DayNumber - DateOnly.DayNumber, which is the way to express DateOnly subtraction
             // (the subtraction operator isn't defined over DateOnly in .NET). The translation of x.DayNumber is x - DATE '0001-01-01',
@@ -328,6 +359,66 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
             var translation => translation
         };
+    }
+
+    private bool TryTranslateJsonComparison(SqlBinaryExpression comparison, [NotNullWhen(true)] out SqlExpression? translation)
+    {
+        var left = Unbox(comparison.Left);
+        var right = Unbox(comparison.Right);
+
+        if (TryExtractScalar(left, right, out var scalarLeft, out var valueRight))
+        {
+            translation = _sqlExpressionFactory.MakeBinary(comparison.OperatorType, scalarLeft, valueRight, typeMapping: null);
+            return translation is not null;
+        }
+
+        if (TryExtractScalar(right, left, out var scalarRight, out var valueLeft))
+        {
+            translation = _sqlExpressionFactory.MakeBinary(comparison.OperatorType, valueLeft, scalarRight, typeMapping: null);
+            return translation is not null;
+        }
+
+        translation = null;
+        return false;
+
+        static SqlExpression Unbox(SqlExpression expression)
+            => expression is SqlUnaryExpression { OperatorType: ExpressionType.Convert, Type: var type } unary && type == typeof(object)
+                ? unary.Operand
+                : expression;
+
+        bool TryExtractScalar(SqlExpression candidate, SqlExpression other, out SqlExpression scalar, out SqlExpression value)
+        {
+            scalar = candidate;
+            value = other;
+
+            if (candidate.Type != typeof(object) || candidate.TypeMapping is not NpgsqlJsonTypeMapping)
+            {
+                return false;
+            }
+
+            var valueType = other is SqlConstantExpression constant ? constant.Value?.GetType() ?? typeof(string) : other.Type;
+            var mapping = _typeMappingSource.FindMapping(valueType, Dependencies.Model);
+            if (mapping is null or NpgsqlJsonTypeMapping or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping)
+            {
+                return false;
+            }
+
+            scalar = ConvertJsonToScalar(candidate, valueType, mapping);
+            value = other is SqlConstantExpression constantValue
+                ? _sqlExpressionFactory.Constant(constantValue.Value, valueType, mapping)
+                : _sqlExpressionFactory.ApplyDefaultTypeMapping(other);
+            return true;
+        }
+    }
+
+    private SqlExpression ConvertJsonToScalar(SqlExpression json, Type type, RelationalTypeMapping mapping)
+    {
+        var textMapping = _typeMappingSource.FindMapping("text")!;
+        var text = json is PgJsonTraversalExpression traversal
+            ? _sqlExpressionFactory.JsonTraversal(traversal.Expression, traversal.Path, returnsText: true, typeof(string), textMapping)
+            : _sqlExpressionFactory.JsonTraversal(json, returnsText: true, typeof(string), textMapping);
+
+        return type == typeof(string) ? text : _sqlExpressionFactory.Convert(text, type, mapping);
     }
 
     /// <summary>
@@ -398,7 +489,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                     && asQueryable.IsGenericMethod
                     && asQueryable.GetGenericMethodDefinition() == QueryableMethods.AsQueryable
                         ? Visit(collection)
-                        : base.TranslateProjection(argument, applyDefaultTypeMapping: false);
+                        : TranslateProjection(argument, applyDefaultTypeMapping: false);
 #pragma warning restore EF1001
 
                 var jsonQuery = projection switch
@@ -529,18 +620,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                     return QueryCompilationContext.NotTranslatedExpression;
                 }
 
-                var jsonType = json is UnaryExpression { NodeType: ExpressionType.Convert, Operand: var operand }
-                    && json.Type == typeof(object)
-                        ? operand.Type
-                        : json.Type;
-
 #pragma warning disable EF1001 // TranslateProjection() is pubternal
-                var translatedJson = base.TranslateProjection(json) switch
+                var translatedJson = TranslateProjection(json) switch
                 {
-                    PgJsonTraversalExpression { ReturnsText: true } traversal when jsonType != typeof(string)
-                        => new PgJsonTraversalExpression(
-                            traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping),
-
                     // The JSON argument is a scalar string property
                     SqlExpression scalar => scalar,
 
@@ -550,6 +632,18 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                     _ => null
                 };
 #pragma warning restore EF1001
+
+                if (translatedJson is { TypeMapping: not (NpgsqlJsonTypeMapping or NpgsqlStructuralJsonTypeMapping) }
+                    && translatedJson.Type != typeof(string))
+                {
+                    translatedJson = _sqlExpressionFactory.Function(
+                        "to_jsonb",
+                        [translatedJson],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(System.Text.Json.JsonElement),
+                        _typeMappingSource.FindMapping("jsonb"));
+                }
 
                 return translatedJson is null
                     ? QueryCompilationContext.NotTranslatedExpression

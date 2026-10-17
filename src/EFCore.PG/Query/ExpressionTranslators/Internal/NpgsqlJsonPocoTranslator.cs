@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -21,6 +22,10 @@ public class NpgsqlJsonPocoTranslator(
     private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory = sqlExpressionFactory;
     private readonly RelationalTypeMapping _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
     private readonly IModel _model = model;
+
+    private static readonly ValueConverter<object, JsonElement> ObjectJsonConverter = new(
+        value => JsonSerializer.SerializeToElement(value, (JsonSerializerOptions?)null),
+        value => value.ValueKind == JsonValueKind.Null ? null! : (object)value);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -92,45 +97,38 @@ public class NpgsqlJsonPocoTranslator(
     /// </summary>
     public virtual SqlExpression? TranslateMemberAccess(SqlExpression instance, SqlExpression member, Type returnType)
     {
-        return instance switch
+        (SqlExpression? root, IEnumerable<SqlExpression> path) = instance switch
         {
-            // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
-            // Traversals on top of that get appended into the same expression.
             ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } columnExpression
-                => ConvertFromText(
-                    _sqlExpressionFactory.JsonTraversal(
-                        columnExpression,
-                        [member],
-                        returnsText: true,
-                        typeof(string),
-                        _stringTypeMapping),
-                    returnType),
-
-            PgJsonTraversalExpression prevPathTraversal
-                => ConvertFromText(
-                    prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(member)),
-                    returnType),
-
-            _ => null
+                => (columnExpression, [member]),
+            PgJsonTraversalExpression traversal
+                => (traversal.Expression, traversal.Path.Append(member)),
+            _ => (null, [])
         };
 
-        // The PostgreSQL traversal operator always returns text.
-        // If the type returned is a scalar (int, bool, etc.), we need to apply a conversion from string.
-        SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
-            => _typeMappingSource.FindMapping(returnType.UnwrapNullableType(), _model) switch
-            {
-                // Type mapping not found - this isn't a scalar
-                null => expression,
+        if (root is null)
+        {
+            return null;
+        }
 
-                // Arrays and dictionaries remain JSON containers rather than PostgreSQL array/hstore scalars.
-                NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping => expression,
+        var mapping = _typeMappingSource.FindMapping(returnType.UnwrapNullableType(), _model);
+        if (mapping is not (null or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlJsonTypeMapping))
+        {
+            var text = _sqlExpressionFactory.JsonTraversal(root, path, returnsText: true, typeof(string), _stringTypeMapping);
 
-                // Text types don't a a conversion to string
-                { StoreTypeNameBase: "text" or "varchar" or "char" } => expression,
+            return returnType == typeof(string)
+                ? text
+                : _sqlExpressionFactory.Convert(text, returnType, mapping);
+        }
 
-                // For any other type mapping, this is a scalar; apply a conversion to the type from string.
-                var mapping => _sqlExpressionFactory.Convert(expression, returnType, mapping)
-            };
+        var storeType = root.TypeMapping!.StoreType;
+        mapping = returnType == typeof(object)
+            // Reading JSON as object defaults to string in Npgsql; dictionary values need deserialized JSON instead.
+            ? (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(JsonElement), storeType)!
+                .WithComposedConverter(ObjectJsonConverter)
+            : _typeMappingSource.FindMapping(returnType, storeType)!;
+
+        return _sqlExpressionFactory.JsonTraversal(root, path, returnsText: false, returnType, mapping);
     }
 
     /// <summary>
@@ -152,19 +150,10 @@ public class NpgsqlJsonPocoTranslator(
                     typeof(int));
 
             case PgJsonTraversalExpression traversal:
-                // The traversal expression has ReturnsText=true (e.g. ->> not ->), so we recreate it to return
-                // the JSON object instead.
-                var lastPathComponent = traversal.Path.Last();
-                var newTraversal = new PgJsonTraversalExpression(
-                    traversal.Expression, traversal.Path,
-                    returnsText: false,
-                    lastPathComponent.Type,
-                    _typeMappingSource.FindMapping(lastPathComponent.Type, _model));
-
                 var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping!;
                 return _sqlExpressionFactory.Function(
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    [newTraversal],
+                    [traversal],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(int));

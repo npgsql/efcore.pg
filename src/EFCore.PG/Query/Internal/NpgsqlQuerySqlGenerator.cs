@@ -1215,7 +1215,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     {
         // Use simplified array literal syntax if all path components are constants for cleaner SQL
         if (path.All(p => p is SqlConstantExpression { Value: var pathSegment }
-                && (pathSegment is not string s || s.Length > 0 && s.All(char.IsAsciiLetterOrDigit))))
+                && (pathSegment is not string s
+                    || s.Length > 0 && !s.Equals("NULL", StringComparison.OrdinalIgnoreCase) && s.All(char.IsAsciiLetterOrDigit))))
         {
             Sql
                 .Append("'{")
