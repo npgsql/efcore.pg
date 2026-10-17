@@ -116,9 +116,7 @@ public class NpgsqlJsonPocoTranslator(
         {
             var text = _sqlExpressionFactory.JsonTraversal(root, path, returnsText: true, typeof(string), _stringTypeMapping);
 
-            return returnType == typeof(string)
-                ? text
-                : _sqlExpressionFactory.Convert(text, returnType, mapping);
+            return ConvertFromText(text, returnType, mapping);
         }
 
         return _sqlExpressionFactory.JsonTraversal(
@@ -131,6 +129,17 @@ public class NpgsqlJsonPocoTranslator(
             ? (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(JsonElement), storeType)!
                 .WithComposedConverter(ObjectJsonConverter)
             : _typeMappingSource.FindMapping(type, storeType)!;
+
+    internal SqlExpression ConvertFromText(SqlExpression text, Type type, RelationalTypeMapping mapping)
+        => mapping is NpgsqlByteArrayTypeMapping
+            ? _sqlExpressionFactory.Function(
+                "decode",
+                [text, _sqlExpressionFactory.Constant("base64", _stringTypeMapping)],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                type,
+                mapping)
+            : type == typeof(string) ? text : _sqlExpressionFactory.Convert(text, type, mapping);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

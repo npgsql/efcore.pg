@@ -788,11 +788,15 @@ LIMIT 2
 
         Assert.Equal(1, query.Select(e => e.Id).Single());
 
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'""";
+        traversal = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        const string value = """NULLIF('"Joe"'::jsonb, 'null'::jsonb)""";
+
         AssertSql(
             $"""
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
-WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name' = 'Joe'
+WHERE {traversal} = {value} OR ({traversal} IS NULL AND {value} IS NULL)
 LIMIT 2
 """);
     }
@@ -816,14 +820,19 @@ LIMIT 2
 
         Assert.Equal(1, query.Select(e => e.Id).Single());
 
-        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name'""";
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'""";
+        traversal = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        const string parameter = "NULLIF(to_jsonb(@name), 'null'::jsonb)";
+        var left = reversed ? parameter : traversal;
+        var right = reversed ? traversal : parameter;
+
         AssertSql(
             $"""
 @name='Joe'
 
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
-WHERE {(reversed ? $"@name = {traversal}" : $"{traversal} = @name")}
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
 LIMIT 2
 """);
     }
@@ -840,12 +849,62 @@ LIMIT 2
 
         Assert.Equal(1, query.Select(e => e.Id).Single());
 
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Age'""";
+        traversal = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        const string value = "NULLIF('25'::jsonb, 'null'::jsonb)";
+
         AssertSql(
             $"""
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
-WHERE CAST(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Age' AS integer) = 25
+WHERE {traversal} = {value} OR ({traversal} IS NULL AND {value} IS NULL)
 LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, "Age")]
+    [InlineData(false, true, "Age")]
+    [InlineData(true, false, "Age")]
+    [InlineData(true, true, "Age")]
+    [InlineData(false, false, "Name")]
+    [InlineData(false, true, "Name")]
+    [InlineData(true, false, "Name")]
+    [InlineData(true, true, "Name")]
+    public void Dictionary_indexer_object_mixed_kind_comparison(bool jsonb, bool notEqual, string key)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, notEqual, key) switch
+        {
+            (true, false, "Age") => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Age"] == (object)"25"),
+            (true, true, "Age") => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Age"] != (object)"25"),
+            (false, false, "Age") => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Age"] == (object)"25"),
+            (false, true, "Age") => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Age"] != (object)"25"),
+            (true, false, "Name") => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Name"] == (object)25),
+            (true, true, "Name") => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Name"] != (object)25),
+            (false, false, "Name") => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Name"] == (object)25),
+            (false, true, "Name") => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Name"] != (object)25),
+            _ => throw new UnreachableException()
+        };
+
+        int[] expected = notEqual ? [1, 2] : [];
+        Assert.Equal(expected, query.OrderBy(e => e.Id).Select(e => e.Id).ToArray());
+
+        var left = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{key}'""";
+        left = $"NULLIF({(jsonb ? left : $"CAST({left} AS jsonb)")}, 'null'::jsonb)";
+        var right = key == "Age"
+            ? """NULLIF('"25"'::jsonb, 'null'::jsonb)"""
+            : "NULLIF('25'::jsonb, 'null'::jsonb)";
+        var predicate = notEqual
+            ? $"({left} <> {right} OR {left} IS NULL OR {right} IS NULL) AND ({left} IS NOT NULL OR {right} IS NOT NULL)"
+            : $"{left} = {right} OR ({left} IS NULL AND {right} IS NULL)";
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {predicate}
+ORDER BY d."Id" NULLS FIRST
 """);
     }
 
@@ -867,6 +926,83 @@ LIMIT 2
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
 WHERE CAST(d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Age' AS integer) < 30
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_binary_projection(bool jsonb, bool objectValue)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, objectValue) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonbBinaryDictionary["Payload"]),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (byte[])e.JsonbDictionary["Payload"]),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonBinaryDictionary["Payload"]),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (byte[])e.JsonDictionary["Payload"])
+        };
+
+        var values = query.ToArray();
+        Assert.Equal<byte>([1, 2, 3], values[0]);
+        Assert.Equal<byte>([4, 5, 6], values[1]);
+
+        var column = $"{(jsonb ? "Jsonb" : "Json")}{(objectValue ? "" : "Binary")}Dictionary";
+        AssertSql(
+            $"""
+SELECT decode(d."{column}" ->> 'Payload', 'base64')
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_typed_cast_predicate(bool jsonb, bool poco)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, poco) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => ((Dictionary<string, int>)e.JsonbDictionary["Customer"])["Age"] < 30),
+            (true, true) => ctx.DictionaryEntities.Where(e => ((Customer)e.JsonbDictionary["Customer"]).Age < 30),
+            (false, false) => ctx.DictionaryEntities.Where(e => ((Dictionary<string, int>)e.JsonDictionary["Customer"])["Age"] < 30),
+            (false, true) => ctx.DictionaryEntities.Where(e => ((Customer)e.JsonDictionary["Customer"]).Age < 30)
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $$"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE CAST(d."{{(jsonb ? "JsonbDictionary" : "JsonDictionary")}}" #>> '{Customer,Age}' AS integer) < 30
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_JsonDocument_predicate(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => ((JsonDocument)e.JsonbDictionary["Name"]).RootElement.GetString() == "Joe")
+            : ctx.DictionaryEntities.Where(e => ((JsonDocument)e.JsonDictionary["Name"]).RootElement.GetString() == "Joe");
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name' = 'Joe'
 LIMIT 2
 """);
     }
@@ -1564,6 +1700,22 @@ WHERE JSON_EXISTS(to_jsonb(CAST(d."ReadOnlyDictionary" ->> 'Age' AS integer)), '
 """);
     }
 
+    [ConditionalFact]
+    [MinimumPostgresVersion(17, 0)]
+    public void JsonPathExists_guid_constant()
+    {
+        using var ctx = CreateContext();
+
+        Assert.Equal(2, ctx.DictionaryEntities.Count(e => EF.Functions.JsonPathExists(EF.Constant(Guid.Empty), "$")));
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "DictionaryEntities" AS d
+WHERE JSON_EXISTS(to_jsonb('00000000-0000-0000-0000-000000000000'::uuid), '$')
+""");
+    }
+
     [Fact]
     [MinimumPostgresVersion(17, 0)]
     public void Dictionary_indexer_JsonPathExists_conditional()
@@ -1647,8 +1799,26 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                 {
                     Id = 1,
                     Name = "Joe",
-                    JsonbDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["StringAge"] = "25", ["NullableName"] = null! },
-                    JsonDictionary = new() { ["Name"] = "Joe", ["Age"] = 25, ["StringAge"] = "25", ["NullableName"] = null! },
+                    JsonbDictionary = new()
+                    {
+                        ["Name"] = "Joe",
+                        ["Age"] = 25,
+                        ["StringAge"] = "25",
+                        ["NullableName"] = null!,
+                        ["Payload"] = (byte[])[1, 2, 3],
+                        ["Customer"] = new Dictionary<string, int> { ["Age"] = 25 }
+                    },
+                    JsonDictionary = new()
+                    {
+                        ["Name"] = "Joe",
+                        ["Age"] = 25,
+                        ["StringAge"] = "25",
+                        ["NullableName"] = null!,
+                        ["Payload"] = (byte[])[1, 2, 3],
+                        ["Customer"] = new Dictionary<string, int> { ["Age"] = 25 }
+                    },
+                    JsonbBinaryDictionary = new() { ["Payload"] = [1, 2, 3] },
+                    JsonBinaryDictionary = new() { ["Payload"] = [1, 2, 3] },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Joe", ["Serialized"] = """{"Age":25}""" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 25 },
                     NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 25 }, ["NullableCustomer"] = null! },
@@ -1662,8 +1832,26 @@ END, d."JsonbDictionary" -> 'Name'), '$')
                 {
                     Id = 2,
                     Name = "Moe",
-                    JsonbDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["StringAge"] = "35", ["NullableName"] = "Moe" },
-                    JsonDictionary = new() { ["Name"] = "Moe", ["Age"] = 35, ["StringAge"] = "35", ["NullableName"] = "Moe" },
+                    JsonbDictionary = new()
+                    {
+                        ["Name"] = "Moe",
+                        ["Age"] = 35,
+                        ["StringAge"] = "35",
+                        ["NullableName"] = "Moe",
+                        ["Payload"] = (byte[])[4, 5, 6],
+                        ["Customer"] = new Dictionary<string, int> { ["Age"] = 35 }
+                    },
+                    JsonDictionary = new()
+                    {
+                        ["Name"] = "Moe",
+                        ["Age"] = 35,
+                        ["StringAge"] = "35",
+                        ["NullableName"] = "Moe",
+                        ["Payload"] = (byte[])[4, 5, 6],
+                        ["Customer"] = new Dictionary<string, int> { ["Age"] = 35 }
+                    },
+                    JsonbBinaryDictionary = new() { ["Payload"] = [4, 5, 6] },
+                    JsonBinaryDictionary = new() { ["Payload"] = [4, 5, 6] },
                     DictionaryInterface = new Dictionary<string, string> { ["Name"] = "Moe", ["Serialized"] = """{"Age":35}""" },
                     ReadOnlyDictionary = new Dictionary<string, int> { ["Age"] = 35 },
                     NestedDictionary = new() { ["Customer"] = new() { ["Age"] = 35 }, ["NullableCustomer"] = new() { ["Age"] = 35 } },
@@ -1778,6 +1966,12 @@ END, d."JsonbDictionary" -> 'Name'), '$')
 
         [Column(TypeName = "json")]
         public required Dictionary<string, object> JsonDictionary { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public required Dictionary<string, byte[]> JsonbBinaryDictionary { get; set; }
+
+        [Column(TypeName = "json")]
+        public required Dictionary<string, byte[]> JsonBinaryDictionary { get; set; }
 
         [Column(TypeName = "jsonb")]
         public required IDictionary<string, string> DictionaryInterface { get; set; }

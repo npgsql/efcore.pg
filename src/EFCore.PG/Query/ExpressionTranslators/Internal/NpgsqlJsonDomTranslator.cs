@@ -40,10 +40,10 @@ public class NpgsqlJsonDomTranslator(
         }
 
         if (member.Name == nameof(JsonDocument.RootElement)
-            && instance is ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } column)
+            && instance?.TypeMapping is NpgsqlJsonTypeMapping)
         {
             // Simply get rid of the RootElement member access
-            return column;
+            return instance;
         }
 
         return null;
