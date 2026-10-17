@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
+public class NpgsqlHistoryRepository : HistoryRepository
 {
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -78,8 +78,15 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string ExistsSql
-        => throw new UnreachableException(
-            "We should not be checking for the existence of the history table, but rather creating it and catching exceptions (see below)");
+    {
+        get
+        {
+            var tableName = Dependencies.TypeMappingSource.GetMapping(typeof(string))
+                .GenerateSqlLiteral(SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema));
+
+            return $"SELECT pg_catalog.to_regclass({tableName}) IS NOT NULL";
+        }
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -135,51 +142,6 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
         return Dependencies.MigrationsSqlGenerator.Generate(operations, model);
     }
 
-    bool IHistoryRepository.CreateIfNotExists()
-    {
-        // In PG, doing CREATE TABLE IF NOT EXISTS isn't concurrency-safe, and can result a "duplicate table" error or in a unique
-        // constraint violation (duplicate key value violates unique constraint "pg_type_typname_nsp_index").
-        // We catch this and report that the table wasn't created.
-        try
-        {
-            return Dependencies.MigrationCommandExecutor.ExecuteNonQuery(
-                    GetCreateIfNotExistsCommands(), Dependencies.Connection, new MigrationExecutionState(), commitTransaction: true)
-                != 0;
-        }
-        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.UniqueViolation
-                                              or PostgresErrorCodes.DuplicateTable
-                                              or PostgresErrorCodes.DuplicateObject)
-        {
-            return false;
-        }
-    }
-
-    async Task<bool> IHistoryRepository.CreateIfNotExistsAsync(CancellationToken cancellationToken)
-    {
-        // In PG, doing CREATE TABLE IF NOT EXISTS isn't concurrency-safe, and can result a "duplicate table" error or in a unique
-        // constraint violation (duplicate key value violates unique constraint "pg_type_typname_nsp_index").
-        // We catch this and report that the table wasn't created.
-        try
-        {
-            return (await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(
-                    GetCreateIfNotExistsCommands(), Dependencies.Connection, new MigrationExecutionState(), commitTransaction: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false))
-                != 0;
-        }
-        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.UniqueViolation
-                                              or PostgresErrorCodes.DuplicateTable
-                                              or PostgresErrorCodes.DuplicateObject)
-        {
-            return false;
-        }
-    }
-
-    private IReadOnlyList<MigrationCommand> GetCreateIfNotExistsCommands()
-        => Dependencies.MigrationsSqlGenerator.Generate([new SqlOperation
-        {
-            Sql = GetCreateIfNotExistsScript()
-        }]);
-
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -188,8 +150,47 @@ public class NpgsqlHistoryRepository : HistoryRepository, IHistoryRepository
     /// </summary>
     public override string GetCreateIfNotExistsScript()
     {
-        var script = GetCreateScript();
-        return script.Replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS");
+        var tableName = Dependencies.TypeMappingSource.GetMapping(typeof(string))
+            .GenerateSqlLiteral(SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema));
+
+        // CREATE TABLE IF NOT EXISTS isn't concurrency-safe: concurrent creation can raise duplicate table/object or catalog
+        // uniqueness errors. Handle these inside PL/pgSQL exception blocks so only the failed attempt is rolled back.
+        // Catching in .NET would leave an enclosing transaction aborted and still log a failed command in EF.
+        var builder = new IndentedStringBuilder()
+            .AppendLine("DO $EFHistory$")
+            .AppendLine("BEGIN");
+
+        using (builder.Indent())
+        {
+            builder.AppendLine($"IF pg_catalog.to_regclass({tableName}) IS NULL THEN");
+
+            using (builder.Indent())
+            {
+                // Handle commands separately so a schema creation race doesn't skip table creation.
+                foreach (var command in GetCreateCommands())
+                {
+                    builder.AppendLine("BEGIN");
+                    using (builder.Indent())
+                    {
+                        builder.AppendLines(command.CommandText.Replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS"));
+                    }
+
+                    builder.AppendLine("EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN");
+                    using (builder.Indent())
+                    {
+                        // Refresh catalog caches after waiting for a concurrent creator; otherwise table creation can still see
+                        // a cached missing schema.
+                        builder.AppendLine("PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;");
+                    }
+
+                    builder.AppendLine("END;");
+                }
+            }
+
+            builder.AppendLine("END IF;");
+        }
+
+        return builder.AppendLine("END $EFHistory$;").ToString();
     }
 
     /// <summary>
@@ -230,58 +231,6 @@ BEGIN
     END IF;
 END $EF$;
 """;
-
-    /// <summary>
-    ///     Calls the base implementation, but catches "table not found" exceptions; we do this rather than try to detect whether the
-    ///     migration table already exists (see <see cref="ExistsAsync" /> override below), since it's difficult to reliably check if the
-    ///     migration history table exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables
-    ///     references when creating, selecting).
-    /// </summary>
-    public override IReadOnlyList<HistoryRow> GetAppliedMigrations()
-    {
-        try
-        {
-            return base.GetAppliedMigrations();
-        }
-        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.InvalidCatalogName or PostgresErrorCodes.UndefinedTable)
-        {
-            return [];
-        }
-    }
-
-    /// <summary>
-    ///     Calls the base implementation, but catches "table not found" exceptions; we do this rather than try to detect whether the
-    ///     migration table already exists (see <see cref="ExistsAsync" /> override below), since it's difficult to reliably check if the
-    ///     migration history table exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables
-    ///     references when creating, selecting).
-    /// </summary>
-    public override async Task<IReadOnlyList<HistoryRow>> GetAppliedMigrationsAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            return await base.GetAppliedMigrationsAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (PostgresException e) when (e.SqlState is PostgresErrorCodes.InvalidCatalogName or PostgresErrorCodes.UndefinedTable)
-        {
-            return [];
-        }
-    }
-
-    /// <summary>
-    ///     Always returns <see langword="true" /> for PostgreSQL - it's difficult to reliably check if the migration history table
-    ///     exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables references when creating,
-    ///     selecting). So we instead catch the "table doesn't exist" exceptions instead.
-    /// </summary>
-    public override bool Exists()
-        => true;
-
-    /// <summary>
-    ///     Always returns <see langword="true" /> for PostgreSQL - it's difficult to reliably check if the migration history table
-    ///     exists or not (because user may set PG <c>search_path</c>, which determines unqualified tables references when creating,
-    ///     selecting). So we instead catch the "table doesn't exist" exceptions instead.
-    /// </summary>
-    public override Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
-        => Task.FromResult(true);
 
     private sealed class NpgsqlMigrationDatabaseLock(IHistoryRepository historyRepository) : IMigrationsDatabaseLock
     {
