@@ -857,17 +857,20 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         // Reuse the inferred element mapping, but map each collection's CLR type separately so its value converter
         // receives the collection type it expects.
         // Preserve the array store type too, so range arrays aren't remapped to multiranges.
+        // Converter-free mappings can keep using the original array/list parameter without copying.
         return new PgBinaryExpression(
             operatorType,
             ApplyTypeMapping(
                 left,
-                inferredTypeMapping is NpgsqlArrayTypeMapping leftArrayMapping && left.Type != leftArrayMapping.ClrType
+                inferredTypeMapping is NpgsqlArrayTypeMapping { Converter: not null } leftArrayMapping
+                    && left.Type != leftArrayMapping.ClrType
                     ? _typeMappingSource.FindCollectionMapping(
                         leftArrayMapping.StoreType, left.Type, providerClrType: null, leftArrayMapping.ElementTypeMapping)
                     : inferredTypeMapping),
             ApplyTypeMapping(
                 right,
-                inferredTypeMapping is NpgsqlArrayTypeMapping rightArrayMapping && right.Type != rightArrayMapping.ClrType
+                inferredTypeMapping is NpgsqlArrayTypeMapping { Converter: not null } rightArrayMapping
+                    && right.Type != rightArrayMapping.ClrType
                     ? _typeMappingSource.FindCollectionMapping(
                         rightArrayMapping.StoreType, right.Type, providerClrType: null, rightArrayMapping.ElementTypeMapping)
                     : inferredTypeMapping),
