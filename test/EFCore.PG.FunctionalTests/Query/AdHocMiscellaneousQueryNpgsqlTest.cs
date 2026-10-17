@@ -350,4 +350,58 @@ WHERE @values && e."{{propertyName}}"
 
         private class WrappedIdConverter() : ValueConverter<WrappedId, long>(v => v.Value, v => new WrappedId(v));
     }
+
+    [ConditionalFact]
+    public virtual async Task Intersect_any_with_range_array_and_list_parameter()
+    {
+        var contextFactory = await InitializeNonSharedTest<Context3805Ranges>(
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new Context3805Ranges.Entity { Id = 1, Ranges = [new(1, true, 5, false)] },
+                    new Context3805Ranges.Entity { Id = 2, Ranges = [new(10, true, 15, false)] },
+                    new Context3805Ranges.Entity { Id = 3, Ranges = [] });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+        List<NpgsqlRange<int>> ranges = [new(1, true, 5, false)];
+
+        var result = await context.Entities.Where(e => e.Ranges.Intersect(ranges).Any()).Select(e => e.Id).ToArrayAsync();
+        var reversed = await context.Entities.Where(e => ranges.Intersect(e.Ranges).Any()).Select(e => e.Id).ToArrayAsync();
+
+        Assert.Equal([1], result);
+        Assert.Equal([1], reversed);
+
+        AssertSql(
+            """
+@ranges={ '[1,5)' } (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Ranges" && @ranges
+""",
+            //
+            """
+@ranges={ '[1,5)' } (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE @ranges && e."Ranges"
+""");
+    }
+
+    protected class Context3805Ranges(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities => Set<Entity>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            => modelBuilder.Entity<Entity>().PrimitiveCollection(e => e.Ranges).HasColumnType("int4range[]");
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public NpgsqlRange<int>[] Ranges { get; set; } = [];
+        }
+    }
 }
