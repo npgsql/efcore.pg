@@ -219,7 +219,9 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                     instance!.Type,
                     instance.TypeMapping);
                 var lengthFunc = _sqlExpressionFactory.Function("length", [instance], true, [true], typeof(int));
-                return _sqlExpressionFactory.Case([new CaseWhenClause(_sqlExpressionFactory.MakeBinary(ExpressionType.GreaterThanOrEqual, lengthFunc, arguments[0], null)!, instance)], padFunc);
+                return _sqlExpressionFactory.Case(
+                    [new CaseWhenClause(_sqlExpressionFactory.GreaterThanOrEqual(lengthFunc, arguments[0]), instance)],
+                    padFunc);
             }
 
             case nameof(string.Join)
