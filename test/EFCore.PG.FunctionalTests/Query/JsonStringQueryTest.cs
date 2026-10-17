@@ -215,6 +215,40 @@ ORDER BY j."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false, "\"foo\"")]
+    [InlineData(true, "\"foo\"")]
+    [InlineData(false, "null")]
+    [InlineData(true, "null")]
+    public void Boxed_serialized_json_cast_back(bool jsonb, string serialized)
+    {
+        using var ctx = CreateContext();
+        ctx.Database.CreateExecutionStrategy().Execute(
+            () =>
+            {
+                using var transaction = ctx.Database.BeginTransaction();
+                ctx.Database.ExecuteSqlInterpolated(
+                    $"""UPDATE "JsonEntities" SET "CustomerJsonb" = {serialized}::jsonb, "CustomerJson" = {serialized}::json WHERE "Id" = 1""");
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = jsonb
+                    ? ctx.JsonEntities.Where(e => e.Id == 1).Select(e => (string)(e.Id == 1 ? (object)e.CustomerJsonb : null)!)
+                    : ctx.JsonEntities.Where(e => e.Id == 1).Select(e => (string)(e.Id == 1 ? (object)e.CustomerJson : null)!);
+
+                Assert.Equal(serialized, query.Single());
+
+                AssertSql(
+                    $"""
+SELECT CASE
+    WHEN j."Id" = 1 THEN j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"
+END
+FROM "JsonEntities" AS j
+WHERE j."Id" = 1
+LIMIT 2
+""");
+            });
+    }
+
     #region Functions
 
     [Fact]

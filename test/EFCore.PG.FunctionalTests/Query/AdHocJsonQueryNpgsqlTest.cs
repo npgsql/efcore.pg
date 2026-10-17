@@ -131,6 +131,55 @@ ORDER BY e."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Scalar_converted_json_case_parameter(bool jsonb)
+    {
+        var contextFactory = await InitializeNonSharedTest<ScalarConvertedJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<ScalarConvertedJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json")
+                .HasConversion(
+                    value => JsonSerializer.Serialize(new[] { value }, (JsonSerializerOptions)null),
+                    value => JsonSerializer.Deserialize<int[]>(value, (JsonSerializerOptions)null)[0]),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new ScalarConvertedJsonEntity { Id = 1, Payload = 25 },
+                    new ScalarConvertedJsonEntity { Id = 2, Payload = 35 });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var fallback = 99;
+        var values = await context.Entities.OrderBy(e => e.Id)
+            .Select(e => e.Id == 1 ? e.Payload : EF.Parameter(fallback)).ToArrayAsync();
+        Assert.Equal([25, 99], values);
+
+        AssertSql(
+            """
+@fallback='[99]' (Nullable = false) (DbType = Object)
+
+SELECT CASE
+    WHEN e."Id" = 1 THEN e."Payload"
+    ELSE @fallback
+END
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    protected class ScalarConvertedJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<ScalarConvertedJsonEntity> Entities { get; set; }
+    }
+
+    public class ScalarConvertedJsonEntity
+    {
+        public int Id { get; set; }
+        public int Payload { get; set; }
+    }
+
     protected class ConvertedJsonContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<ConvertedJsonEntity> Entities { get; set; }

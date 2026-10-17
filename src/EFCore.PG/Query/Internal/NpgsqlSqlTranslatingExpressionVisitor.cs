@@ -176,6 +176,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
             if (operand is SqlExpression { TypeMapping: NpgsqlJsonTypeMapping jsonMapping } json)
             {
+                if (json.Type == unaryExpression.Type)
+                {
+                    return json;
+                }
+
                 var mapping = _typeMappingSource.FindMapping(unaryExpression.Type, Dependencies.Model);
                 if (mapping is not (null or NpgsqlJsonTypeMapping or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping))
                 {
@@ -492,13 +497,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     {
         expression = Unbox(expression);
         if (expression is SqlParameterExpression parameter
-            && (expression.Type == typeof(DateTime)
+            && (mapping.Converter is not null && mapping.ClrType == expression.Type
+                || expression.Type == typeof(DateTime)
                 || expression.Type == typeof(DateTimeOffset)
                 || expression.Type == typeof(TimeSpan)
                 || (expression.TypeMapping ?? _typeMappingSource.FindMapping(expression.Type, Dependencies.Model))
-                    is null or NpgsqlHstoreTypeMapping))
+                    is null or NpgsqlHstoreTypeMapping or NpgsqlArrayTypeMapping))
         {
-            // Serialize temporal and non-scalar parameters through the requested JSON mapping.
+            // Native SQL conversion must not bypass JSON serialization or configured converters.
             return parameter.ApplyTypeMapping(mapping);
         }
 
@@ -571,7 +577,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     }
 
     private SqlExpression NormalizeJsonNull(SqlExpression expression)
-        // Converters reading serialized strings must retain JSON null for the converter to interpret.
+        // Serialized-string converters retain JSON null, except for primitive collections that deserialize it as CLR null.
         => JsonNullIsClrNull(expression)
             ? _sqlExpressionFactory.Case(
                 [
@@ -585,7 +591,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
     private static bool JsonNullIsClrNull(SqlExpression expression)
         => expression.TypeMapping is NpgsqlJsonTypeMapping mapping
-            && mapping.Converter?.ProviderClrType != typeof(string)
+            && (mapping.Converter?.ProviderClrType != typeof(string) || mapping.ElementTypeMapping is not null)
             && expression.Type.UnwrapNullableType() is var type
             && type != typeof(string) && type != typeof(JsonElement) && type != typeof(JsonDocument);
 
