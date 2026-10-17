@@ -852,6 +852,45 @@ WHERE s."ValueConvertedArrayOfEnum" && @list
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public virtual async Task Intersect_any_without_converter_does_not_copy_parameter(bool list)
+    {
+        await using var context = CreateContext();
+        IEnumerable<int> values = list ? new List<int> { 3 } : new[] { 3 };
+
+        var query = context.SomeEntities.Where(e => e.IntArray.Intersect(values).Any()).Select(e => e.Id);
+        var reversed = context.SomeEntities.Where(e => values.Intersect(e.IntArray).Any()).Select(e => e.Id);
+
+        using var command = query.CreateDbCommand();
+        using var reversedCommand = reversed.CreateDbCommand();
+        Assert.Same(values, command.Parameters[0].Value);
+        Assert.Same(values, reversedCommand.Parameters[0].Value);
+
+        var result = await query.ToArrayAsync();
+        var reversedResult = await reversed.ToArrayAsync();
+        Assert.Equal([1], result);
+        Assert.Equal([1], reversedResult);
+
+        AssertSql(
+            """
+@values={ '3' } (DbType = Object)
+
+SELECT s."Id"
+FROM "SomeEntities" AS s
+WHERE s."IntArray" && @values
+""",
+            //
+            """
+@values={ '3' } (DbType = Object)
+
+SELECT s."Id"
+FROM "SomeEntities" AS s
+WHERE @values && s."IntArray"
+""");
+    }
+
     [ConditionalFact]
     public virtual async Task All_Contains()
     {
