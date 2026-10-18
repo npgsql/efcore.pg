@@ -571,6 +571,24 @@ public class NpgsqlTypeMappingTest
     public void GenerateSqlLiteral_returns_array_empty_literal()
         => Assert.Equal("ARRAY[]::smallint[]", GetMapping(typeof(short[])).GenerateSqlLiteral(Array.Empty<short>()));
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void KeyComparer_binary_array(bool array)
+    {
+        byte[][] sourceArray = [[1, 2], [3, 4]];
+        byte[][] equalArray = [[1, 2], [3, 4]];
+        IList<byte[]> source = array ? sourceArray : sourceArray.ToList();
+        IList<byte[]> equal = array ? equalArray : equalArray.ToList();
+        var comparer = GetMapping(source.GetType()).KeyComparer;
+
+        Assert.True(comparer.Equals(source, equal));
+        Assert.Equal(comparer.GetHashCode(source), comparer.GetHashCode(equal));
+
+        equal[0][0] = 5;
+        Assert.False(comparer.Equals(source, equal));
+    }
+
     [Fact(Skip = "https://github.com/dotnet/efcore/pull/30939")]
     public void ValueComparer_int_array()
     {

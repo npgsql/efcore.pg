@@ -130,23 +130,46 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
                     typeof(TCollection), typeof(TConcreteCollection), elementType.MakeArrayType()))!;
         }
 
+        var comparer = CreateComparer(elementMapping.Comparer);
+        var keyComparer = CreateComparer(elementMapping.KeyComparer);
+
+        ValueComparer? CreateComparer(ValueComparer elementComparer)
+        {
 #pragma warning disable EF1001
-        var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
-            ? null // TODO: Value comparer for multidimensional arrays
-            : (ValueComparer?)Activator.CreateInstance(
-                elementType.IsNullableValueType()
-                    ? typeof(ListOfNullableValueTypesComparer<,>)
-                        .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
-                    : elementType.IsValueType
-                        ? typeof(ListOfValueTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType)
-                        : typeof(ListOfReferenceTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType),
-                elementType.UnwrapNullableType() == typeof(object)
-                    ? new ValueComparer<object>(
-                        (l, r) => elementMapping.Comparer.Equals(l, r),
-                        v => elementMapping.Comparer.GetHashCode(v),
-                        v => elementMapping.Comparer.Snapshot(v)!)
-                    : elementMapping.Comparer.ToNullableComparer(elementType)!);
+            var collectionComparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
+                ? null // TODO: Value comparer for multidimensional arrays
+                : (ValueComparer?)Activator.CreateInstance(
+                    elementType.IsNullableValueType()
+                        ? typeof(ListOfNullableValueTypesComparer<,>)
+                            .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
+                        : elementType.IsValueType
+                            ? typeof(ListOfValueTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType)
+                            : typeof(ListOfReferenceTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType),
+                    elementType.UnwrapNullableType() == typeof(object)
+                        ? new ValueComparer<object>(
+                            (l, r) => elementComparer.Equals(l, r),
+                            v => elementComparer.GetHashCode(v),
+                            v => elementComparer.Snapshot(v)!)
+                        : elementComparer.ToNullableComparer(elementType)!);
 #pragma warning restore EF1001
+
+            if (collectionComparer is null)
+            {
+                return null;
+            }
+
+            var left = Expression.Parameter(typeof(TCollection), "left");
+            var right = Expression.Parameter(typeof(TCollection), "right");
+            var convertedLeft = Expression.Convert(left, collectionComparer.Type);
+            var convertedRight = Expression.Convert(right, collectionComparer.Type);
+
+            return new ValueComparer<TCollection>(
+                Expression.Lambda<Func<TCollection?, TCollection?, bool>>(
+                    collectionComparer.ExtractEqualsBody(convertedLeft, convertedRight), left, right),
+                Expression.Lambda<Func<TCollection, int>>(collectionComparer.ExtractHashCodeBody(convertedLeft), left),
+                Expression.Lambda<Func<TCollection, TCollection>>(
+                    Expression.Convert(collectionComparer.ExtractSnapshotBody(convertedLeft), typeof(TCollection)), left));
+        }
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
         if (elementJsonReaderWriter is not null
@@ -174,7 +197,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
 
         return new RelationalTypeMappingParameters(
             new CoreTypeMappingParameters(
-                typeof(TCollection), converter, comparer, elementMapping: elementMapping,
+                typeof(TCollection), converter, comparer, keyComparer: keyComparer, elementMapping: elementMapping,
                 jsonValueReaderWriter: collectionJsonReaderWriter),
             storeType);
     }
