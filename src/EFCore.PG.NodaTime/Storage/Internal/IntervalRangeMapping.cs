@@ -1,7 +1,6 @@
 
 
 using System.Text;
-using NodaTime.Text;
 // ReSharper disable once CheckNamespace
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
@@ -93,14 +92,14 @@ public class IntervalRangeMapping : NpgsqlTypeMapping
 
         if (interval.HasStart)
         {
-            stringBuilder.Append(InstantPattern.ExtendedIso.Format(interval.Start));
+            stringBuilder.Append(TimestampTzInstantMapping.FormatSql(interval.Start));
         }
 
         stringBuilder.Append(',');
 
         if (interval.HasEnd)
         {
-            stringBuilder.Append(InstantPattern.ExtendedIso.Format(interval.End));
+            stringBuilder.Append(TimestampTzInstantMapping.FormatSql(interval.End));
         }
 
         stringBuilder.Append(')');
