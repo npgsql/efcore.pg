@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 ///     any release. You should only use it directly in your code with extreme caution and knowing that
 ///     doing so can result in application failures when updating to a new Entity Framework Core release.
 /// </summary>
-public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
+public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping, INpgsqlJsonScalarTypeMapping
 {
     private static readonly ZonedDateTimePattern Pattern =
         ZonedDateTimePattern.CreateWithInvariantCulture(
@@ -96,6 +96,27 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
         => $"""
             "{Pattern.Format((ZonedDateTime)value)}"
             """;
+
+    /// <inheritdoc />
+    /// <remarks>
+    ///     Keep the serialized offset rather than the zone ID to disambiguate DST overlaps.
+    /// </remarks>
+    public virtual SqlExpression ConvertFromJsonText(SqlExpression expression)
+        => new SqlUnaryExpression(
+            ExpressionType.Convert,
+            new SqlFunctionExpression(
+                "regexp_replace",
+                [
+                    expression,
+                    new SqlConstantExpression(@" [^ ]+ \(([^)]+)\)$", NpgsqlStringTypeMapping.Default),
+                    new SqlConstantExpression(@"\1", NpgsqlStringTypeMapping.Default)
+                ],
+                nullable: true,
+                argumentsPropagateNullability: [true, false, false],
+                typeof(string),
+                NpgsqlStringTypeMapping.Default),
+            ClrType,
+            this);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

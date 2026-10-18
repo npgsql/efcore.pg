@@ -24,6 +24,7 @@ public class NpgsqlQueryTranslationPostprocessor(
     {
         var result = base.Process(query);
 
+        result = new NpgsqlJsonScalarConversionPostprocessor().Visit(result);
         result = new NpgsqlUnnestPostprocessor().Visit(result);
         result = new NpgsqlSetOperationTypingInjector().Visit(result);
         result = new NpgsqlPeriodForeignKeyPostprocessor(RelationalQueryCompilationContext.QueryTrackingBehavior).Visit(result);

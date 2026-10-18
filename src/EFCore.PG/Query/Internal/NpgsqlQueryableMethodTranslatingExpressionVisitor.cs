@@ -272,7 +272,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 columnInfos.Add(
                     new PgTableValuedFunctionExpression.ColumnInfo
                     {
-                        Name = jsonPropertyName, TypeMapping = property.GetRelationalTypeMapping()
+                        Name = jsonPropertyName,
+                        TypeMapping = property.GetRelationalTypeMapping()
                     });
             }
         }
@@ -358,11 +359,11 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 // Pattern match for: new[] { "a", "b", "c" }.All(p => EF.Functions.Like(e.SomeText, p)),
                 // which we translate to WHERE s.""SomeText"" LIKE ALL (ARRAY['a','b','c'])
                 case LikeExpression
-                    {
-                        Match: var match,
-                        Pattern: ColumnExpression pattern,
-                        EscapeChar: SqlConstantExpression { Value: "" }
-                    }
+                {
+                    Match: var match,
+                    Pattern: ColumnExpression pattern,
+                    EscapeChar: SqlConstantExpression { Value: "" }
+                }
                     when pattern.TableAlias == tableAlias:
                 {
                     return BuildSimplifiedShapedQuery(
@@ -373,11 +374,11 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 // Pattern match for: new[] { "a", "b", "c" }.All(p => EF.Functions.Like(e.SomeText, p)),
                 // which we translate to WHERE s.""SomeText"" LIKE ALL (ARRAY['a','b','c'])
                 case PgILikeExpression
-                    {
-                        Match: var match,
-                        Pattern: ColumnExpression pattern,
-                        EscapeChar: SqlConstantExpression { Value: "" }
-                    }
+                {
+                    Match: var match,
+                    Pattern: ColumnExpression pattern,
+                    EscapeChar: SqlConstantExpression { Value: "" }
+                }
                     when pattern.TableAlias == tableAlias:
                 {
                     return BuildSimplifiedShapedQuery(
@@ -388,10 +389,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 // Pattern match for: e.SomeArray.All(p => ints.Contains(p)) over non-column,
                 // using array containment (<@)
                 case PgAnyExpression
-                    {
-                        Item: ColumnExpression sourceColumn,
-                        Array: var otherArray
-                    }
+                {
+                    Item: ColumnExpression sourceColumn,
+                    Array: var otherArray
+                }
                     when sourceColumn.TableAlias == tableAlias:
                 {
                     return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.ContainedBy(array, otherArray));
@@ -400,11 +401,11 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 // Pattern match for: new[] { 4, 5 }.All(p => e.SomeArray.Contains(p)) over column,
                 // using array containment (<@)
                 case PgBinaryExpression
-                    {
-                        OperatorType: PgExpressionType.Contains,
-                        Left: var otherArray,
-                        Right: PgNewArrayExpression { Expressions: [ColumnExpression sourceColumn] }
-                    }
+                {
+                    OperatorType: PgExpressionType.Contains,
+                    Left: var otherArray,
+                    Right: PgNewArrayExpression { Expressions: [ColumnExpression sourceColumn] }
+                }
                     when sourceColumn.TableAlias == tableAlias:
                 {
                     return BuildSimplifiedShapedQuery(source, _sqlExpressionFactory.ContainedBy(array, otherArray));
@@ -628,30 +629,30 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 Tables:
                 [
                     IntersectExpression
+                {
+                    Source1:
                     {
-                        Source1:
-                        {
-                            Projection: [{ Expression: ColumnExpression projectedColumn1 }],
-                            Tables: [var table1],
-                            Predicate: null,
-                            GroupBy: [],
-                            Having: null,
-                            IsDistinct: false,
-                            Limit: null,
-                            Offset: null
-                        } source1,
-                        Source2:
-                        {
-                            Projection: [{ Expression: ColumnExpression projectedColumn2 }],
-                            Tables: [var table2],
-                            Predicate: null,
-                            GroupBy: [],
-                            Having: null,
-                            IsDistinct: false,
-                            Limit: null,
-                            Offset: null
-                        } source2
-                    }
+                        Projection: [{ Expression: ColumnExpression projectedColumn1 }],
+                        Tables: [var table1],
+                        Predicate: null,
+                        GroupBy: [],
+                        Having: null,
+                        IsDistinct: false,
+                        Limit: null,
+                        Offset: null
+                    } source1,
+                    Source2:
+                    {
+                        Projection: [{ Expression: ColumnExpression projectedColumn2 }],
+                        Tables: [var table2],
+                        Predicate: null,
+                        GroupBy: [],
+                        Having: null,
+                        IsDistinct: false,
+                        Limit: null,
+                        Offset: null
+                    } source2
+                }
                 ],
                 Predicate: null,
                 GroupBy: [],
@@ -754,7 +755,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             }
 
             // Contains over JSON array: array ? 'foo' for text, array @> item for bool/numeric
-            case var _ when source.TryExtractJsonArray(out var array, out _, out var isElementNullable, ignoreOrderings: true)
+            case var _ when source.TryExtractJsonArray(out var array, out var projectedElement, out var isElementNullable, ignoreOrderings: true)
+                && projectedElement.TypeMapping is not INpgsqlJsonScalarTypeMapping
                 && TranslateExpression(item, applyDefaultTypeMapping: false) is SqlExpression translatedItem:
             {
                 (translatedItem, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(translatedItem, array);
@@ -975,12 +977,12 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 // Pattern match: new[] { "t1", "t2" }.FirstOrDefault(t => t.IsDescendant(e.SomeLTree))
                 // Translation: ARRAY['t1','t2'] ?<@ e.SomeLTree
                 case PgBinaryExpression
-                    {
-                        OperatorType: (PgExpressionType.Contains or PgExpressionType.ContainedBy) and var operatorType,
-                        Left: ColumnExpression ltreeColumn,
-                        // Contains/ContainedBy can happen for non-LTree types too, so check that
-                        Right: { TypeMapping: NpgsqlLTreeTypeMapping } ltree
-                    }
+                {
+                    OperatorType: (PgExpressionType.Contains or PgExpressionType.ContainedBy) and var operatorType,
+                    Left: ColumnExpression ltreeColumn,
+                    // Contains/ContainedBy can happen for non-LTree types too, so check that
+                    Right: { TypeMapping: NpgsqlLTreeTypeMapping } ltree
+                }
                     when ltreeColumn.TableAlias == tableAlias:
                 {
                     return BuildSimplifiedShapedQuery(
@@ -1000,11 +1002,11 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 // Pattern match: new[] { "t1", "t2" }.FirstOrDefault(t => t.MatchesLQuery(ltxtquery))
                 // Translation: ARRAY['t1','t2'] ?@ e.ltxtquery
                 case PgBinaryExpression
-                    {
-                        OperatorType: PgExpressionType.LTreeMatches,
-                        Left: ColumnExpression ltreeColumn,
-                        Right: var lquery
-                    }
+                {
+                    OperatorType: PgExpressionType.LTreeMatches,
+                    Left: ColumnExpression ltreeColumn,
+                    Right: var lquery
+                }
                     when ltreeColumn.TableAlias == tableAlias:
                 {
                     return BuildSimplifiedShapedQuery(
@@ -1575,7 +1577,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 return expression;
             }
 
-            if (expression is ColumnExpression { TableAlias: var tableAlias} && tableAlias == mainTable.Alias)
+            if (expression is ColumnExpression { TableAlias: var tableAlias } && tableAlias == mainTable.Alias)
             {
                 _containsReference = true;
 
