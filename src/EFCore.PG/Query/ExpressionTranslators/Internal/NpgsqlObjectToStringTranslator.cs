@@ -60,7 +60,7 @@ public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (instance is null || method.Name != nameof(ToString) || arguments.Count != 0)
+        if (instance is null or { TypeMapping: NpgsqlJsonTypeMapping } || method.Name != nameof(ToString) || arguments.Count != 0)
         {
             return null;
         }

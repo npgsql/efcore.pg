@@ -156,9 +156,13 @@ WHERE e."Payload" IS NULL
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Scalar_converted_json_case_parameter(bool jsonb)
+    [InlineData(false, "CaseParameter")]
+    [InlineData(true, "CaseParameter")]
+    [InlineData(false, "CaseColumn")]
+    [InlineData(true, "CaseColumn")]
+    [InlineData(false, "CoalesceColumn")]
+    [InlineData(true, "CoalesceColumn")]
+    public async Task Scalar_converted_json_composition(bool jsonb, string operation)
     {
         var contextFactory = await InitializeNonSharedTest<ScalarConvertedJsonContext>(
             onModelCreating: modelBuilder => modelBuilder.Entity<ScalarConvertedJsonEntity>().Property(e => e.Payload)
@@ -176,12 +180,40 @@ WHERE e."Payload" IS NULL
 
         using var context = contextFactory.CreateDbContext();
         var fallback = 99;
-        var values = await context.Entities.OrderBy(e => e.Id)
-            .Select(e => e.Id == 1 ? e.Payload : EF.Parameter(fallback)).ToArrayAsync();
-        Assert.Equal([25, 99], values);
+        var entities = context.Entities.OrderBy(e => e.Id);
+        var query = operation switch
+        {
+            "CaseParameter" => entities.Select(e => e.Id == 1 ? e.Payload : EF.Parameter(fallback)),
+            "CaseColumn" => entities.Select(e => e.Id == 1 ? e.Payload : e.Id),
+            "CoalesceColumn" => from entity in context.Entities
+                                join other in context.Entities.Where(e => e.Id == 1) on entity.Id equals other.Id into grouping
+                                from other in grouping.DefaultIfEmpty()
+                                orderby entity.Id
+                                select (int?)other.Payload ?? entity.Id,
+            _ => throw new UnreachableException()
+        };
+        var values = await query.ToArrayAsync();
+        Assert.Equal([25, operation == "CaseParameter" ? 99 : 2], values);
 
         AssertSql(
-            """
+            operation switch
+            {
+                "CaseColumn" => """
+SELECT e."Id" = 1, e."Payload", e."Id"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""",
+                "CoalesceColumn" => """
+SELECT e1."Payload", e."Id"
+FROM "Entities" AS e
+LEFT JOIN (
+    SELECT e0."Id", e0."Payload"
+    FROM "Entities" AS e0
+    WHERE e0."Id" = 1
+) AS e1 ON e."Id" = e1."Id"
+ORDER BY e."Id" NULLS FIRST
+""",
+                _ => """
 @fallback='[99]' (Nullable = false) (DbType = Object)
 
 SELECT CASE
@@ -190,7 +222,8 @@ SELECT CASE
 END
 FROM "Entities" AS e
 ORDER BY e."Id" NULLS FIRST
-""");
+"""
+            });
     }
 
     [Theory]
@@ -246,6 +279,14 @@ LIMIT 2
     [InlineData(true, "ColumnCoalesce")]
     [InlineData(false, "CollectionExpansion")]
     [InlineData(true, "CollectionExpansion")]
+    [InlineData(false, "ArrayColumnPredicate")]
+    [InlineData(true, "ArrayColumnPredicate")]
+    [InlineData(false, "ArrayColumnCase")]
+    [InlineData(true, "ArrayColumnCase")]
+    [InlineData(false, "ArrayColumnCoalesce")]
+    [InlineData(true, "ArrayColumnCoalesce")]
+    [InlineData(false, "ArrayParameter")]
+    [InlineData(true, "ArrayParameter")]
     public async Task Native_enum_json_translation(bool jsonb, string operation)
     {
         var contextFactory = await InitializeNonSharedTest<EnumJsonContext>(
@@ -265,7 +306,7 @@ LIMIT 2
                     {
                         Id = 1,
                         Mood = JsonMood.Sad,
-                        Payload = new() { ["Mood"] = JsonMood.Sad },
+                        Payload = new() { ["Mood"] = JsonMood.Sad, ["Moods"] = (JsonMood[])[JsonMood.Sad] },
                         TypedPayload = new() { ["Mood"] = JsonMood.Sad },
                         CollectionPayload = new() { ["Moods"] = [JsonMood.Sad] }
                     },
@@ -273,7 +314,7 @@ LIMIT 2
                     {
                         Id = 2,
                         Mood = JsonMood.Happy,
-                        Payload = new() { ["Mood"] = JsonMood.Happy },
+                        Payload = new() { ["Mood"] = JsonMood.Happy, ["Moods"] = (JsonMood[])[JsonMood.Happy] },
                         TypedPayload = new() { ["Mood"] = JsonMood.Happy },
                         CollectionPayload = new() { ["Moods"] = [JsonMood.Happy] }
                     });
@@ -290,13 +331,18 @@ LIMIT 2
             return;
         }
 
-        if (operation is "ColumnPredicate" or "ColumnCase" or "ColumnCoalesce")
+        if (operation is "ColumnPredicate" or "ColumnCase" or "ColumnCoalesce"
+            or "ArrayColumnPredicate" or "ArrayColumnCase" or "ArrayColumnCoalesce")
         {
             var columnQuery = operation switch
             {
                 "ColumnPredicate" => context.Entities.Where(e => e.Payload["Mood"] == (object)e.Mood).Select(e => e.Payload["Mood"]),
                 "ColumnCase" => context.Entities.Select(e => e.Id == 1 ? e.Payload["Mood"] : (object)e.Mood),
                 "ColumnCoalesce" => context.Entities.Select(e => e.Payload["Mood"] ?? (object)e.Mood),
+                "ArrayColumnPredicate" => context.Entities.Where(e => e.Payload["Moods"] == (object)new[] { e.Mood })
+                    .Select(e => e.Payload["Moods"]),
+                "ArrayColumnCase" => context.Entities.Select(e => e.Id == 1 ? e.Payload["Moods"] : (object)new[] { e.Mood }),
+                "ArrayColumnCoalesce" => context.Entities.Select(e => e.Payload["Moods"] ?? (object)new[] { e.Mood }),
                 _ => throw new UnreachableException()
             };
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => columnQuery.ToArrayAsync());
@@ -306,7 +352,7 @@ LIMIT 2
         }
 
         var column = operation.StartsWith("Typed", StringComparison.Ordinal) ? "TypedPayload" : "Payload";
-        var traversal = $"""e."{column}" -> 'Mood'""";
+        var traversal = $"""e."{column}" -> '{(operation == "ArrayParameter" ? "Moods" : "Mood")}'""";
         if (operation is "TypedProjection" or "CastProjection")
         {
             var projection = operation == "TypedProjection"
@@ -325,20 +371,29 @@ ORDER BY e."Id" NULLS FIRST
         }
 
         var mood = JsonMood.Sad;
+        JsonMood[] moods = [JsonMood.Sad];
         var query = operation switch
         {
             "ObjectPredicate" => context.Entities.Where(e => e.Payload["Mood"] == (object)EF.Parameter(mood)),
             "TypedPredicate" => context.Entities.Where(e => e.TypedPayload["Mood"] == EF.Parameter(mood)),
             "CastPredicate" => context.Entities.Where(e => (JsonMood)e.Payload["Mood"] == EF.Parameter(mood)),
+            "ArrayParameter" => context.Entities.Where(e => e.Payload["Moods"] == (object)EF.Parameter(moods)),
             _ => throw new UnreachableException()
         };
         Assert.Equal(1, await query.Select(e => e.Id).SingleAsync());
 
         var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
-        var right = $"NULLIF(@mood{(jsonb || operation == "ObjectPredicate" ? "" : "::jsonb")}, 'null'::jsonb)";
+        var parameter = operation == "ArrayParameter" ? "moods" : "mood";
+        var right = $"NULLIF(@{parameter}{(jsonb || operation is "ObjectPredicate" or "ArrayParameter" ? "" : "::jsonb")}, 'null'::jsonb)";
+        var value = operation switch
+        {
+            "ObjectPredicate" => "1",
+            "ArrayParameter" => "[1]",
+            _ => "Sad"
+        };
         AssertSql(
             $"""
-@mood='{(operation == "ObjectPredicate" ? "1" : "Sad")}' (DbType = Object)
+@{parameter}='{value}'{(operation == "ArrayParameter" ? " (Nullable = true)" : "")} (DbType = Object)
 
 SELECT e."Id"
 FROM "Entities" AS e
@@ -376,6 +431,12 @@ LIMIT 2
     [InlineData(true, "Days")]
     [InlineData(false, "Add")]
     [InlineData(true, "Add")]
+    [InlineData(false, "Negate")]
+    [InlineData(true, "Negate")]
+    [InlineData(false, "TypedToString")]
+    [InlineData(true, "TypedToString")]
+    [InlineData(false, "CastToString")]
+    [InlineData(true, "CastToString")]
     public async Task TimeSpan_json_dictionary_projection(bool jsonb, string operation)
     {
         var first = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567));
@@ -399,7 +460,15 @@ LIMIT 2
 
         using var context = contextFactory.CreateDbContext();
         var entities = context.Entities.OrderBy(e => e.Id);
-        if (operation == "Days")
+        if (operation is "TypedToString" or "CastToString")
+        {
+            var query = operation == "TypedToString"
+                ? entities.Select(e => e.TypedPayload["Duration"].ToString())
+                : entities.Select(e => ((TimeSpan)e.Payload["Duration"]).ToString());
+            var values = await query.ToArrayAsync();
+            Assert.Equal([first.ToString(), second.ToString()], values);
+        }
+        else if (operation == "Days")
         {
             var days = await entities.Select(e => ((TimeSpan)e.Payload["Duration"]).Days).ToArrayAsync();
             Assert.Equal([1, -2], days);
@@ -411,17 +480,64 @@ LIMIT 2
                 "Typed" => entities.Select(e => e.TypedPayload["Duration"]),
                 "Cast" => entities.Select(e => (TimeSpan)e.Payload["Duration"]),
                 "Add" => entities.Select(e => (TimeSpan)e.Payload["Duration"] + TimeSpan.FromHours(1)),
+                "Negate" => entities.Select(e => -(TimeSpan)e.Payload["Duration"]),
                 _ => throw new UnreachableException()
             };
             var values = await query.ToArrayAsync();
-            TimeSpan[] expected = operation == "Add" ? [first + TimeSpan.FromHours(1), second + TimeSpan.FromHours(1)] : [first, second];
+            TimeSpan[] expected = operation switch
+            {
+                "Add" => [first + TimeSpan.FromHours(1), second + TimeSpan.FromHours(1)],
+                "Negate" => [-first, -second],
+                _ => [first, second]
+            };
             Assert.Equal(expected, values);
         }
 
         AssertSql(
             $"""
-SELECT e."{(operation == "Typed" ? "TypedPayload" : "Payload")}" -> 'Duration'
+SELECT e."{(operation is "Typed" or "TypedToString" ? "TypedPayload" : "Payload")}" -> 'Duration'
 FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task TimeSpan_json_dictionary_has_value(bool jsonb, bool negated)
+    {
+        var contextFactory = await InitializeNonSharedTest<TimeSpanJsonContext>(
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.Payload).HasColumnType(jsonb ? "jsonb" : "json");
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.TypedPayload).HasColumnType(jsonb ? "jsonb" : "json");
+            },
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new TimeSpanJsonEntity { Id = 1, Payload = new() { ["Duration"] = TimeSpan.FromDays(1) }, TypedPayload = [] },
+                    new TimeSpanJsonEntity { Id = 2, Payload = new() { ["Duration"] = null }, TypedPayload = [] },
+                    new TimeSpanJsonEntity { Id = 3, Payload = [], TypedPayload = [] });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var query = negated
+            ? context.Entities.Where(e => !((TimeSpan?)e.Payload["Duration"]).HasValue)
+            : context.Entities.Where(e => ((TimeSpan?)e.Payload["Duration"]).HasValue);
+        var ids = await query.OrderBy(e => e.Id).Select(e => e.Id).ToArrayAsync();
+        Assert.Equal(negated ? [2, 3] : [1], ids);
+
+        AssertSql(
+            $"""
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Payload" ->> 'Duration' IS {(negated ? "" : "NOT ")}NULL
 ORDER BY e."Id" NULLS FIRST
 """);
     }

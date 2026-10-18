@@ -2962,6 +2962,27 @@ ORDER BY d."Id" NULLS FIRST
         AssertSql();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_as_string_predicate(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => (e.JsonbDictionary["Name"] as string) == "Joe")
+            : ctx.DictionaryEntities.Where(e => (e.JsonDictionary["Name"] as string) == "Joe");
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'Name' = 'Joe'
+LIMIT 2
+""");
+    }
+
     #endregion Dictionaries
 
     #region Support
