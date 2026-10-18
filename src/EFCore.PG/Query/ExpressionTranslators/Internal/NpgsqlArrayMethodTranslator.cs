@@ -159,7 +159,8 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
 
             if (method is { IsGenericMethod: true, Name: nameof(Enumerable.Concat) }
                 && method.DeclaringType == typeof(Enumerable)
-                && arguments is [var otherArray])
+                && arguments is [var otherArray]
+                && !IsMappedToNonArray(otherArray))
             {
                 var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, otherArray);
 

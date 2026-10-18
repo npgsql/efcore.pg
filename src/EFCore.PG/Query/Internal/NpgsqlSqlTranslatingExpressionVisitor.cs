@@ -329,20 +329,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             binaryExpression.NodeType != ExpressionType.ArrayIndex,
             "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. Should never see ArrayIndex.");
 
-        // Check before base translation can erase a boxed JSON operand's mapping.
-        if (binaryExpression.NodeType == ExpressionType.Coalesce && binaryExpression.Type == typeof(object)
-            && Visit(RemoveObjectConvert(binaryExpression.Left)) is SqlExpression translatedLeft
-            && Visit(RemoveObjectConvert(binaryExpression.Right)) is SqlExpression translatedRight)
-        {
-            var left = Unbox(translatedLeft);
-            var right = Unbox(translatedRight);
-            if (left.Type != right.Type && left.Type != typeof(object) && right.Type != typeof(object)
-                && (left.TypeMapping is NpgsqlJsonTypeMapping || right.TypeMapping is NpgsqlJsonTypeMapping))
-            {
-                return QueryCompilationContext.NotTranslatedExpression;
-            }
-        }
-
         // We pattern match date subtraction before calling base.VisitBinary() as that would produce the default a - b translation, but that
         // yields the number of days as an integer; this is incompatible with the .NET side, where LocalDate - LocalDate = Period, and Period
         // is mapped to PG interval. So we override subtraction to add make_interval.
@@ -372,7 +358,50 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
         }
 
-        return NormalizeJsonNullCheck(base.VisitBinary(binaryExpression)) switch
+        Expression binaryTranslation;
+        if (binaryExpression.NodeType == ExpressionType.Coalesce && binaryExpression.Type == typeof(object))
+        {
+            var left = TryRemoveImplicitConvert(binaryExpression.Left);
+            var right = TryRemoveImplicitConvert(binaryExpression.Right);
+            var unboxedLeft = RemoveObjectConvert(left);
+            var unboxedRight = RemoveObjectConvert(right);
+            if (unboxedLeft != left && unboxedRight != right)
+            {
+                left = unboxedLeft;
+                right = unboxedRight;
+            }
+            else if (unboxedLeft != left && right is ConstantExpression { Value: null })
+            {
+                left = unboxedLeft;
+            }
+            else if (unboxedRight != right && left is ConstantExpression { Value: null })
+            {
+                right = unboxedRight;
+            }
+
+            if (TranslationFailed(binaryExpression.Left, Visit(left), out var sqlLeft)
+                || TranslationFailed(binaryExpression.Right, Visit(right), out var sqlRight))
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            // Check before coalescing can erase a boxed JSON operand's mapping, without visiting either operand twice.
+            var leftValue = Unbox(sqlLeft!);
+            var rightValue = Unbox(sqlRight!);
+            if (leftValue.Type != rightValue.Type && leftValue.Type != typeof(object) && rightValue.Type != typeof(object)
+                && (leftValue.TypeMapping is NpgsqlJsonTypeMapping || rightValue.TypeMapping is NpgsqlJsonTypeMapping))
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            binaryTranslation = _sqlExpressionFactory.Coalesce(sqlLeft!, sqlRight!);
+        }
+        else
+        {
+            binaryTranslation = base.VisitBinary(binaryExpression);
+        }
+
+        return NormalizeJsonNullCheck(binaryTranslation) switch
         {
             SqlBinaryExpression { OperatorType: ExpressionType.Equal or ExpressionType.NotEqual } comparison
                 when TryTranslateJsonComparison(comparison, out var translatedComparison)
@@ -579,13 +608,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         if (expression is SqlParameterExpression parameter
             && (mapping.Converter is not null && mapping.ClrType == expression.Type
                 || expression.TypeMapping?.Converter is not null
-                || expression.Type == typeof(DateTime)
-                || expression.Type == typeof(DateTimeOffset)
-                || expression.Type == typeof(DateOnly)
-                || expression.Type == typeof(TimeSpan)
-                || expression.Type == typeof(TimeOnly)
-                || (expression.TypeMapping ?? _typeMappingSource.FindMapping(expression.Type, Dependencies.Model))
-                    is null or NpgsqlHstoreTypeMapping or NpgsqlArrayTypeMapping or NpgsqlEnumTypeMapping))
+                || expression.Type != typeof(string) && expression.Type != typeof(byte[])))
         {
             // Native SQL conversion must not bypass JSON serialization or configured converters.
             return parameter.ApplyTypeMapping(

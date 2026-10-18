@@ -1228,6 +1228,43 @@ LIMIT 2
 """);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Native_array_concat_json_fragment_is_not_translated(bool jsonb, bool reverse)
+    {
+        var contextFactory = await InitializeNonSharedTest<ArrayJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<ArrayJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json"),
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())));
+        using var context = contextFactory.CreateDbContext();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => reverse
+                ? context.Entities.ExecuteUpdateAsync(s => s.SetProperty(
+                    e => e.Values, e => e.Payload["Timestamps"].Concat(e.Values).ToArray()))
+                : context.Entities.ExecuteUpdateAsync(s => s.SetProperty(
+                    e => e.Values, e => e.Values.Concat(e.Payload["Timestamps"]).ToArray())));
+        Assert.Contains("could not be translated", exception.Message);
+        AssertSql();
+    }
+
+    protected class ArrayJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<ArrayJsonEntity> Entities { get; set; }
+    }
+
+    public class ArrayJsonEntity
+    {
+        public int Id { get; set; }
+        public DateTime[] Values { get; set; } = [];
+        public Dictionary<string, DateTime[]> Payload { get; set; } = [];
+    }
+
     protected class TimestampJsonContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<TimestampJsonEntity> Entities { get; set; }

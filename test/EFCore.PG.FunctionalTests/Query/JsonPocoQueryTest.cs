@@ -919,6 +919,46 @@ LIMIT 2
     }
 
     [Theory]
+    [InlineData(false, "Name", "Joe", false)]
+    [InlineData(true, "Name", "Joe", false)]
+    [InlineData(false, "Age", "25", false)]
+    [InlineData(true, "Age", "25", false)]
+    [InlineData(false, "StringAge", "25", false)]
+    [InlineData(true, "StringAge", "25", false)]
+    [InlineData(false, "Name", "Joe", true)]
+    [InlineData(true, "Name", "Joe", true)]
+    public void Dictionary_indexer_boxed_string_parameter(bool jsonb, string key, string name, bool compiled)
+    {
+        using var ctx = CreateContext();
+        object expected = name;
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary[key] == EF.Parameter(expected))
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary[key] == EF.Parameter(expected));
+
+        var values = compiled
+            ? (jsonb
+                ? EF.CompileQuery((JsonPocoQueryContext c, object value) =>
+                    c.DictionaryEntities.Where(e => e.JsonbDictionary["Name"] == value).Select(e => e.Id))(ctx, expected)
+                : EF.CompileQuery((JsonPocoQueryContext c, object value) =>
+                    c.DictionaryEntities.Where(e => e.JsonDictionary["Name"] == value).Select(e => e.Id))(ctx, expected))
+            : query.Select(e => e.Id).ToArray();
+        Assert.Equal(key == "Age" ? [] : new[] { 1 }, values);
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{key}'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var parameter = compiled ? "value" : "expected";
+        var right = $"NULLIF(@{parameter}{(jsonb ? "" : "::jsonb")}, 'null'::jsonb)";
+        AssertSql(
+            $"""
+@{parameter}='{name}' (Nullable = true) (DbType = Object)
+
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+""");
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void Dictionary_indexer_object_forced_constant_comparison(bool jsonb)
@@ -2027,7 +2067,7 @@ ORDER BY d."Id" NULLS FIRST
         string[] expected = coalesce ? [guid.ToString(), guid.ToString()] : ["Joe", guid.ToString()];
         Assert.Equal(expected, query.ToArray().Select(v => Assert.IsType<JsonElement>(v).GetString()));
 
-        var scalar = $"""{(jsonb ? "to_jsonb" : "to_json")}('00000000-0000-0000-0000-000000000000'::uuid)""";
+        const string scalar = """'"00000000-0000-0000-0000-000000000000"'""";
         var projection = coalesce
             ? $"""
 COALESCE(CASE
@@ -2223,11 +2263,11 @@ LIMIT 2
         var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
         AssertSql(
             $"""
-@age='25'
+@age='25' (DbType = Object)
 
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
-WHERE {left} = NULLIF(to_jsonb(@age), 'null'::jsonb) OR ({left} IS NULL AND NULLIF(to_jsonb(@age), 'null'::jsonb) IS NULL)
+WHERE {left} = NULLIF(@age, 'null'::jsonb) OR ({left} IS NULL AND NULLIF(@age, 'null'::jsonb) IS NULL)
 LIMIT 2
 """);
     }
@@ -2400,6 +2440,41 @@ END
 @fallback='{{fallback}}' (DbType = Object)
 
 SELECT {{projection}}
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_container_else_parameter_projection(bool jsonb, bool constant)
+    {
+        using var ctx = CreateContext();
+        Dictionary<string, int> fallback = new() { ["Age"] = 99 };
+        var query = (jsonb, constant) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonbDictionary["Name"] : (object)EF.Parameter(fallback)),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonDictionary["Name"] : (object)EF.Parameter(fallback)),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonbDictionary["Name"] : (object)EF.Constant(fallback)),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.JsonDictionary["Name"] : (object)EF.Constant(fallback))
+        };
+        var values = query.ToArray();
+        Assert.Equal("Joe", Assert.IsType<JsonElement>(values[0]).GetString());
+        Assert.Equal(99, Assert.IsType<JsonElement>(values[1]).GetProperty("Age").GetInt32());
+
+        AssertSql(
+            (constant ? "" : $"@fallback='{fallback}' (DbType = Object)\n\n") + $"""
+SELECT CASE
+    WHEN d."Id" = 1 THEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
+    ELSE {(constant ? """'{"Age":99}'""" : "@fallback")}
+END
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
@@ -2860,7 +2935,7 @@ LIMIT 2
             """
 SELECT count(*)::int
 FROM "DictionaryEntities" AS d
-WHERE JSON_EXISTS(to_jsonb('00000000-0000-0000-0000-000000000000'::uuid), '$')
+WHERE JSON_EXISTS('"00000000-0000-0000-0000-000000000000"', '$')
 """);
     }
 
