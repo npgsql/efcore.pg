@@ -87,7 +87,7 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
         // The array/list CLR type may be mapped to a non-array database type (e.g. byte[] to bytea, or just
         // value converters) - we don't want to translate for those cases.
         static bool IsMappedToNonArray(SqlExpression arrayOrList)
-            => arrayOrList.TypeMapping is { } and not (NpgsqlArrayTypeMapping or NpgsqlJsonTypeMapping);
+            => arrayOrList.TypeMapping is { } and not NpgsqlArrayTypeMapping;
 
 #pragma warning disable CS8321
         SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)

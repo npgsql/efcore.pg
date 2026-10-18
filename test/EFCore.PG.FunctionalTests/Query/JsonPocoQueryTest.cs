@@ -1084,6 +1084,49 @@ LIMIT 2
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
+    public void Dictionary_indexer_binary_array_comparison(bool jsonb, bool parameter)
+    {
+        using var ctx = CreateContext();
+        byte[][] payloads = [[1, 2, 3]];
+        var query = (jsonb, parameter) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e =>
+                e.JsonbDictionary["Payloads"] == (object)new[] { (byte[])e.JsonbDictionary["Payload"] }),
+            (false, false) => ctx.DictionaryEntities.Where(e =>
+                e.JsonDictionary["Payloads"] == (object)new[] { (byte[])e.JsonDictionary["Payload"] }),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Payloads"] == (object)EF.Parameter(payloads)),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Payloads"] == (object)EF.Parameter(payloads))
+        };
+
+        if (!parameter)
+        {
+            var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
+            Assert.Equal("Converting PostgreSQL bytea arrays to JSON is not supported.", exception.Message);
+            AssertSql();
+            return;
+        }
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Payloads'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        const string right = "NULLIF(@payloads, 'null'::jsonb)";
+        AssertSql(
+            $"""
+@payloads='["AQID"]' (Nullable = true) (DbType = Object)
+
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
     public void Dictionary_indexer_binary_composed_projection(bool jsonb, bool coalesce)
     {
         using var ctx = CreateContext();
@@ -1474,6 +1517,75 @@ ORDER BY d."Id" NULLS FIRST
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
 WHERE d."DictionaryInterface" ->> 'Name' = 'Joe'
+LIMIT 2
+""");
+    }
+
+    [Fact]
+    public void Dictionary_indexer_interface_string_length()
+    {
+        using var ctx = CreateContext();
+        var values = ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.DictionaryInterface["Name"].Length).ToArray();
+        Assert.Equal([3, 3], values);
+
+        AssertSql(
+            """
+SELECT length(d."DictionaryInterface" ->> 'Name')::int
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_convert_to_string(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => Convert.ToString(e.JsonbDictionary["Name"]))
+            : ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => Convert.ToString(e.JsonDictionary["Name"]));
+        Assert.Equal(["Joe", "Moe"], query.ToArray());
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Dictionary_indexer_collection_index_of(bool jsonb, bool array, bool startIndex)
+    {
+        using var ctx = CreateContext();
+        var entities = ctx.DictionaryEntities.Where(e => e.Id == 2);
+        var query = (jsonb, array, startIndex) switch
+        {
+            (true, false, false) => entities.Select(e => ((Dictionary<string, List<int>>)e.JsonbDictionary["Collections"])["Array"].IndexOf(3)),
+            (false, false, false) => entities.Select(e => ((Dictionary<string, List<int>>)e.JsonDictionary["Collections"])["Array"].IndexOf(3)),
+            (true, false, true) => entities.Select(e => ((Dictionary<string, List<int>>)e.JsonbDictionary["Collections"])["Array"].IndexOf(3, 1)),
+            (false, false, true) => entities.Select(e => ((Dictionary<string, List<int>>)e.JsonDictionary["Collections"])["Array"].IndexOf(3, 1)),
+            (true, true, false) => entities.Select(e => Array.IndexOf(((Dictionary<string, int[]>)e.JsonbDictionary["Collections"])["Array"], 3)),
+            (false, true, false) => entities.Select(e => Array.IndexOf(((Dictionary<string, int[]>)e.JsonDictionary["Collections"])["Array"], 3)),
+            (true, true, true) => entities.Select(e => Array.IndexOf(((Dictionary<string, int[]>)e.JsonbDictionary["Collections"])["Array"], 3, 1)),
+            (false, true, true) => entities.Select(e => Array.IndexOf(((Dictionary<string, int[]>)e.JsonDictionary["Collections"])["Array"], 3, 1))
+        };
+        Assert.Equal(startIndex ? -1 : 0, query.Single());
+
+        AssertSql(
+            $$"""
+SELECT d."{{(jsonb ? "JsonbDictionary" : "JsonDictionary")}}" #> '{Collections,Array}'
+FROM "DictionaryEntities" AS d
+WHERE d."Id" = 2
 LIMIT 2
 """);
     }
@@ -3056,6 +3168,7 @@ LIMIT 2
                         ["Collections"] = new Dictionary<string, int[]> { ["Array"] = null! },
                         ["NullableName"] = null!,
                         ["Payload"] = (byte[])[1, 2, 3],
+                        ["Payloads"] = (byte[][])[[1, 2, 3]],
                         ["LongPayload"] = longPayload,
                         ["Customer"] = new Dictionary<string, int> { ["Age"] = 25 }
                     },
@@ -3075,6 +3188,7 @@ LIMIT 2
                         ["Collections"] = new Dictionary<string, int[]> { ["Array"] = null! },
                         ["NullableName"] = null!,
                         ["Payload"] = (byte[])[1, 2, 3],
+                        ["Payloads"] = (byte[][])[[1, 2, 3]],
                         ["LongPayload"] = longPayload,
                         ["Customer"] = new Dictionary<string, int> { ["Age"] = 25 }
                     },

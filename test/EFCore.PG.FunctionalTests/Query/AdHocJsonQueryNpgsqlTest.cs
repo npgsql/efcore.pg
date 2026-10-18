@@ -295,6 +295,12 @@ LIMIT 2
     [InlineData(true, "NullableHasValue")]
     [InlineData(false, "NullableValue")]
     [InlineData(true, "NullableValue")]
+    [InlineData(false, "TypedIntCast")]
+    [InlineData(true, "TypedIntCast")]
+    [InlineData(false, "BitwiseAnd")]
+    [InlineData(true, "BitwiseAnd")]
+    [InlineData(false, "BitwiseOr")]
+    [InlineData(true, "BitwiseOr")]
     public async Task Native_enum_json_translation(bool jsonb, string operation)
     {
         var contextFactory = await InitializeNonSharedTest<EnumJsonContext>(
@@ -361,6 +367,37 @@ LIMIT 2
 
         var column = operation.StartsWith("Typed", StringComparison.Ordinal) ? "TypedPayload" : "Payload";
         var traversal = $"""e."{column}" -> '{(operation == "ArrayParameter" ? "Moods" : "Mood")}'""";
+        if (operation == "TypedIntCast")
+        {
+            var values = await context.Entities.OrderBy(e => e.Id).Select(e => (int)e.TypedPayload["Mood"]).ToArrayAsync();
+            Assert.Equal([1, 0], values);
+
+            AssertSql(
+                """
+SELECT e."TypedPayload" -> 'Mood'
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+            return;
+        }
+
+        if (operation is "BitwiseAnd" or "BitwiseOr")
+        {
+            var projection = operation == "BitwiseAnd"
+                ? context.Entities.OrderBy(e => e.Id).Select(e => e.TypedPayload["Mood"] & JsonMood.Sad)
+                : context.Entities.OrderBy(e => e.Id).Select(e => e.TypedPayload["Mood"] | JsonMood.Sad);
+            var values = await projection.ToArrayAsync();
+            Assert.Equal(operation == "BitwiseAnd" ? [JsonMood.Sad, JsonMood.Happy] : [JsonMood.Sad, JsonMood.Sad], values);
+
+            AssertSql(
+                """
+SELECT e."TypedPayload" -> 'Mood'
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+            return;
+        }
+
         if (operation == "NullableHasValue")
         {
             var values = await context.Entities.OrderBy(e => e.Id).Select(e => new
@@ -651,6 +688,48 @@ ORDER BY e."Id" NULLS FIRST
         AssertSql(
             $"""
 SELECT e."{(reverse ? "Payload" : "TypedPayload")}" -> 'Duration'
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task TimeSpan_json_dictionary_time_only(bool jsonb, bool add)
+    {
+        var first = TimeSpan.FromHours(1).Add(TimeSpan.FromTicks(1234567));
+        var second = TimeSpan.FromHours(10).Add(TimeSpan.FromTicks(1234567));
+        var contextFactory = await InitializeNonSharedTest<TimeSpanJsonContext>(
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.Payload).HasColumnType(jsonb ? "jsonb" : "json");
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.TypedPayload).HasColumnType(jsonb ? "jsonb" : "json");
+            },
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new TimeSpanJsonEntity { Id = 1, Payload = new() { ["Duration"] = first }, TypedPayload = [] },
+                    new TimeSpanJsonEntity { Id = 2, Payload = new() { ["Duration"] = second }, TypedPayload = [] });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var entities = context.Entities.OrderBy(e => e.Id);
+        var query = add
+            ? entities.Select(e => TimeOnly.MinValue.Add((TimeSpan)e.Payload["Duration"]))
+            : entities.Select(e => TimeOnly.FromTimeSpan((TimeSpan)e.Payload["Duration"]));
+        var values = await query.ToArrayAsync();
+        Assert.Equal([TimeOnly.FromTimeSpan(first), TimeOnly.FromTimeSpan(second)], values);
+
+        AssertSql(
+            """
+SELECT e."Payload" -> 'Duration'
 FROM "Entities" AS e
 ORDER BY e."Id" NULLS FIRST
 """);

@@ -213,13 +213,25 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         if (base.VisitUnary(unaryExpression) is var translation
             && translation != QueryCompilationContext.NotTranslatedExpression)
         {
-            return translation is SqlUnaryExpression
+            return translation switch
+            {
+                SqlUnaryExpression
                 {
                     OperatorType: ExpressionType.Negate,
                     Operand.TypeMapping: NpgsqlJsonTypeMapping
-                } && unaryExpression.Type.UnwrapNullableType() == typeof(TimeSpan)
-                    ? QueryCompilationContext.NotTranslatedExpression
-                    : translation;
+                } when unaryExpression.Type.UnwrapNullableType() == typeof(TimeSpan)
+                    => QueryCompilationContext.NotTranslatedExpression,
+
+                SqlUnaryExpression
+                {
+                    OperatorType: ExpressionType.Convert,
+                    Operand: { TypeMapping: NpgsqlJsonTypeMapping, Type: var operandType }
+                } when operandType.UnwrapNullableType().IsEnum && unaryExpression.Type != typeof(object)
+                    && unaryExpression.Type.UnwrapNullableType() != operandType.UnwrapNullableType()
+                    => QueryCompilationContext.NotTranslatedExpression,
+
+                _ => translation
+            };
         }
 
         switch (unaryExpression.NodeType)
@@ -357,10 +369,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 when Unbox(left).TypeMapping is NpgsqlJsonTypeMapping || Unbox(right).TypeMapping is NpgsqlJsonTypeMapping
                 => TranslateJsonCoalesce(left, right, binaryExpression.Type),
 
-            // Serialized JSON durations are not PostgreSQL intervals.
+            // Serialized JSON durations and enums are not native SQL scalars.
             SqlBinaryExpression { OperatorType: not (ExpressionType.Equal or ExpressionType.NotEqual) } binary
-                when binary.Left.Type.UnwrapNullableType() == typeof(TimeSpan) && binary.Left.TypeMapping is NpgsqlJsonTypeMapping
-                    || binary.Right.Type.UnwrapNullableType() == typeof(TimeSpan) && binary.Right.TypeMapping is NpgsqlJsonTypeMapping
+                when binary.Left.TypeMapping is NpgsqlJsonTypeMapping
+                    && (binary.Left.Type.UnwrapNullableType() == typeof(TimeSpan) || binary.Left.Type.UnwrapNullableType().IsEnum)
+                    || binary.Right.TypeMapping is NpgsqlJsonTypeMapping
+                    && (binary.Right.Type.UnwrapNullableType() == typeof(TimeSpan) || binary.Right.Type.UnwrapNullableType().IsEnum)
                 => QueryCompilationContext.NotTranslatedExpression,
 
             // Optimize (x - c) - (y - c) to x - y.
@@ -563,6 +577,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             and not SqlConstantExpression)
         {
             throw new InvalidOperationException("Converting PostgreSQL timestamp with time zone arrays to JSON is not supported.");
+        }
+
+        if (expression is { TypeMapping: NpgsqlArrayTypeMapping { ElementTypeMapping: NpgsqlByteArrayTypeMapping } }
+            and not SqlConstantExpression)
+        {
+            throw new InvalidOperationException("Converting PostgreSQL bytea arrays to JSON is not supported.");
         }
 
         if (expression is

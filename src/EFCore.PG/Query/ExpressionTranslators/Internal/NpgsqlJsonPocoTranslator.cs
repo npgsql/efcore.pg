@@ -105,7 +105,7 @@ public class NpgsqlJsonPocoTranslator(
         {
             ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } columnExpression
                 => (columnExpression, [member]),
-            PgJsonTraversalExpression traversal
+            PgJsonTraversalExpression { ReturnsText: false } traversal
                 => (traversal.Expression, traversal.Path.Append(member)),
             _ => (null, [])
         };
