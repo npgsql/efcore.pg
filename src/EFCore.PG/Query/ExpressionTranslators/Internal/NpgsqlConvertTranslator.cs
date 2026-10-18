@@ -30,7 +30,7 @@ public class NpgsqlConvertTranslator(ISqlExpressionFactory sqlExpressionFactory)
 
         if (!isSupported
             || arguments is not [var convertArg]
-            || convertArg.TypeMapping is NpgsqlJsonTypeMapping
+            || sqlExpressionFactory.ApplyDefaultTypeMapping(convertArg)?.TypeMapping is NpgsqlJsonTypeMapping
             || !IsSupportedType(convertArg.Type))
         {
             return null;

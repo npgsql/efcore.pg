@@ -545,7 +545,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             return true;
         }
 
-        var sourceConverter = (expression.TypeMapping as NpgsqlJsonTypeMapping)?.Converter;
+        var sourceConverter = expression.TypeMapping?.Converter;
         return (sourceConverter == NpgsqlJsonPocoTranslator.ObjectJsonConverter ? null : sourceConverter)
             == (mapping.Converter == NpgsqlJsonPocoTranslator.ObjectJsonConverter ? null : mapping.Converter);
     }
@@ -555,8 +555,10 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         expression = Unbox(expression);
         if (expression is SqlParameterExpression parameter
             && (mapping.Converter is not null && mapping.ClrType == expression.Type
+                || expression.TypeMapping?.Converter is not null
                 || expression.Type == typeof(DateTime)
                 || expression.Type == typeof(DateTimeOffset)
+                || expression.Type == typeof(DateOnly)
                 || expression.Type == typeof(TimeSpan)
                 || expression.Type == typeof(TimeOnly)
                 || (expression.TypeMapping ?? _typeMappingSource.FindMapping(expression.Type, Dependencies.Model))
@@ -564,6 +566,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         {
             // Native SQL conversion must not bypass JSON serialization or configured converters.
             return parameter.ApplyTypeMapping(mapping);
+        }
+
+        if (expression is { TypeMapping: { Converter: not null } and not NpgsqlJsonTypeMapping } and not SqlConstantExpression)
+        {
+            throw new InvalidOperationException("Converting value-converted PostgreSQL expressions to JSON is not supported.");
         }
 
         if (expression is
@@ -594,45 +601,63 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             throw new InvalidOperationException("Converting PostgreSQL enum expressions to JSON is not supported.");
         }
 
-        if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression
-            && (expression.Type == typeof(DateTime) || expression.Type == typeof(DateTimeOffset)))
+        if (expression is
+            {
+                TypeMapping: NpgsqlTimestampTzTypeMapping or NpgsqlTimestampTypeMapping or NpgsqlDateOnlyTypeMapping
+            } and not SqlConstantExpression
+            && (expression.Type == typeof(DateTime) || expression.Type == typeof(DateTimeOffset) || expression.Type == typeof(DateOnly)))
         {
-            var dateTimeOffset = expression.Type == typeof(DateTimeOffset);
+            var type = expression.Type;
+            var hasTimeZone = expression.TypeMapping is NpgsqlTimestampTzTypeMapping;
             var textMapping = _typeMappingSource.FindMapping("text")!;
-            var utcJson = _sqlExpressionFactory.Function(
+            var json = _sqlExpressionFactory.Function(
                 "to_jsonb",
-                [_sqlExpressionFactory.AtUtc(expression)],
+                [hasTimeZone ? _sqlExpressionFactory.AtUtc(expression) : expression],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(JsonElement),
                 _typeMappingSource.FindMapping(typeof(JsonElement), "jsonb"));
-            var text = ConvertJsonToScalar(utcJson, typeof(string), textMapping);
+            var text = ConvertJsonToScalar(json, typeof(string), textMapping);
             // Append the serializer's UTC suffix without string concatenation's null-to-empty compensation.
-            expression = _sqlExpressionFactory.Function(
-                "regexp_replace",
-                [
-                    text,
-                    _sqlExpressionFactory.Constant("$", textMapping),
-                    _sqlExpressionFactory.Constant(dateTimeOffset ? "+00:00" : "Z", textMapping)
-                ],
-                nullable: true,
-                argumentsPropagateNullability: TrueArrays[3],
-                typeof(string),
-                textMapping);
+            expression = hasTimeZone
+                ? _sqlExpressionFactory.Function(
+                    "regexp_replace",
+                    [
+                        text,
+                        _sqlExpressionFactory.Constant("$", textMapping),
+                        _sqlExpressionFactory.Constant(type == typeof(DateTimeOffset) ? "+00:00" : "Z", textMapping)
+                    ],
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[3],
+                    typeof(string),
+                    textMapping)
+                : text;
 
             if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
             {
+                object minimum = type switch
+                {
+                    _ when type == typeof(DateOnly) => DateOnly.MinValue,
+                    _ when type == typeof(DateTimeOffset) => DateTimeOffset.MinValue,
+                    _ => DateTime.MinValue
+                };
+                object maximum = type switch
+                {
+                    _ when type == typeof(DateOnly) => DateOnly.MaxValue,
+                    _ when type == typeof(DateTimeOffset) => DateTimeOffset.MaxValue,
+                    _ => DateTime.MaxValue
+                };
                 expression = _sqlExpressionFactory.Case(
                     [
                         new CaseWhenClause(
                             _sqlExpressionFactory.Equal(text, _sqlExpressionFactory.Constant("-infinity", textMapping)),
                             _sqlExpressionFactory.Constant(
-                                JsonSerializer.SerializeToElement(dateTimeOffset ? DateTimeOffset.MinValue : (object)DateTime.MinValue).GetString()!,
+                                JsonSerializer.SerializeToElement(minimum).GetString()!,
                                 textMapping)),
                         new CaseWhenClause(
                             _sqlExpressionFactory.Equal(text, _sqlExpressionFactory.Constant("infinity", textMapping)),
                             _sqlExpressionFactory.Constant(
-                                JsonSerializer.SerializeToElement(dateTimeOffset ? DateTimeOffset.MaxValue : (object)DateTime.MaxValue).GetString()!,
+                                JsonSerializer.SerializeToElement(maximum).GetString()!,
                                 textMapping))
                     ],
                     expression);

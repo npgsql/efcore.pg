@@ -527,6 +527,10 @@ LIMIT 2
     [InlineData(true, "TypedToString")]
     [InlineData(false, "CastToString")]
     [InlineData(true, "CastToString")]
+    [InlineData(false, "TypedConvert")]
+    [InlineData(true, "TypedConvert")]
+    [InlineData(false, "CastConvert")]
+    [InlineData(true, "CastConvert")]
     [InlineData(false, "TypedDateTrunc")]
     [InlineData(true, "TypedDateTrunc")]
     [InlineData(false, "CastDateTrunc")]
@@ -565,11 +569,16 @@ LIMIT 2
             return;
         }
 
-        if (operation is "TypedToString" or "CastToString")
+        if (operation is "TypedToString" or "CastToString" or "TypedConvert" or "CastConvert")
         {
-            var query = operation == "TypedToString"
-                ? entities.Select(e => e.TypedPayload["Duration"].ToString())
-                : entities.Select(e => ((TimeSpan)e.Payload["Duration"]).ToString());
+            var query = operation switch
+            {
+                "TypedToString" => entities.Select(e => e.TypedPayload["Duration"].ToString()),
+                "CastToString" => entities.Select(e => ((TimeSpan)e.Payload["Duration"]).ToString()),
+                "TypedConvert" => entities.Select(e => Convert.ToString(e.TypedPayload["Duration"])),
+                "CastConvert" => entities.Select(e => Convert.ToString((TimeSpan)e.Payload["Duration"])),
+                _ => throw new UnreachableException()
+            };
             var values = await query.ToArrayAsync();
             Assert.Equal([first.ToString(), second.ToString()], values);
         }
@@ -600,7 +609,7 @@ LIMIT 2
 
         AssertSql(
             $"""
-SELECT e."{(operation is "Typed" or "TypedToString" ? "TypedPayload" : "Payload")}" -> 'Duration'
+SELECT e."{(operation is "Typed" or "TypedToString" or "TypedConvert" ? "TypedPayload" : "Payload")}" -> 'Duration'
 FROM "Entities" AS e
 ORDER BY e."Id" NULLS FIRST
 """);
@@ -751,22 +760,44 @@ ORDER BY e."Id" NULLS FIRST
     }
 
     [Theory]
-    [InlineData(false, false, "Predicate")]
-    [InlineData(true, false, "Predicate")]
-    [InlineData(false, true, "Predicate")]
-    [InlineData(true, true, "Predicate")]
-    [InlineData(false, false, "Case")]
-    [InlineData(true, false, "Case")]
-    [InlineData(false, true, "Case")]
-    [InlineData(true, true, "Case")]
-    [InlineData(false, false, "Coalesce")]
-    [InlineData(true, false, "Coalesce")]
-    [InlineData(false, true, "Coalesce")]
-    [InlineData(true, true, "Coalesce")]
-    public async Task Timestamp_json_dictionary_extrema(bool jsonb, bool dateTimeOffset, string operation)
+    [InlineData(false, "Timestamp", "Predicate")]
+    [InlineData(true, "Timestamp", "Predicate")]
+    [InlineData(false, "TimestampOffset", "Predicate")]
+    [InlineData(true, "TimestampOffset", "Predicate")]
+    [InlineData(false, "Date", "Predicate")]
+    [InlineData(true, "Date", "Predicate")]
+    [InlineData(false, "LocalTimestamp", "Predicate")]
+    [InlineData(true, "LocalTimestamp", "Predicate")]
+    [InlineData(false, "Timestamp", "Case")]
+    [InlineData(true, "Timestamp", "Case")]
+    [InlineData(false, "TimestampOffset", "Case")]
+    [InlineData(true, "TimestampOffset", "Case")]
+    [InlineData(false, "Date", "Case")]
+    [InlineData(true, "Date", "Case")]
+    [InlineData(false, "LocalTimestamp", "Case")]
+    [InlineData(true, "LocalTimestamp", "Case")]
+    [InlineData(false, "Timestamp", "Coalesce")]
+    [InlineData(true, "Timestamp", "Coalesce")]
+    [InlineData(false, "TimestampOffset", "Coalesce")]
+    [InlineData(true, "TimestampOffset", "Coalesce")]
+    [InlineData(false, "Date", "Coalesce")]
+    [InlineData(true, "Date", "Coalesce")]
+    [InlineData(false, "LocalTimestamp", "Coalesce")]
+    [InlineData(true, "LocalTimestamp", "Coalesce")]
+    public async Task Timestamp_json_dictionary_extrema(bool jsonb, string type, string operation)
     {
-        object minimum = dateTimeOffset ? DateTimeOffset.MinValue : (object)DateTime.MinValue;
-        object maximum = dateTimeOffset ? DateTimeOffset.MaxValue : (object)DateTime.MaxValue;
+        object minimum = type switch
+        {
+            "TimestampOffset" => DateTimeOffset.MinValue,
+            "Date" => DateOnly.MinValue,
+            _ => DateTime.MinValue
+        };
+        object maximum = type switch
+        {
+            "TimestampOffset" => DateTimeOffset.MaxValue,
+            "Date" => DateOnly.MaxValue,
+            _ => DateTime.MaxValue
+        };
         var contextFactory = await InitializeNonSharedTest<TimestampJsonContext>(
             onModelCreating: modelBuilder => modelBuilder.Entity<TimestampJsonEntity>().Property(e => e.Payload)
                 .HasColumnType(jsonb ? "jsonb" : "json"),
@@ -781,6 +812,8 @@ ORDER BY e."Id" NULLS FIRST
                         Id = 1,
                         Timestamp = DateTime.MinValue,
                         TimestampOffset = DateTimeOffset.MinValue,
+                        LocalTimestamp = DateTime.MinValue,
+                        Date = DateOnly.MinValue,
                         Payload = new() { ["Timestamp"] = minimum }
                     },
                     new TimestampJsonEntity
@@ -788,6 +821,8 @@ ORDER BY e."Id" NULLS FIRST
                         Id = 2,
                         Timestamp = DateTime.MaxValue,
                         TimestampOffset = DateTimeOffset.MaxValue,
+                        LocalTimestamp = DateTime.MaxValue,
+                        Date = DateOnly.MaxValue,
                         Payload = new() { ["Timestamp"] = maximum }
                     });
                 await context.SaveChangesAsync();
@@ -795,14 +830,20 @@ ORDER BY e."Id" NULLS FIRST
 
         using var context = contextFactory.CreateDbContext();
         var entities = context.Entities.OrderBy(e => e.Id);
-        var query = (operation, dateTimeOffset) switch
+        var query = (operation, type) switch
         {
-            ("Predicate", false) => entities.Where(e => e.Payload["Timestamp"] == (object)e.Timestamp).Select(e => e.Payload["Timestamp"]),
-            ("Predicate", true) => entities.Where(e => e.Payload["Timestamp"] == (object)e.TimestampOffset).Select(e => e.Payload["Timestamp"]),
-            ("Case", false) => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.Timestamp),
-            ("Case", true) => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.TimestampOffset),
-            ("Coalesce", false) => entities.Select(e => e.Payload["Missing"] ?? (object)e.Timestamp),
-            ("Coalesce", true) => entities.Select(e => e.Payload["Missing"] ?? (object)e.TimestampOffset),
+            ("Predicate", "Timestamp") => entities.Where(e => e.Payload["Timestamp"] == (object)e.Timestamp).Select(e => e.Payload["Timestamp"]),
+            ("Predicate", "TimestampOffset") => entities.Where(e => e.Payload["Timestamp"] == (object)e.TimestampOffset).Select(e => e.Payload["Timestamp"]),
+            ("Predicate", "Date") => entities.Where(e => e.Payload["Timestamp"] == (object)e.Date).Select(e => e.Payload["Timestamp"]),
+            ("Predicate", "LocalTimestamp") => entities.Where(e => e.Payload["Timestamp"] == (object)e.LocalTimestamp).Select(e => e.Payload["Timestamp"]),
+            ("Case", "Timestamp") => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.Timestamp),
+            ("Case", "TimestampOffset") => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.TimestampOffset),
+            ("Case", "Date") => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.Date),
+            ("Case", "LocalTimestamp") => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.LocalTimestamp),
+            ("Coalesce", "Timestamp") => entities.Select(e => e.Payload["Missing"] ?? (object)e.Timestamp),
+            ("Coalesce", "TimestampOffset") => entities.Select(e => e.Payload["Missing"] ?? (object)e.TimestampOffset),
+            ("Coalesce", "Date") => entities.Select(e => e.Payload["Missing"] ?? (object)e.Date),
+            ("Coalesce", "LocalTimestamp") => entities.Select(e => e.Payload["Missing"] ?? (object)e.LocalTimestamp),
             _ => throw new UnreachableException()
         };
         var values = await query.ToArrayAsync();
@@ -810,12 +851,15 @@ ORDER BY e."Id" NULLS FIRST
             [JsonSerializer.SerializeToElement(minimum).GetString(), JsonSerializer.SerializeToElement(maximum).GetString()],
             values.Select(value => Assert.IsType<JsonElement>(value).GetString()));
 
-        var utcText = $$"""to_jsonb(e."{{(dateTimeOffset ? "TimestampOffset" : "Timestamp")}}" AT TIME ZONE 'UTC') #>> '{}'""";
+        var text = $$"""to_jsonb(e."{{type}}"{{(type is "Timestamp" or "TimestampOffset" ? " AT TIME ZONE 'UTC'" : "")}}) #>> '{}'""";
+        var finite = type is "Timestamp" or "TimestampOffset"
+            ? $"regexp_replace({text}, '$', '{(type == "TimestampOffset" ? "+00:00" : "Z")}')"
+            : text;
         var serialized = $"""
 {(jsonb || operation == "Predicate" ? "to_jsonb" : "to_json")}(CASE
-    WHEN {utcText} = '-infinity' THEN '{JsonSerializer.SerializeToElement(minimum).GetString()}'
-    WHEN {utcText} = 'infinity' THEN '{JsonSerializer.SerializeToElement(maximum).GetString()}'
-    ELSE regexp_replace({utcText}, '$', '{(dateTimeOffset ? "+00:00" : "Z")}')
+    WHEN {text} = '-infinity' THEN '{JsonSerializer.SerializeToElement(minimum).GetString()}'
+    WHEN {text} = 'infinity' THEN '{JsonSerializer.SerializeToElement(maximum).GetString()}'
+    ELSE {finite}
 END)
 """;
         var traversal = """e."Payload" -> 'Timestamp'""";
@@ -850,9 +894,132 @@ ORDER BY e."Id" NULLS FIRST
         AssertSql(sql);
     }
 
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public async Task DateOnly_json_dictionary_parameter_extrema(bool jsonb, bool maximum, bool constant)
+    {
+        var date = maximum ? DateOnly.MaxValue : DateOnly.MinValue;
+        var contextFactory = await InitializeNonSharedTest<TimestampJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<TimestampJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json"),
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.Add(new TimestampJsonEntity { Id = 1, Payload = new() { ["Date"] = date } });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var query = constant
+            ? context.Entities.Where(e => e.Payload["Date"] == (object)EF.Constant(date))
+            : context.Entities.Where(e => e.Payload["Date"] == (object)EF.Parameter(date));
+        Assert.Equal(1, await query.Select(e => e.Id).SingleAsync());
+
+        var traversal = """e."Payload" -> 'Date'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var serialized = JsonSerializer.SerializeToElement(date).GetString();
+        var right = $"NULLIF({(constant ? $"'\"{serialized}\"'" : "@date")}, 'null'::jsonb)";
+        AssertSql(
+            (constant ? "" : $"@date='{serialized}' (DbType = Object)\n\n") + $"""
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false, "Predicate")]
+    [InlineData(true, "Predicate")]
+    [InlineData(false, "Case")]
+    [InlineData(true, "Case")]
+    [InlineData(false, "Coalesce")]
+    [InlineData(true, "Coalesce")]
+    public async Task Native_converted_column_json_composition(bool jsonb, string operation)
+    {
+        var contextFactory = await InitializeNonSharedTest<NativeConvertedJsonContext>(
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<NativeConvertedJsonEntity>().Property(e => e.Payload).HasColumnType(jsonb ? "jsonb" : "json");
+                modelBuilder.Entity<NativeConvertedJsonEntity>().Property(e => e.Number).HasConversion(value => -value, value => -value);
+            },
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new NativeConvertedJsonEntity { Id = 1, Number = 25, Payload = new() { ["Number"] = 25 } },
+                    new NativeConvertedJsonEntity { Id = 2, Number = 35, Payload = new() { ["Number"] = 35 } });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var entities = context.Entities.OrderBy(e => e.Id);
+        if (operation == "Predicate")
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => entities.Where(e => e.Payload["Number"] == (object)e.Number).Select(e => e.Id).ToArrayAsync());
+            Assert.Equal("Converting value-converted PostgreSQL expressions to JSON is not supported.", exception.Message);
+            AssertSql();
+            return;
+        }
+
+        var query = operation == "Case"
+            ? entities.Select(e => e.Id == 1 ? e.Payload["Number"] : (object)e.Number)
+            : entities.Select(e => e.Payload["Missing"] ?? (object)e.Number);
+        var values = await query.ToArrayAsync();
+        Assert.Equal(35, Assert.IsType<int>(values[1]));
+        if (operation == "Case")
+        {
+            Assert.Equal(25, Assert.IsType<JsonElement>(values[0]).GetInt32());
+        }
+        else
+        {
+            Assert.Equal(25, Assert.IsType<int>(values[0]));
+        }
+
+        AssertSql(
+            operation == "Case"
+                ? """
+SELECT e."Id" = 1, e."Payload" -> 'Number', e."Number"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+"""
+                : """
+SELECT e."Payload" -> 'Missing', e."Number"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    protected class NativeConvertedJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<NativeConvertedJsonEntity> Entities { get; set; }
+    }
+
+    public class NativeConvertedJsonEntity
+    {
+        public int Id { get; set; }
+        public int Number { get; set; }
+        public Dictionary<string, object> Payload { get; set; }
+    }
+
     protected class TimestampJsonContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<TimestampJsonEntity> Entities { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            => modelBuilder.Entity<TimestampJsonEntity>().Property(e => e.LocalTimestamp).HasColumnType("timestamp without time zone");
     }
 
     public class TimestampJsonEntity
@@ -860,6 +1027,8 @@ ORDER BY e."Id" NULLS FIRST
         public int Id { get; set; }
         public DateTime Timestamp { get; set; }
         public DateTimeOffset TimestampOffset { get; set; }
+        public DateOnly Date { get; set; }
+        public DateTime LocalTimestamp { get; set; }
         public Dictionary<string, object> Payload { get; set; }
     }
 
