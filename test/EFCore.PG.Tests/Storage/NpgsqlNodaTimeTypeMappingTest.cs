@@ -281,6 +281,19 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal(value, readerWriter.FromJson(ref readerManager, existingObject: null));
     }
 
+    [Theory]
+    [InlineData("2018-04-20T10:31:33Z")]
+    [InlineData("2018-04-20T10:31:33.123456Z")]
+    public void ZonedDateTime_json_reads_legacy_UTC_values(string value)
+    {
+        var readerWriter = GetMapping(typeof(ZonedDateTime)).JsonValueReaderWriter!;
+        var expected = InstantPattern.ExtendedIso.Parse(value).GetValueOrThrow().InUtc();
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{value}\"")), null);
+        readerManager.MoveNext();
+
+        Assert.Equal(expected, readerWriter.FromJson(ref readerManager, existingObject: null));
+    }
+
     [Fact]
     public void Interval_is_properly_mapped()
     {
