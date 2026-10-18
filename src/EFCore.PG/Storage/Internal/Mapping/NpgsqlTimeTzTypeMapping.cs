@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 
@@ -115,7 +116,7 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
         ///     doing so can result in application failures when updating to a new Entity Framework Core release.
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, DateTimeOffset value)
-            => writer.WriteStringValue(value.ToString("HH:mm:ss.FFFFFFzzz"));
+            => writer.WriteStringValue(value.ToString("HH:mm:ss.FFFFFFzzz", CultureInfo.InvariantCulture));
 
         /// <inheritdoc />
         public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);

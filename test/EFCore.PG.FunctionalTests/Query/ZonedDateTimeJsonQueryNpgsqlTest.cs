@@ -156,7 +156,7 @@ LIMIT 2
         await using var context = contextFactory.CreateDbContext();
         const string details = """{"Value":"2018-10-28T00:30:00Z","NullableValue":null,"Values":[]}""";
         const string items = """[{"Value":"2018-10-28T00:30:00Z","NullableValue":null,"Values":[]}]""";
-        await context.Database.ExecuteSqlInterpolatedAsync(
+        await context.Database.ExecuteSqlAsync(
             $"""UPDATE "Container" SET "Details" = {details}::jsonb, "Items" = {items}::jsonb""");
         ListLoggerFactory.Clear();
 

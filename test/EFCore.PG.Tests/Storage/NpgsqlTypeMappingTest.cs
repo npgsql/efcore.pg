@@ -269,6 +269,27 @@ public class NpgsqlTypeMappingTest
     }
 
     [Fact]
+    public void Timetz_json_is_culture_invariant()
+    {
+        var originalCulture = CultureInfo.CurrentCulture;
+        var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.DateTimeFormat.TimeSeparator = ".";
+
+        try
+        {
+            CultureInfo.CurrentCulture = culture;
+            var readerWriter = GetMapping("timetz").JsonValueReaderWriter!;
+            var value = new DateTimeOffset(2023, 5, 29, 4, 5, 6, TimeSpan.FromMinutes(-210));
+
+            Assert.Equal("\"04:05:06-03:30\"", readerWriter.ToJsonString(value));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    [Fact]
     public void GenerateSqlLiteral_returns_interval_literal()
     {
         var mapping = GetMapping("interval");
