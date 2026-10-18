@@ -175,6 +175,42 @@ public class ValueConvertersEndToEndNpgsqlTest
         Assert.Equal(9, entity.Values[1].Value);
     }
 
+    [ConditionalTheory]
+    [InlineData(nameof(ValueConvertedArrayEntity.EnumValues), "text")]
+    [InlineData(nameof(ValueConvertedArrayEntity.EnumValuesText), "text")]
+    [InlineData(nameof(ValueConvertedArrayEntity.EnumValuesVarchar), "varchar(16)")]
+    public async Task Can_insert_and_query_array_with_custom_element_converter(string propertyName, string elementStoreType)
+    {
+        await using var context = CreateContext();
+
+        var entity = new ValueConvertedArrayEntity { Values = [] };
+        context.Add(entity);
+        context.Entry(entity).Property<SomeEnum[]>(propertyName).CurrentValue = [SomeEnum.NoValue, SomeEnum.FirstValue];
+        await context.SaveChangesAsync();
+
+        var id = entity.Id;
+        context.ChangeTracker.Clear();
+
+        var mapping = context.Model.FindEntityType(typeof(ValueConvertedArrayEntity))!
+            .FindProperty(propertyName)!.GetRelationalTypeMapping();
+        Assert.Equal(elementStoreType, Assert.IsAssignableFrom<RelationalTypeMapping>(mapping.ElementTypeMapping).StoreType);
+
+        var sql = $$"""
+SELECT "{{propertyName}}" AS "Value" FROM "ValueConvertedArrayEntity" WHERE "Id" = {0}
+""";
+        var storedValues = await context.Database.SqlQueryRaw<string[]>(sql, id).SingleAsync();
+        Assert.Equal(["no-value", "first-value"], storedValues);
+
+        var query = context.Set<ValueConvertedArrayEntity>()
+            .Where(e => e.Id == id && EF.Property<SomeEnum[]>(e, propertyName).Contains(SomeEnum.FirstValue));
+        Assert.Contains($"""v."{propertyName}" @> ARRAY['first-value']::{elementStoreType}[]""", query.ToQueryString());
+
+        entity = await query.SingleAsync();
+        Assert.Equal(
+            [SomeEnum.NoValue, SomeEnum.FirstValue],
+            context.Entry(entity).Property<SomeEnum[]>(propertyName).CurrentValue);
+    }
+
     public class ValueConvertersEndToEndNpgsqlFixture : ValueConvertersEndToEndFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory
@@ -199,9 +235,27 @@ public class ValueConvertersEndToEndNpgsqlTest
             modelBuilder.Entity<ValueConvertedArrayEntity>()
                 .PrimitiveCollection(x => x.Values)
                 .ElementType(e => e.HasConversion(typeof(IntWrapperConverter)));
+
+            modelBuilder.Entity<ValueConvertedArrayEntity>()
+                .PrimitiveCollection(e => e.EnumValues)
+                .ElementType(e => e.HasConversion<SomeEnumConverter>());
+
+            modelBuilder.Entity<ValueConvertedArrayEntity>()
+                .PrimitiveCollection(e => e.EnumValuesText)
+                .HasColumnType("text[]")
+                .ElementType(e => e.HasConversion<SomeEnumConverter>());
+
+            modelBuilder.Entity<ValueConvertedArrayEntity>()
+                .PrimitiveCollection(e => e.EnumValuesVarchar)
+                .HasColumnType("varchar(16)[]")
+                .ElementType(e => e.HasConversion<SomeEnumConverter>());
         }
 
         private class IntWrapperConverter() : ValueConverter<IntWrapper, int>(iw => iw.Value, i => new IntWrapper(i));
+
+        private class SomeEnumConverter() : ValueConverter<SomeEnum, string>(
+            value => value == SomeEnum.NoValue ? "no-value" : "first-value",
+            value => value == "no-value" ? SomeEnum.NoValue : SomeEnum.FirstValue);
     }
 
 #nullable enable
@@ -209,6 +263,15 @@ public class ValueConvertersEndToEndNpgsqlTest
     {
         public int Id { get; set; }
         public IntWrapper[] Values { get; set; } = null!;
+        public SomeEnum[] EnumValues { get; set; } = [];
+        public SomeEnum[] EnumValuesText { get; set; } = [];
+        public SomeEnum[] EnumValuesVarchar { get; set; } = [];
+    }
+
+    public enum SomeEnum
+    {
+        NoValue,
+        FirstValue
     }
 
     public class IntWrapper : IEquatable<IntWrapper>

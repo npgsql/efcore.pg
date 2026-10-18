@@ -504,7 +504,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             if ((storeTypeName.EndsWith("[]", StringComparison.Ordinal)
                     || storeTypeName is "int4multirange" or "int8multirange" or "nummultirange" or "datemultirange" or "tsmultirange"
                         or "tstzmultirange")
-                && FindCollectionMapping(mappingInfo, mappingInfo.ClrType!, providerType: null, elementMapping: null) is
+                && FindCollectionMapping(
+                    mappingInfo, mappingInfo.ClrType!, providerType: null, elementMapping: mappingInfo.ElementTypeMapping) is
                     RelationalTypeMapping collectionMapping)
             {
                 return collectionMapping;
@@ -696,13 +697,29 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // We have an array store type (either because we're reverse engineering or the user explicitly specified it)
             var elementStoreType = storeType.Substring(0, storeType.Length - 2);
 
-            // Note that we ignore the elementMapping argument here (but not in the CLR type-only path above).
-            // This is because the user-provided storeType for the array should take precedence over the element type mapping that gets
-            // calculated purely based on the element's CLR type in base.FindMappingWithConversion.
-            var relationalElementMapping = elementMapping as RelationalTypeMapping
-                ?? (elementType is null
+            // The array's explicit store type takes precedence over the element store type inferred by base.FindMappingWithConversion
+            // (e.g. int[] explicitly mapped to bigint[]). Reuse the supplied element mapping only if its store type matches.
+            // However, that mapping can also carry a configured converter, which must not be discarded (#3636).
+            // When resolving a different store type, use the converter's provider CLR type, then compose the converter onto the
+            // new mapping and retain its comparers. Compose over the new mapping's JSON reader/writer, which can depend on the
+            // store type (e.g. timestamp vs. timestamptz). This preserves convention-selected converters too,
+            // not just explicitly configured ones, so conversion selection can differ from resolving solely by the element CLR type.
+            var relationalElementMapping = elementMapping as RelationalTypeMapping;
+            if (relationalElementMapping?.StoreType != elementStoreType)
+            {
+                relationalElementMapping = elementType is null
                     ? FindMapping(elementStoreType)
-                    : FindMapping(elementType, elementStoreType));
+                    : FindMapping(elementMapping?.Converter?.ProviderClrType ?? elementType, elementStoreType);
+
+                if (relationalElementMapping is not null && elementMapping is not null)
+                {
+                    relationalElementMapping = (RelationalTypeMapping)relationalElementMapping.WithComposedConverter(
+                        elementMapping.Converter,
+                        elementMapping.Comparer,
+                        elementMapping.KeyComparer);
+                }
+            }
+
             if (relationalElementMapping is not { ElementTypeMapping: null })
             {
                 return null;
