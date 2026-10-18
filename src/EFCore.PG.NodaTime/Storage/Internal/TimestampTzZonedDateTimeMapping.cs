@@ -142,7 +142,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
         public static JsonZonedDateTimeReaderWriter Instance { get; } = new();
 
         public override ZonedDateTime FromJsonTyped(ref Utf8JsonReaderManager manager, object? existingObject = null)
-            => Pattern.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
+            => OffsetDateTimePattern.ExtendedIso.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow().InFixedZone();
 
         public override void ToJsonTyped(Utf8JsonWriter writer, ZonedDateTime value)
             => writer.WriteStringValue(Pattern.Format(value));

@@ -99,6 +99,17 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Same(typeof(LocalDateTime), GetMapping("timestamp without time zone").ClrType);
     }
 
+    [Theory]
+    [InlineData("timestamp")]
+    [InlineData("timestamp without time zone")]
+    public void LocalDateTime_with_precision(string storeType)
+    {
+        var mapping = Mapper.FindMapping(typeof(LocalDateTime), storeType, precision: 3)!;
+
+        Assert.Equal(3, mapping.Precision);
+        Assert.Equal("timestamp(3) without time zone", mapping.StoreType);
+    }
+
     // Mapping Instant to timestamp should only be possible in legacy mode.
     // However, when upgrading to 6.0 with existing migrations, model snapshots still contain old mappings (Instant mapped to timestamp),
     // and EF Core's model differ expects type mappings to be found for these. See https://github.com/dotnet/efcore/issues/26168.
@@ -247,15 +258,18 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal("TIMESTAMPTZ 'infinity'", mapping.GenerateSqlLiteral(Instant.MaxValue));
     }
 
-    [Fact]
-    public void GenerateSqlLiteral_returns_ZonedDateTime_literal()
+    [Theory]
+    [InlineData("UTC+02")]
+    [InlineData("Europe/Berlin")]
+    public void GenerateSqlLiteral_returns_ZonedDateTime_literal(string zoneId)
     {
-        var mapping = GetMapping(typeof(ZonedDateTime));
+        var mapping = (NpgsqlTypeMapping)GetMapping(typeof(ZonedDateTime));
         Assert.Equal("timestamp with time zone", mapping.StoreType);
 
         var zonedDateTime = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660))
-            .InZone(DateTimeZone.ForOffset(Offset.FromHours(2)), Resolvers.LenientResolver);
+            .InZone(DateTimeZoneProviders.Tzdb[zoneId], Resolvers.LenientResolver);
         Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666666+02'", mapping.GenerateSqlLiteral(zonedDateTime));
+        Assert.Equal("\"2018-04-20T10:31:33.666666+02\"", mapping.GenerateEmbeddedSqlLiteral(zonedDateTime));
     }
 
     [Fact]
@@ -340,6 +354,63 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal(Instant.MinValue, readerWriter.FromJson(ref readerManager, existingObject: null));
     }
 
+    [Theory]
+    [InlineData("Europe/Berlin", "2018-04-20T08:31:33Z", "2018-04-20T10:31:33+02")]
+    [InlineData("Europe/Berlin", "2018-01-20T09:31:33Z", "2018-01-20T10:31:33+01")]
+    [InlineData("Europe/Berlin", "2018-10-28T00:30:00Z", "2018-10-28T02:30:00+02")]
+    [InlineData("Europe/Berlin", "2018-10-28T01:30:00Z", "2018-10-28T02:30:00+01")]
+    [InlineData("America/New_York", "2018-04-20T14:31:33Z", "2018-04-20T10:31:33-04")]
+    [InlineData("UTC", "2018-04-20T10:31:33.123456Z", "2018-04-20T10:31:33.123456Z")]
+    [InlineData("UTC+05:30", "2018-04-20T05:01:33Z", "2018-04-20T10:31:33+05:30")]
+    [InlineData("UTC-00:30", "2018-04-20T11:01:33Z", "2018-04-20T10:31:33-00:30")]
+    public void ZonedDateTime_json(string zoneId, string instantString, string expected)
+    {
+        var readerWriter = GetMapping(typeof(ZonedDateTime)).JsonValueReaderWriter!;
+        var value = InstantPattern.ExtendedIso.Parse(instantString).GetValueOrThrow().InZone(DateTimeZoneProviders.Tzdb[zoneId]);
+
+        var json = readerWriter.ToJsonString(value);
+        Assert.Equal(expected, JsonSerializer.Deserialize<string>(json));
+
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes(json)), null);
+        readerManager.MoveNext();
+        Assert.Equal(value.ToOffsetDateTime().InFixedZone(), readerWriter.FromJson(ref readerManager, existingObject: null));
+    }
+
+    [Theory]
+    [InlineData("UTC")]
+    [InlineData("Europe/Berlin")]
+    public void ZonedDateTime_json_preserves_existing_format_and_precision(string zoneId)
+    {
+        var value = InstantPattern.ExtendedIso.Parse("2018-04-20T10:31:33.123456789Z").Value
+            .InZone(DateTimeZoneProviders.Tzdb[zoneId]);
+        var pattern = ZonedDateTimePattern.CreateWithInvariantCulture(
+            "uuuu'-'MM'-'dd'T'HH':'mm':'ss;FFFFFFo<G>", DateTimeZoneProviders.Tzdb);
+        var readerWriter = GetMapping(typeof(ZonedDateTime)).JsonValueReaderWriter!;
+        var expected = pattern.Format(value);
+
+        Assert.Equal(expected, JsonSerializer.Deserialize<string>(readerWriter.ToJsonString(value)));
+
+        if (zoneId == "UTC")
+        {
+            Assert.Equal(
+                value.PlusNanoseconds(-789),
+                pattern.Parse(JsonSerializer.Deserialize<string>(readerWriter.ToJsonString(value))!).Value);
+        }
+    }
+
+    [Theory]
+    [InlineData("2018-04-20T10:31:33Z")]
+    [InlineData("2018-04-20T10:31:33.123456Z")]
+    public void ZonedDateTime_json_reads_legacy_UTC_values(string value)
+    {
+        var readerWriter = GetMapping(typeof(ZonedDateTime)).JsonValueReaderWriter!;
+        var expected = InstantPattern.ExtendedIso.Parse(value).GetValueOrThrow().InUtc();
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{value}\"")), null);
+        readerManager.MoveNext();
+
+        Assert.Equal(expected, readerWriter.FromJson(ref readerManager, existingObject: null));
+    }
+
     [Fact]
     public void Interval_is_properly_mapped()
     {
@@ -383,6 +454,21 @@ public class NpgsqlNodaTimeTypeMappingTest
     [Fact]
     public void Interval_list_is_properly_mapped()
         => Assert.Equal("tstzmultirange", GetMapping(typeof(List<Interval>)).StoreType);
+
+    [Theory]
+    [InlineData(typeof(Interval[]))]
+    [InlineData(typeof(List<Interval>))]
+    public void Interval_multirange_clone_preserves_NpgsqlDbType(Type clrType)
+    {
+        var mapping = GetMapping(clrType).WithStoreTypeAndSize("tstzmultirange", null);
+
+        Assert.Equal("tstzmultirange", mapping.StoreType);
+        Assert.Equal(NpgsqlDbType.TimestampTzMultirange, ((NpgsqlTypeMapping)mapping).NpgsqlDbType);
+
+        using var command = new NpgsqlCommand();
+        var parameter = (NpgsqlParameter)mapping.CreateParameter(command, "p", null);
+        Assert.Equal(NpgsqlDbType.TimestampTzMultirange, parameter.NpgsqlDbType);
+    }
 
     [Fact]
     public void GenerateSqlLiteral_returns_Interval_array_literal()
