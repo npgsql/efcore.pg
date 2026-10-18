@@ -27,6 +27,62 @@ INSERT INTO "ZeroKey" VALUES (NULL)
     public override Task StoreType_for_UDF_used(bool async)
         => base.StoreType_for_UDF_used(async);
 
+    [ConditionalTheory]
+    [InlineData(null, null)]
+    [InlineData(0, 0d)]
+    [InlineData(8, 1.5)]
+    [InlineData(-9, -1.5)]
+    public virtual async Task Date_time_add_with_nullable_argument(int? amount, double? days)
+    {
+        var date = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var dateOnly = new DateOnly(2000, 1, 1);
+        var contextFactory = await InitializeAsync<Context2889>(
+            seed: async context =>
+            {
+                context.Entities.Add(new Context2889.Entity { Date = dateOnly, Amount = amount, Days = days });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateContext();
+
+        var result = await context.Entities
+            .Select(e => new
+            {
+                Days = (DateTime?)date.AddDays(e.Days.Value),
+                Years = (DateOnly?)e.Date.AddYears(e.Amount.Value),
+                Months = (DateOnly?)e.Date.AddMonths(e.Amount.Value),
+                Text = e.Amount.Value.ToString() + " days"
+            })
+            .SingleAsync();
+
+        Assert.Equal(days.HasValue ? date.AddDays(days.Value) : (DateTime?)null, result.Days);
+        Assert.Equal(amount.HasValue ? dateOnly.AddYears(amount.Value) : (DateOnly?)null, result.Years);
+        Assert.Equal(amount.HasValue ? dateOnly.AddMonths(amount.Value) : (DateOnly?)null, result.Months);
+        Assert.Equal(amount + " days", result.Text);
+
+        AssertSql(
+            """
+@__date_0='2000-01-01T00:00:00.0000000Z' (DbType = DateTime)
+
+SELECT @__date_0 + CAST((e."Days"::text || ' days') AS interval) AS "Days", CAST(e."Date" + CAST((e."Amount"::text || ' years') AS interval) AS date) AS "Years", CAST(e."Date" + CAST((e."Amount"::text || ' months') AS interval) AS date) AS "Months", COALESCE(e."Amount"::text, '') || ' days' AS "Text"
+FROM "Entities" AS e
+LIMIT 2
+""");
+    }
+
+    protected class Context2889(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities => Set<Entity>();
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public DateOnly Date { get; set; }
+            public int? Amount { get; set; }
+            public double? Days { get; set; }
+        }
+    }
+
     [ConditionalFact]
     public virtual async Task Set_operations_over_array_columns_with_different_element_mappings()
     {
