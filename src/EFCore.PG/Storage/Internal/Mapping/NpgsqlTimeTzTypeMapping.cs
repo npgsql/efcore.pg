@@ -66,7 +66,7 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => FormattableString.Invariant($"TIMETZ '{(DateTimeOffset)value:HH:mm:ss.FFFFFFz}'");
+        => FormattableString.Invariant($"TIMETZ '{(DateTimeOffset)value:HH:mm:ss.FFFFFFzzz}'");
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -75,7 +75,7 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
-        => FormattableString.Invariant(@$"{(DateTimeOffset)value:HH:mm:ss.FFFFFFz}");
+        => FormattableString.Invariant(@$"{(DateTimeOffset)value:HH:mm:ss.FFFFFFzzz}");
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -115,7 +115,7 @@ public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
         ///     doing so can result in application failures when updating to a new Entity Framework Core release.
         /// </summary>
         public override void ToJsonTyped(Utf8JsonWriter writer, DateTimeOffset value)
-            => writer.WriteStringValue(value.ToString("HH:mm:ss.FFFFFFz"));
+            => writer.WriteStringValue(value.ToString("HH:mm:ss.FFFFFFzzz"));
 
         /// <inheritdoc />
         public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime;
@@ -20,6 +21,17 @@ public class NpgsqlNodaTimeTypeMappingTest
     {
         Assert.Equal("timestamp without time zone", GetMapping(typeof(LocalDateTime)).StoreType);
         Assert.Same(typeof(LocalDateTime), GetMapping("timestamp without time zone").ClrType);
+    }
+
+    [Theory]
+    [InlineData("timestamp")]
+    [InlineData("timestamp without time zone")]
+    public void LocalDateTime_with_precision(string storeType)
+    {
+        var mapping = Mapper.FindMapping(typeof(LocalDateTime), storeType, precision: 3)!;
+
+        Assert.Equal(3, mapping.Precision);
+        Assert.Equal("timestamp(3) without time zone", mapping.StoreType);
     }
 
     // Mapping Instant to timestamp should only be possible in legacy mode.
@@ -153,15 +165,18 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal("TIMESTAMPTZ 'infinity'", mapping.GenerateSqlLiteral(Instant.MaxValue));
     }
 
-    [Fact]
-    public void GenerateSqlLiteral_returns_ZonedDateTime_literal()
+    [Theory]
+    [InlineData("UTC+02")]
+    [InlineData("Europe/Berlin")]
+    public void GenerateSqlLiteral_returns_ZonedDateTime_literal(string zoneId)
     {
-        var mapping = GetMapping(typeof(ZonedDateTime));
+        var mapping = (NpgsqlTypeMapping)GetMapping(typeof(ZonedDateTime));
         Assert.Equal("timestamp with time zone", mapping.StoreType);
 
         var zonedDateTime = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660))
-            .InZone(DateTimeZone.ForOffset(Offset.FromHours(2)), Resolvers.LenientResolver);
+            .InZone(DateTimeZoneProviders.Tzdb[zoneId], Resolvers.LenientResolver);
         Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666666+02'", mapping.GenerateSqlLiteral(zonedDateTime));
+        Assert.Equal("\"2018-04-20T10:31:33.666666+02\"", mapping.GenerateEmbeddedSqlLiteral(zonedDateTime));
     }
 
     [Fact]
@@ -245,6 +260,27 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Equal(Instant.MinValue, readerWriter.FromJson(ref readerManager, existingObject: null));
     }
 
+    [Theory]
+    [InlineData("Europe/Berlin", "2018-04-20T08:31:33Z", "2018-04-20T10:31:33 Europe/Berlin (+02)")]
+    [InlineData("Europe/Berlin", "2018-01-20T09:31:33Z", "2018-01-20T10:31:33 Europe/Berlin (+01)")]
+    [InlineData("Europe/Berlin", "2018-10-28T00:30:00Z", "2018-10-28T02:30:00 Europe/Berlin (+02)")]
+    [InlineData("Europe/Berlin", "2018-10-28T01:30:00Z", "2018-10-28T02:30:00 Europe/Berlin (+01)")]
+    [InlineData("America/New_York", "2018-04-20T14:31:33Z", "2018-04-20T10:31:33 America/New_York (-04)")]
+    [InlineData("UTC", "2018-04-20T10:31:33.123456789Z", "2018-04-20T10:31:33.123456789 UTC (+00)")]
+    [InlineData("UTC+05:30", "2018-04-20T05:01:33Z", "2018-04-20T10:31:33 UTC+05:30 (+05:30)")]
+    public void ZonedDateTime_json(string zoneId, string instantString, string expected)
+    {
+        var readerWriter = GetMapping(typeof(ZonedDateTime)).JsonValueReaderWriter!;
+        var value = InstantPattern.ExtendedIso.Parse(instantString).GetValueOrThrow().InZone(DateTimeZoneProviders.Tzdb[zoneId]);
+
+        var json = readerWriter.ToJsonString(value);
+        Assert.Equal(expected, JsonSerializer.Deserialize<string>(json));
+
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes(json)), null);
+        readerManager.MoveNext();
+        Assert.Equal(value, readerWriter.FromJson(ref readerManager, existingObject: null));
+    }
+
     [Fact]
     public void Interval_is_properly_mapped()
     {
@@ -319,6 +355,21 @@ public class NpgsqlNodaTimeTypeMappingTest
     [Fact]
     public void Interval_list_is_properly_mapped()
         => Assert.Equal("tstzmultirange", GetMapping(typeof(List<Interval>)).StoreType);
+
+    [Theory]
+    [InlineData(typeof(Interval[]))]
+    [InlineData(typeof(List<Interval>))]
+    public void Interval_multirange_clone_preserves_NpgsqlDbType(Type clrType)
+    {
+        var mapping = GetMapping(clrType).WithStoreTypeAndSize("tstzmultirange", null);
+
+        Assert.Equal("tstzmultirange", mapping.StoreType);
+        Assert.Equal(NpgsqlDbType.TimestampTzMultirange, ((NpgsqlTypeMapping)mapping).NpgsqlDbType);
+
+        using var command = new NpgsqlCommand();
+        var parameter = (NpgsqlParameter)mapping.CreateParameter(command, "p", null);
+        Assert.Equal(NpgsqlDbType.TimestampTzMultirange, parameter.NpgsqlDbType);
+    }
 
     [Fact]
     public void GenerateSqlLiteral_returns_Interval_array_literal()

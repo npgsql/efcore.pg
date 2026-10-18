@@ -221,18 +221,51 @@ public class NpgsqlTypeMappingTest
         Assert.Equal("TIME '13:05:06'", mapping.GenerateSqlLiteral(new TimeOnly(13, 5, 6)));
     }
 
-    [Fact]
-    public void GenerateSqlLiteral_returns_timetz_literal()
+    [Theory]
+    [InlineData(180, "+03:00")]
+    [InlineData(-180, "-03:00")]
+    [InlineData(330, "+05:30")]
+    [InlineData(-210, "-03:30")]
+    [InlineData(30, "+00:30")]
+    [InlineData(-30, "-00:30")]
+    [InlineData(0, "+00:00")]
+    public void GenerateSqlLiteral_returns_timetz_literal(int offsetMinutes, string offset)
     {
-        var mapping = GetMapping("timetz");
+        var mapping = (NpgsqlTypeMapping)GetMapping("timetz");
+        var value = new DateTimeOffset(2015, 3, 12, 4, 5, 6, 123, TimeSpan.FromMinutes(offsetMinutes)).AddTicks(4560);
         Assert.Equal(
-            "TIMETZ '04:05:06.123456+3'",
-            mapping.GenerateSqlLiteral(
-                new DateTimeOffset(2015, 3, 12, 4, 5, 6, 123, TimeSpan.FromHours(3))
-                    .AddTicks(4560)));
+            $"TIMETZ '04:05:06.123456{offset}'",
+            mapping.GenerateSqlLiteral(value));
         Assert.Equal(
-            "TIMETZ '04:05:06.789+3'", mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, 789, TimeSpan.FromHours(3))));
-        Assert.Equal("TIMETZ '04:05:06-3'", mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, TimeSpan.FromHours(-3))));
+            $"TIMETZ '04:05:06.789{offset}'",
+            mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, 789, TimeSpan.FromMinutes(offsetMinutes))));
+        Assert.Equal(
+            $"TIMETZ '04:05:06{offset}'",
+            mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, TimeSpan.FromMinutes(offsetMinutes))));
+        Assert.Equal($"04:05:06.123456{offset}", mapping.GenerateEmbeddedSqlLiteral(value));
+    }
+
+    [Theory]
+    [InlineData(180, "+03:00")]
+    [InlineData(-180, "-03:00")]
+    [InlineData(330, "+05:30")]
+    [InlineData(-210, "-03:30")]
+    [InlineData(30, "+00:30")]
+    [InlineData(-30, "-00:30")]
+    [InlineData(0, "+00:00")]
+    public void Timetz_json(int offsetMinutes, string offset)
+    {
+        var readerWriter = GetMapping("timetz").JsonValueReaderWriter!;
+        var value = new DateTimeOffset(2023, 5, 29, 4, 5, 6, 123, TimeSpan.FromMinutes(offsetMinutes)).AddTicks(4560);
+
+        var json = readerWriter.ToJsonString(value);
+        Assert.Equal($"04:05:06.123456{offset}", JsonSerializer.Deserialize<string>(json));
+
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes(json)), null);
+        readerManager.MoveNext();
+        var actual = (DateTimeOffset)readerWriter.FromJson(ref readerManager, existingObject: null);
+        Assert.Equal(value.TimeOfDay, actual.TimeOfDay);
+        Assert.Equal(value.Offset, actual.Offset);
     }
 
     [Fact]
