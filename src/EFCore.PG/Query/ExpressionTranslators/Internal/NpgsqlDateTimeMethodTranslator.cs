@@ -1,4 +1,5 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -372,13 +373,13 @@ public class NpgsqlDateTimeMethodTranslator(
         // For non-constants, we can't parameterize INTERVAL '1 days'. Instead, we use CAST($1 || ' days' AS interval).
         // Note that a make_interval() function also exists, but accepts only int (for all fields except for
         // seconds), so we don't use it.
-        // Note: we instantiate SqlBinaryExpression manually rather than via sqlExpressionFactory because
-        // of the non-standard Add expression (concatenate int with text)
+        // Use a PostgreSQL binary expression so nulls propagate, rather than being coalesced to empty strings as in C# concatenation.
+        // See https://github.com/npgsql/efcore.pg/issues/2889.
         return _sqlExpressionFactory.Convert(
-            new SqlBinaryExpression(
-                ExpressionType.Add,
+            new PgUnknownBinaryExpression(
                 _sqlExpressionFactory.Convert(intervalNum, typeof(string), _textMapping),
                 _sqlExpressionFactory.Constant(' ' + datePart, _textMapping),
+                "||",
                 typeof(string),
                 _textMapping),
             typeof(TimeSpan),

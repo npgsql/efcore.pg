@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
+
 namespace Microsoft.EntityFrameworkCore.Query.Translations.Temporal;
 
 public class DateOnlyTranslationsNpgsqlTest : DateOnlyTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
@@ -102,6 +104,38 @@ WHERE b."DateOnly" + INTERVAL '3 years' = DATE '1993-11-10'
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE b."DateOnly" + INTERVAL '3 months' = DATE '1991-02-10'
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(-1, null)]
+    [InlineData(0, 0)]
+    [InlineData(1, 8)]
+    public virtual async Task Add_with_nullable_argument(int id, int? amount)
+    {
+        await using var context = Fixture.CreateContext();
+        var date = Fixture.GetExpectedData().Set<NullableBasicTypesEntity>().Single(b => b.Id == id).DateOnly;
+
+        var result = await context.Set<NullableBasicTypesEntity>()
+            .Where(b => b.Id == id)
+            .Select(b => new
+            {
+                Years = (int?)b.DateOnly!.Value.AddYears(b.Int!.Value).Year,
+                Months = (int?)b.DateOnly!.Value.AddMonths(b.Int!.Value).Month
+            })
+            .SingleAsync();
+
+        Assert.Equal(amount.HasValue ? date?.AddYears(amount.Value).Year : null, result.Years);
+        Assert.Equal(amount.HasValue ? date?.AddMonths(amount.Value).Month : null, result.Months);
+
+        AssertSql(
+            $"""
+@id='{id}'
+
+SELECT date_part('year', n."DateOnly" + CAST((n."Int"::text || ' years') AS interval))::int AS "Years", date_part('month', n."DateOnly" + CAST((n."Int"::text || ' months') AS interval))::int AS "Months"
+FROM "NullableBasicTypesEntities" AS n
+WHERE n."Id" = @id
+LIMIT 2
 """);
     }
 
