@@ -42,6 +42,23 @@ LC_COLLATE "POSIX";
 """);
     }
 
+    [Theory]
+    [InlineData("UTF8", "'UTF8'")]
+    [InlineData("LATIN1", "'LATIN1'")]
+    [InlineData("UTF'8", "'UTF''8'")]
+    public virtual void CreateDatabaseOperation_with_encoding(string encoding, string literal)
+    {
+        Generate(new NpgsqlCreateDatabaseOperation { Name = "Northwind", Encoding = encoding, Template = "template0" });
+
+        AssertSql(
+            $"""
+CREATE DATABASE "Northwind"
+ENCODING {literal}
+TEMPLATE template0;
+
+""");
+    }
+
     [Fact]
     public virtual void CreateDatabaseOperation_with_template()
     {

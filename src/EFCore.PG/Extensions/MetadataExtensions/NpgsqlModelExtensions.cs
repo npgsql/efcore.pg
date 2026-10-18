@@ -383,6 +383,53 @@ public static class NpgsqlModelExtensions
 
     #endregion Range types
 
+    #region Database Encoding
+
+    /// <summary>
+    ///     Returns the encoding to use when creating the database.
+    /// </summary>
+    /// <param name="model">The model.</param>
+    /// <returns>The encoding, or <see langword="null" /> to inherit the template database's encoding.</returns>
+    public static string? GetDatabaseEncoding(this IReadOnlyModel model)
+        => (string?)model[NpgsqlAnnotationNames.DatabaseEncoding];
+
+    /// <summary>
+    ///     Sets the encoding to use when creating the database.
+    /// </summary>
+    /// <param name="model">The model.</param>
+    /// <param name="encoding">The encoding, or <see langword="null" /> to inherit the template database's encoding.</param>
+    public static void SetDatabaseEncoding(this IMutableModel model, string? encoding)
+        => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseEncoding, encoding);
+
+    /// <summary>
+    ///     Sets the encoding to use when creating the database.
+    /// </summary>
+    /// <param name="model">The model.</param>
+    /// <param name="encoding">The encoding, or <see langword="null" /> to inherit the template database's encoding.</param>
+    /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+    /// <returns>The configured encoding.</returns>
+    public static string? SetDatabaseEncoding(
+        this IConventionModel model,
+        string? encoding,
+        bool fromDataAnnotation = false)
+    {
+        Check.NullButNotEmpty(encoding, nameof(encoding));
+
+        model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseEncoding, encoding, fromDataAnnotation);
+
+        return encoding;
+    }
+
+    /// <summary>
+    ///     Returns the <see cref="ConfigurationSource" /> for the database encoding.
+    /// </summary>
+    /// <param name="model">The model.</param>
+    /// <returns>The <see cref="ConfigurationSource" /> for the database encoding.</returns>
+    public static ConfigurationSource? GetDatabaseEncodingConfigurationSource(this IConventionModel model)
+        => model.FindAnnotation(NpgsqlAnnotationNames.DatabaseEncoding)?.GetConfigurationSource();
+
+    #endregion
+
     #region Database Template
 
     /// <summary>

@@ -159,6 +159,7 @@ WHERE
             new NpgsqlCreateDatabaseOperation
                 {
                     Name = connection.DbConnection.Database,
+                    Encoding = designTimeModel.GetDatabaseEncoding(),
                     Template = designTimeModel.GetDatabaseTemplate(),
                     Collation = designTimeModel.GetCollation(),
                     Tablespace = designTimeModel.GetTablespace()

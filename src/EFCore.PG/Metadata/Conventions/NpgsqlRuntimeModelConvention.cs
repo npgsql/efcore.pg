@@ -25,6 +25,7 @@ public class NpgsqlRuntimeModelConvention(
 
         if (!runtime)
         {
+            annotations.Remove(NpgsqlAnnotationNames.DatabaseEncoding);
             annotations.Remove(NpgsqlAnnotationNames.DatabaseTemplate);
             annotations.Remove(NpgsqlAnnotationNames.Tablespace);
             annotations.Remove(NpgsqlAnnotationNames.CollationDefinitionPrefix);

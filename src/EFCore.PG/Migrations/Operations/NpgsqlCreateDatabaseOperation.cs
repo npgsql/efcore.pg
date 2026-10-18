@@ -15,6 +15,11 @@ public class NpgsqlCreateDatabaseOperation : DatabaseOperation
     public virtual string Name { get; set; } = null!;
 
     /// <summary>
+    ///     The PostgreSQL encoding to use for the new database.
+    /// </summary>
+    public virtual string? Encoding { get; set; }
+
+    /// <summary>
     ///     The PostgreSQL database to use as a template for the new database to be created.
     /// </summary>
     public virtual string? Template { get; set; }
