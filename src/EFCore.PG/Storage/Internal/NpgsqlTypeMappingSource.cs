@@ -665,7 +665,8 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                 // (e.g. int[] explicitly mapped to bigint[]). Reuse the supplied element mapping only if its store type matches.
                 // However, that mapping can also carry a configured converter, which must not be discarded (#3636).
                 // When resolving a different store type, use the converter's provider CLR type, then compose the converter onto the
-                // new mapping and retain its comparers and JSON reader/writer. This preserves convention-selected converters too,
+                // new mapping and retain its comparers. Compose over the new mapping's JSON reader/writer, which can depend on the
+                // store type (e.g. timestamp vs. timestamptz). This preserves convention-selected converters too,
                 // not just explicitly configured ones, so conversion selection can differ from resolving solely by the element CLR type.
                 var relationalElementMapping = elementMapping as RelationalTypeMapping;
                 if (relationalElementMapping?.StoreType != elementStoreType)
@@ -679,8 +680,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
                         relationalElementMapping = (RelationalTypeMapping)relationalElementMapping.WithComposedConverter(
                             elementMapping.Converter,
                             elementMapping.Comparer,
-                            elementMapping.KeyComparer,
-                            jsonValueReaderWriter: elementMapping.JsonValueReaderWriter);
+                            elementMapping.KeyComparer);
                     }
                 }
 

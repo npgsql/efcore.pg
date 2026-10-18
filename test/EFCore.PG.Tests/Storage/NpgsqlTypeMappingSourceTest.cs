@@ -274,6 +274,26 @@ public class NpgsqlTypeMappingSourceTest
         Assert.Equal($"ARRAY[{expectedElements}]::{storeType}", mapping.GenerateSqlLiteral(new[] { 1, 2 }));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Array_property_with_explicit_timestamp_store_type_json(bool useConverter)
+    {
+        var collection = CreateModelBuilder().Entity("Entity")
+            .PrimitiveCollection<DateTime[]>("Values")
+            .HasColumnType("timestamp without time zone[]");
+        if (useConverter)
+        {
+            collection.ElementType().HasConversion(new ValueConverter<DateTime, DateTime>(v => v.AddDays(1), v => v.AddDays(-1)));
+        }
+
+        var mapping = Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(CreateTypeMappingSource().FindMapping((IProperty)collection.Metadata));
+
+        Assert.Equal("timestamp without time zone", mapping.ElementTypeMapping.StoreType);
+        var expectedJson = useConverter ? """["2020-01-03T03:04:05"]""" : """["2020-01-02T03:04:05"]""";
+        Assert.Equal(expectedJson, mapping.JsonValueReaderWriter.ToJsonString(new[] { new DateTime(2020, 1, 2, 3, 4, 5) }));
+    }
+
     [Fact]
     public void Array_over_type_mapping_with_value_converter_by_clr_type_array()
         => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping(typeof(LTree[])), typeof(LTree[]));
