@@ -1,7 +1,9 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
 using NodaTime.TimeZones;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 // ReSharper disable once CheckNamespace
@@ -102,21 +104,55 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping, INpgsqlJsonSca
     ///     Keep the serialized offset rather than the zone ID to disambiguate DST overlaps.
     /// </remarks>
     public virtual SqlExpression ConvertFromJsonText(SqlExpression expression)
-        => new SqlUnaryExpression(
+    {
+        // PostgreSQL rounds fractional seconds on input. Truncate the text first, then round up pre-2000 instants with
+        // discarded nanoseconds to match Npgsql's truncation toward the PostgreSQL epoch.
+        var timestamp = new SqlUnaryExpression(
             ExpressionType.Convert,
             new SqlFunctionExpression(
                 "regexp_replace",
                 [
                     expression,
-                    new SqlConstantExpression(@" [^ ]+ \(([^)]+)\)$", NpgsqlStringTypeMapping.Default),
-                    new SqlConstantExpression(@"\1", NpgsqlStringTypeMapping.Default)
+                    new SqlConstantExpression(@"(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$", NpgsqlStringTypeMapping.Default),
+                    new SqlConstantExpression(@"\1\2", NpgsqlStringTypeMapping.Default),
+                    new SqlConstantExpression("g", NpgsqlStringTypeMapping.Default)
                 ],
                 nullable: true,
-                argumentsPropagateNullability: [true, false, false],
+                argumentsPropagateNullability: [true, false, false, false],
                 typeof(string),
                 NpgsqlStringTypeMapping.Default),
             ClrType,
             this);
+
+        return new CaseExpression(
+            [
+                new CaseWhenClause(
+                    new SqlBinaryExpression(
+                        ExpressionType.AndAlso,
+                        new SqlBinaryExpression(
+                            ExpressionType.LessThan,
+                            timestamp,
+                            new SqlConstantExpression(Instant.FromUtc(2000, 1, 1, 0, 0).InUtc(), Default),
+                            typeof(bool),
+                            NpgsqlBoolTypeMapping.Default),
+#pragma warning disable EF1001
+                        new PgRegexMatchExpression(
+                            expression,
+                            new SqlConstantExpression(@"\.\d{6}\d*[1-9]\d* ", NpgsqlStringTypeMapping.Default),
+                            RegexOptions.None,
+                            NpgsqlBoolTypeMapping.Default),
+#pragma warning restore EF1001
+                        typeof(bool),
+                        NpgsqlBoolTypeMapping.Default),
+                    new SqlBinaryExpression(
+                        ExpressionType.Add,
+                        timestamp,
+                        new SqlConstantExpression(Duration.FromNanoseconds(1000), DurationIntervalMapping.Default),
+                        ClrType,
+                        this))
+            ],
+            timestamp);
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

@@ -1,4 +1,5 @@
 using NodaTime;
+using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Microsoft.EntityFrameworkCore.Query;
@@ -34,14 +35,23 @@ public class ZonedDateTimeJsonQueryNpgsqlTest(NonSharedFixture fixture)
             """
 @value='2018-10-28T00:30:00 UTC (+00)' (DbType = DateTime)
 
-SELECT regexp_replace(c."Details" ->> 'Value', ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz
+SELECT CASE
+    WHEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND (c."Details" ->> 'Value') ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END
 FROM "Container" AS c
-WHERE regexp_replace(c."Details" ->> 'Value', ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz = @value
+WHERE CASE
+    WHEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND (c."Details" ->> 'Value') ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END = @value
 LIMIT 2
 """,
             //
             """
-SELECT regexp_replace(c."Details" ->> 'NullableValue', ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz
+SELECT CASE
+    WHEN regexp_replace(c."Details" ->> 'NullableValue', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND (c."Details" ->> 'NullableValue') ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(c."Details" ->> 'NullableValue', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(c."Details" ->> 'NullableValue', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END
 FROM "Container" AS c
 LIMIT 2
 """,
@@ -72,13 +82,22 @@ LIMIT 2
             """
 @value='2018-10-28T01:30:00 UTC (+00)' (DbType = DateTime)
 
-SELECT regexp_replace(i."Value", ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz AS "Value"
+SELECT CASE
+    WHEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND i."Value" ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END AS "Value"
 FROM "Container" AS c
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."Items") AS (
     "NullableValue" text,
     "Value" text
 )) WITH ORDINALITY AS i ON TRUE
-WHERE regexp_replace(i."Value", ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz = @value AND i."NullableValue" IS NULL
+WHERE CASE
+    WHEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND i."Value" ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END = @value AND CASE
+    WHEN regexp_replace(i."NullableValue", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND i."NullableValue" ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(i."NullableValue", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(i."NullableValue", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END IS NULL
 LIMIT 2
 """);
     }
@@ -101,10 +120,16 @@ LIMIT 2
             """
 @value='2018-10-28T00:30:00Z' (DbType = DateTime)
 
-SELECT regexp_replace(v.element, ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz
+SELECT CASE
+    WHEN regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND v.element ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END
 FROM "Container" AS c
 JOIN LATERAL jsonb_array_elements_text(c."Details" -> 'Values') WITH ORDINALITY AS v(element) ON TRUE
-WHERE regexp_replace(v.element, ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz > @value
+WHERE CASE
+    WHEN regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND v.element ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END > @value
 LIMIT 2
 """);
     }
@@ -125,7 +150,10 @@ LIMIT 2
 SELECT count(*)::int
 FROM "Container" AS c
 WHERE @value IN (
-    SELECT regexp_replace(v.element, ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz
+    SELECT CASE
+        WHEN regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND v.element ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+        ELSE regexp_replace(v.element, '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+    END
     FROM jsonb_array_elements_text(c."Details" -> 'Values') WITH ORDINALITY AS v(element)
 )
 """);
@@ -143,7 +171,10 @@ WHERE @value IN (
 
         AssertSql(
             """
-SELECT regexp_replace(c."Details" #>> '{Values,1}', ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz
+SELECT CASE
+    WHEN regexp_replace(c."Details" #>> '{Values,1}', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND (c."Details" #>> '{Values,1}') ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(c."Details" #>> '{Values,1}', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(c."Details" #>> '{Values,1}', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END
 FROM "Container" AS c
 LIMIT 2
 """);
@@ -172,19 +203,31 @@ LIMIT 2
             """
 @value='2018-10-28T00:30:00 UTC (+00)' (DbType = DateTime)
 
-SELECT regexp_replace(c."Details" ->> 'Value', ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz
+SELECT CASE
+    WHEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND (c."Details" ->> 'Value') ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END
 FROM "Container" AS c
-WHERE regexp_replace(c."Details" ->> 'Value', ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz = @value
+WHERE CASE
+    WHEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND (c."Details" ->> 'Value') ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(c."Details" ->> 'Value', '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END = @value
 LIMIT 2
 """,
             //
             """
 @value='2018-10-28T00:30:00 UTC (+00)' (DbType = DateTime)
 
-SELECT regexp_replace(i."Value", ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz AS "Value"
+SELECT CASE
+    WHEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND i."Value" ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END AS "Value"
 FROM "Container" AS c
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."Items") AS ("Value" text)) WITH ORDINALITY AS i ON TRUE
-WHERE regexp_replace(i."Value", ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz = @value
+WHERE CASE
+    WHEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND i."Value" ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END = @value
 LIMIT 2
 """);
     }
@@ -203,13 +246,55 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT DISTINCT regexp_replace(i."Value", ' [^ ]+ \(([^)]+)\)$', '\1')::timestamptz AS "Value"
+SELECT DISTINCT CASE
+    WHEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz < TIMESTAMPTZ '2000-01-01T00:00:00Z' AND i."Value" ~ '(?p)\.\d{6}\d*[1-9]\d* ' THEN regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz + INTERVAL '00:00:00.000001'
+    ELSE regexp_replace(i."Value", '(\.\d{6})\d+| [^ ]+ \(([^)]+)\)$', '\1\2', 'g')::timestamptz
+END AS "Value"
 FROM "Container" AS c
 JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."Items") AS ("Value" text)) WITH ORDINALITY AS i ON TRUE
 """);
     }
 
-    private async Task<ContextFactory<DbContext>> Initialize()
+    [ConditionalTheory]
+    [InlineData("2018-04-20T10:31:33.123456789Z")]
+    [InlineData("2018-04-20T10:31:33.1234565Z")]
+    [InlineData("1998-04-20T10:31:33.123456001Z")]
+    [InlineData("1998-04-20T10:31:33.123456789Z")]
+    [InlineData("1998-04-20T10:31:33.12345601Z")]
+    [InlineData("2000-01-01T00:00:00.000000001Z")]
+    [InlineData("1999-12-31T23:59:59.999999999Z")]
+    [InlineData("1999-12-31T23:59:59.000000001Z")]
+    [InlineData("1998-04-20T10:31:33.123456Z")]
+    public async Task Sub_microsecond_predicates_and_projections(string text)
+    {
+        var instant = InstantPattern.ExtendedIso.Parse(text).GetValueOrThrow();
+        var contextFactory = await Initialize(instant);
+        await using var context = contextFactory.CreateDbContext();
+        var value = instant.InUtc();
+        var expected = await context.Database.SqlQuery<ZonedDateTime>($"SELECT {value} AS \"Value\"").SingleAsync();
+
+        Assert.Equal(expected, await context.Set<Container>()
+            .Where(e => e.Details.Value == value).Select(e => e.Details.Value).SingleAsync());
+        Assert.Equal(2, await context.Set<Container>().SelectMany(e => e.Items).CountAsync(e => e.Value == value));
+        Assert.All(
+            await context.Set<Container>().SelectMany(e => e.Items).Select(e => e.Value).ToListAsync(),
+            v => Assert.Equal(expected, v));
+        Assert.Equal(
+            expected,
+            await context.Set<Container>().SelectMany(e => e.Items)
+                .Where(e => e.NullableValue != null).Select(e => e.NullableValue).SingleAsync());
+        Assert.Equal(1, await context.Set<Container>().CountAsync(e => e.Details.Values.Contains(value)));
+        Assert.Equal(expected, await context.Set<Container>().Select(e => e.Details.Values[0]).SingleAsync());
+        Assert.All(
+            await context.Set<Container>().SelectMany(e => e.Details.Values).ToListAsync(),
+            v => Assert.Equal(expected, v));
+
+        var entity = await context.Set<Container>().AsNoTracking().SingleAsync();
+        Assert.Equal(instant.InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]), entity.Details.Value);
+        Assert.All(entity.Details.Values, v => Assert.Equal(instant, v.ToInstant()));
+    }
+
+    private async Task<ContextFactory<DbContext>> Initialize(Instant? instant = null)
     {
         var contextFactory = await InitializeNonSharedTest<DbContext>(
             onModelCreating: modelBuilder => modelBuilder.Entity<Container>(b =>
@@ -222,18 +307,20 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."Items") AS ("Value" text)) WITH OR
             seed: async context =>
             {
                 var zone = DateTimeZoneProviders.Tzdb["Europe/Berlin"];
+                var earlier = (instant ?? Earlier).InZone(zone);
+                var later = (instant ?? Later).InZone(zone);
                 context.Add(
                     new Container
                     {
                         Details = new Details
                         {
-                            Value = Earlier.InZone(zone),
-                            Values = [Earlier.InZone(zone), Later.InZone(zone)]
+                            Value = earlier,
+                            Values = [earlier, later]
                         },
                         Items =
                         [
-                            new Details { Value = Earlier.InZone(zone), NullableValue = Earlier.InZone(zone) },
-                            new Details { Value = Later.InZone(zone) }
+                            new Details { Value = earlier, NullableValue = earlier },
+                            new Details { Value = later }
                         ]
                     });
                 await context.SaveChangesAsync();
