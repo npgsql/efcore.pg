@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -22,6 +23,10 @@ public class NpgsqlJsonPocoTranslator(
     private readonly RelationalTypeMapping _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
     private readonly IModel _model = model;
 
+    private static readonly ValueConverter<object, JsonElement> ObjectJsonConverter = new(
+        value => JsonSerializer.SerializeToElement(value, (JsonSerializerOptions?)null),
+        value => value.ValueKind == JsonValueKind.Null ? null! : (object)value);
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
@@ -33,13 +38,27 @@ public class NpgsqlJsonPocoTranslator(
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    {
+        if (instance is not null
+            && method is { Name: "get_Item", DeclaringType.IsGenericType: true }
+            && arguments is [var key]
+            && key.Type == typeof(string)
+            && method.DeclaringType.GetGenericTypeDefinition() is var declaringType
+            && (declaringType == typeof(Dictionary<,>)
+                || declaringType == typeof(IDictionary<,>)
+                || declaringType == typeof(IReadOnlyDictionary<,>)))
+        {
+            return TranslateMemberAccess(instance, key, method.ReturnType);
+        }
+
         // Predicate-less Any - translate to a simple length check.
-        => method is { IsGenericMethod: true, Name: nameof(Enumerable.Any) }
+        return method is { IsGenericMethod: true, Name: nameof(Enumerable.Any) }
             && method.DeclaringType == typeof(Enumerable)
             && arguments is [var source]
             && TranslateArrayLength(source) is SqlExpression arrayLengthTranslation
             ? _sqlExpressionFactory.GreaterThan(arrayLengthTranslation, _sqlExpressionFactory.Constant(0))
             : null;
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -78,46 +97,58 @@ public class NpgsqlJsonPocoTranslator(
     /// </summary>
     public virtual SqlExpression? TranslateMemberAccess(SqlExpression instance, SqlExpression member, Type returnType)
     {
-        return instance switch
+        (SqlExpression? root, IEnumerable<SqlExpression> path) = instance switch
         {
-            // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
-            // Traversals on top of that get appended into the same expression.
             ColumnExpression { TypeMapping: NpgsqlJsonTypeMapping } columnExpression
-                => ConvertFromText(
-                    _sqlExpressionFactory.JsonTraversal(
-                        columnExpression,
-                        [member],
-                        returnsText: true,
-                        typeof(string),
-                        _stringTypeMapping),
-                    returnType),
-
-            PgJsonTraversalExpression prevPathTraversal
-                => ConvertFromText(
-                    prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(member)),
-                    returnType),
-
-            _ => null
+                => (columnExpression, [member]),
+            PgJsonTraversalExpression traversal
+                => (traversal.Expression, traversal.Path.Append(member)),
+            _ => (null, [])
         };
 
-        // The PostgreSQL traversal operator always returns text.
-        // If the type returned is a scalar (int, bool, etc.), we need to apply a conversion from string.
-        SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
-            => _typeMappingSource.FindMapping(returnType.UnwrapNullableType(), _model) switch
-            {
-                // Type mapping not found - this isn't a scalar
-                null => expression,
+        if (root is null)
+        {
+            return null;
+        }
 
-                // Arrays are dealt with as JSON arrays, not array scalars
-                NpgsqlArrayTypeMapping => expression,
+        var mapping = _typeMappingSource.FindMapping(returnType.UnwrapNullableType(), _model);
+        if (mapping is not (null or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlJsonTypeMapping))
+        {
+            var text = _sqlExpressionFactory.JsonTraversal(root, path, returnsText: true, typeof(string), _stringTypeMapping);
 
-                // Text types don't a a conversion to string
-                { StoreTypeNameBase: "text" or "varchar" or "char" } => expression,
+            return ConvertFromText(text, returnType, mapping);
+        }
 
-                // For any other type mapping, this is a scalar; apply a conversion to the type from string.
-                var mapping => _sqlExpressionFactory.Convert(expression, returnType, mapping)
-            };
+        return _sqlExpressionFactory.JsonTraversal(
+            root, path, returnsText: false, returnType, FindJsonMapping(returnType, root.TypeMapping!.StoreType));
     }
+
+    internal RelationalTypeMapping FindJsonMapping(Type type, string storeType)
+    {
+        if (type == typeof(object))
+        {
+            // Reading JSON as object defaults to string in Npgsql; dictionary values need deserialized JSON instead.
+            return (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(JsonElement), storeType)!
+                .WithComposedConverter(ObjectJsonConverter);
+        }
+
+        var mapping = _typeMappingSource.FindMapping(type, storeType)!;
+        // Legacy POCO fragments use System.Text.Json, not EF's primitive-collection serialization.
+        return mapping.ElementTypeMapping is { } elementMapping
+            ? new NpgsqlJsonTypeMapping(storeType, type, elementMapping)
+            : mapping;
+    }
+
+    internal SqlExpression ConvertFromText(SqlExpression text, Type type, RelationalTypeMapping mapping)
+        => mapping is NpgsqlByteArrayTypeMapping
+            ? _sqlExpressionFactory.Function(
+                "decode",
+                [text, _sqlExpressionFactory.Constant("base64", _stringTypeMapping)],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                type,
+                mapping)
+            : type == typeof(string) ? text : _sqlExpressionFactory.Convert(text, type, mapping);
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -138,19 +169,10 @@ public class NpgsqlJsonPocoTranslator(
                     typeof(int));
 
             case PgJsonTraversalExpression traversal:
-                // The traversal expression has ReturnsText=true (e.g. ->> not ->), so we recreate it to return
-                // the JSON object instead.
-                var lastPathComponent = traversal.Path.Last();
-                var newTraversal = new PgJsonTraversalExpression(
-                    traversal.Expression, traversal.Path,
-                    returnsText: false,
-                    lastPathComponent.Type,
-                    _typeMappingSource.FindMapping(lastPathComponent.Type, _model));
-
                 var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping!;
                 return _sqlExpressionFactory.Function(
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    [newTraversal],
+                    [traversal],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     typeof(int));

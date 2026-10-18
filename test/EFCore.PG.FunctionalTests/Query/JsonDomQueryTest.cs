@@ -46,6 +46,30 @@ public class JsonDomQueryTest : IClassFixture<JsonDomQueryTest.JsonDomQueryFixtu
             types.GetProperty("DateTimeOffset").GetDateTimeOffset());
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Document_root_projection(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.JsonbEntities.OrderBy(e => e.Id).Select(e => e.CustomerDocument.RootElement)
+            : ctx.JsonEntities.OrderBy(e => e.Id).Select(e => e.CustomerDocument.RootElement);
+
+        Assert.Collection(
+            query.ToArray(),
+            v => Assert.Equal("Joe", v.GetProperty("Name").GetString()),
+            v => Assert.Equal("Moe", v.GetProperty("Name").GetString()),
+            v => Assert.Equal("foo", v.GetString()));
+
+        AssertSql(
+            $"""
+SELECT j."CustomerDocument"
+FROM "{(jsonb ? "JsonbEntities" : "JsonEntities")}" AS j
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
     [Fact]
     public void Literal_document()
     {
