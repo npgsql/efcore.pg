@@ -438,7 +438,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             // Preserve DOM JSON null values while normalizing values that materialize as CLR null.
             SqlExpression Normalize(SqlExpression expression)
             {
-                var jsonValue = expression is { TypeMapping: NpgsqlJsonTypeMapping } and not SqlConstantExpression
+                var jsonValue = expression is { TypeMapping: NpgsqlJsonTypeMapping }
                     ? expression
                     : ConvertToJson(expression, objectMapping);
                 jsonValue = _sqlExpressionFactory.Convert(jsonValue, typeof(JsonElement), jsonbMapping);
@@ -501,14 +501,18 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 || expression.Type == typeof(DateTime)
                 || expression.Type == typeof(DateTimeOffset)
                 || expression.Type == typeof(TimeSpan)
+                || expression.Type == typeof(TimeOnly)
                 || (expression.TypeMapping ?? _typeMappingSource.FindMapping(expression.Type, Dependencies.Model))
-                    is null or NpgsqlHstoreTypeMapping or NpgsqlArrayTypeMapping))
+                    is null or NpgsqlHstoreTypeMapping or NpgsqlArrayTypeMapping or NpgsqlEnumTypeMapping))
         {
             // Native SQL conversion must not bypass JSON serialization or configured converters.
             return parameter.ApplyTypeMapping(mapping);
         }
 
-        if (expression is { TypeMapping: NpgsqlIntervalTypeMapping } and not SqlConstantExpression)
+        if (expression is
+            {
+                TypeMapping: NpgsqlIntervalTypeMapping or NpgsqlArrayTypeMapping { ElementTypeMapping: NpgsqlIntervalTypeMapping }
+            } and not SqlConstantExpression)
         {
             throw new InvalidOperationException("Converting PostgreSQL interval expressions to JSON is not supported.");
         }

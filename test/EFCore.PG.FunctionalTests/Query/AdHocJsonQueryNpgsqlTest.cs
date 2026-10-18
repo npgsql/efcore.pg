@@ -169,6 +169,95 @@ ORDER BY e."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Scalar_converted_json_literal_comparison(bool jsonb)
+    {
+        var contextFactory = await InitializeNonSharedTest<ScalarConvertedJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<ScalarConvertedJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json")
+                .HasConversion(
+                    value => JsonSerializer.SerializeToElement(new[] { value }, (JsonSerializerOptions)null),
+                    value => value[0].GetInt32()),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new ScalarConvertedJsonEntity { Id = 1, Payload = 25 },
+                    new ScalarConvertedJsonEntity { Id = 2, Payload = 35 });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        Assert.Equal(1, await context.Entities.Where(e => e.Payload == 25).Select(e => e.Id).SingleAsync());
+
+        var column = "e.\"Payload\"";
+        var left = $"NULLIF({column}{(jsonb ? "" : "::jsonb")}, 'null'::jsonb)";
+        var right = """NULLIF('[25]'::jsonb, 'null'::jsonb)""";
+        AssertSql(
+            $"""
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Native_enum_json_parameter_comparison(bool jsonb)
+    {
+        var contextFactory = await InitializeNonSharedTest<EnumJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<EnumJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json"),
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.MapEnum<JsonMood>("json_mood").ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new EnumJsonEntity { Id = 1, Payload = new() { ["Mood"] = JsonMood.Sad } },
+                    new EnumJsonEntity { Id = 2, Payload = new() { ["Mood"] = JsonMood.Happy } });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var mood = JsonMood.Sad;
+        Assert.Equal(1, await context.Entities.Where(e => e.Payload["Mood"] == (object)EF.Parameter(mood))
+            .Select(e => e.Id).SingleAsync());
+
+        var traversal = """e."Payload" -> 'Mood'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var right = """NULLIF(@mood, 'null'::jsonb)""";
+        AssertSql(
+            $"""
+@mood='1' (DbType = Object)
+
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    protected class EnumJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<EnumJsonEntity> Entities { get; set; }
+    }
+
+    public class EnumJsonEntity
+    {
+        public int Id { get; set; }
+        public Dictionary<string, object> Payload { get; set; }
+    }
+
+    public enum JsonMood
+    {
+        Happy,
+        Sad
+    }
+
     protected class ScalarConvertedJsonContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<ScalarConvertedJsonEntity> Entities { get; set; }

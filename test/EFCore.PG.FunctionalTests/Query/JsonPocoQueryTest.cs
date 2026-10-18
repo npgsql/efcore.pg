@@ -2769,9 +2769,7 @@ LIMIT 2
         var parameter = list ? "listFallback" : "arrayFallback";
         var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'NullableArray'""";
         AssertSql(
-            $"""
-@{parameter}='[1,2]' (DbType = Object)
-
+            $"@{parameter}={{ '1'\n'2' }} (DbType = Object)\n\n" + $"""
 SELECT COALESCE(CASE
     WHEN d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" ->> 'NullableArray' IS NULL THEN NULL
     ELSE {traversal}
@@ -2779,6 +2777,101 @@ END, @{parameter})
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_typed_temporal_collection_parameter(bool jsonb, bool list)
+    {
+        using var ctx = CreateContext();
+        DateTime[] timestamps = [new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567)];
+        List<DateTime> timestampList = [.. timestamps];
+        var query = (jsonb, list) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => (DateTime[])e.JsonbDictionary["Timestamps"] == EF.Parameter(timestamps)),
+            (false, false) => ctx.DictionaryEntities.Where(e => (DateTime[])e.JsonDictionary["Timestamps"] == EF.Parameter(timestamps)),
+            (true, true) => ctx.DictionaryEntities.Where(e => (List<DateTime>)e.JsonbDictionary["Timestamps"] == EF.Parameter(timestampList)),
+            (false, true) => ctx.DictionaryEntities.Where(e => (List<DateTime>)e.JsonDictionary["Timestamps"] == EF.Parameter(timestampList))
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        object[] values = (jsonb, list) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (DateTime[])e.JsonbDictionary["Timestamps"]).ToArray(),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (DateTime[])e.JsonDictionary["Timestamps"]).ToArray(),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (List<DateTime>)e.JsonbDictionary["Timestamps"]).ToArray(),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => (List<DateTime>)e.JsonDictionary["Timestamps"]).ToArray()
+        };
+        Assert.IsType(list ? typeof(List<DateTime>) : typeof(DateTime[]), values[0]);
+        Assert.Equal(timestamps, Assert.IsAssignableFrom<IEnumerable<DateTime>>(values[0]));
+        Assert.Null(values[1]);
+
+        var parameter = list ? "timestampList" : "timestamps";
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Timestamps'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var right = $"NULLIF(@{parameter}{(jsonb ? "" : "::jsonb")}, 'null'::jsonb)";
+        AssertSql(
+            $"@{parameter}={{ '2020-01-01T10:30:45.1234567Z' }} (DbType = Object)\n\n" + $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""",
+            $"""
+SELECT {traversal}
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_time_only_comparison(bool jsonb, bool constant)
+    {
+        using var ctx = CreateContext();
+        var time = new TimeOnly(12, 30, 45).Add(TimeSpan.FromTicks(1234567));
+        var query = (jsonb, constant) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Time"] == (object)EF.Parameter(time)),
+            (false, false) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Time"] == (object)EF.Parameter(time)),
+            (true, true) => ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Time"] == (object)EF.Constant(time)),
+            (false, true) => ctx.DictionaryEntities.Where(e => e.JsonDictionary["Time"] == (object)EF.Constant(time))
+        };
+
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Time'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var right = $"""NULLIF({(constant ? """'"12:30:45.1234567"'""" : "@time")}, 'null'::jsonb)""";
+        AssertSql(
+            (constant ? "" : "@time='12:30:45.1234567' (DbType = Object)\n\n") + $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_interval_array_expression_comparison_not_supported(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Durations"] == (object)new[] { (TimeSpan)e.JsonbDictionary["Duration"] })
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Durations"] == (object)new[] { (TimeSpan)e.JsonDictionary["Duration"] });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
+        Assert.Equal("Converting PostgreSQL interval expressions to JSON is not supported.", exception.Message);
+        AssertSql();
     }
 
     #endregion Dictionaries
@@ -2828,6 +2921,7 @@ ORDER BY d."Id" NULLS FIRST
                         ["StringAge"] = "25",
                         ["Timestamp"] = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567),
                         ["Duration"] = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567)),
+                        ["Time"] = new TimeOnly(12, 30, 45).Add(TimeSpan.FromTicks(1234567)),
                         ["TimestampOffset"] = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)).AddTicks(1234567),
                         ["Durations"] = (TimeSpan[])[TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567))],
                         ["Timestamps"] = (DateTime[])[new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567)],
@@ -2846,6 +2940,7 @@ ORDER BY d."Id" NULLS FIRST
                         ["StringAge"] = "25",
                         ["Timestamp"] = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567),
                         ["Duration"] = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567)),
+                        ["Time"] = new TimeOnly(12, 30, 45).Add(TimeSpan.FromTicks(1234567)),
                         ["TimestampOffset"] = new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.FromHours(2)).AddTicks(1234567),
                         ["Durations"] = (TimeSpan[])[TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567))],
                         ["Timestamps"] = (DateTime[])[new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567)],

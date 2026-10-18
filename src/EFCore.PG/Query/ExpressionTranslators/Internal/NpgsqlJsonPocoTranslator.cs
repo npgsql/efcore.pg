@@ -124,11 +124,20 @@ public class NpgsqlJsonPocoTranslator(
     }
 
     internal RelationalTypeMapping FindJsonMapping(Type type, string storeType)
-        => type == typeof(object)
+    {
+        if (type == typeof(object))
+        {
             // Reading JSON as object defaults to string in Npgsql; dictionary values need deserialized JSON instead.
-            ? (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(JsonElement), storeType)!
-                .WithComposedConverter(ObjectJsonConverter)
-            : _typeMappingSource.FindMapping(type, storeType)!;
+            return (RelationalTypeMapping)_typeMappingSource.FindMapping(typeof(JsonElement), storeType)!
+                .WithComposedConverter(ObjectJsonConverter);
+        }
+
+        var mapping = _typeMappingSource.FindMapping(type, storeType)!;
+        // Legacy POCO fragments use System.Text.Json, not EF's primitive-collection serialization.
+        return mapping.ElementTypeMapping is { } elementMapping
+            ? new NpgsqlJsonTypeMapping(storeType, type, elementMapping)
+            : mapping;
+    }
 
     internal SqlExpression ConvertFromText(SqlExpression text, Type type, RelationalTypeMapping mapping)
         => mapping is NpgsqlByteArrayTypeMapping

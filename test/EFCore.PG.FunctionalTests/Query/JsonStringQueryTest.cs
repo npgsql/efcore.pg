@@ -227,7 +227,7 @@ ORDER BY j."Id" NULLS FIRST
             () =>
             {
                 using var transaction = ctx.Database.BeginTransaction();
-                ctx.Database.ExecuteSqlInterpolated(
+                ctx.Database.ExecuteSql(
                     $"""UPDATE "JsonEntities" SET "CustomerJsonb" = {serialized}::jsonb, "CustomerJson" = {serialized}::json WHERE "Id" = 1""");
                 Fixture.TestSqlLoggerFactory.Clear();
 
