@@ -32,7 +32,7 @@ public class IntervalMultirangeMapping : NpgsqlTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected IntervalMultirangeMapping(RelationalTypeMappingParameters parameters, IntervalRangeMapping intervalRangeMapping)
-        : base(parameters, NpgsqlDbType.DateMultirange)
+        : base(parameters, NpgsqlDbType.TimestampTzMultirange)
     {
         _intervalRangeMapping = intervalRangeMapping;
     }
