@@ -38,6 +38,69 @@ public class NpgsqlTypeMappingTest
 
     #region Date/Time
 
+    [Theory]
+    [MemberData(nameof(DateTimeLiteralData))]
+    public void Date_time_literals(object value, string storeType, string sql, string json)
+    {
+        var mapping = GetMapping(value.GetType(), storeType);
+        Assert.Equal(sql, mapping.GenerateSqlLiteral(value));
+
+        var readerWriter = mapping.JsonValueReaderWriter!;
+        var actualJson = readerWriter.ToJsonString(value);
+        Assert.Equal(json, JsonSerializer.Deserialize<string>(actualJson));
+
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes(actualJson)), null);
+        readerManager.MoveNext();
+        var actualValue = readerWriter.FromJson(ref readerManager, existingObject: null);
+        if (storeType == "timetz")
+        {
+            var expected = (DateTimeOffset)value;
+            var actual = (DateTimeOffset)actualValue;
+            Assert.Equal(expected.TimeOfDay, actual.TimeOfDay);
+            Assert.Equal(expected.Offset, actual.Offset);
+        }
+        else
+        {
+            Assert.Equal(value, actualValue);
+        }
+    }
+
+    public static IEnumerable<object[]> DateTimeLiteralData()
+        =>
+        [
+            [new DateOnly(1, 1, 2), "date", "DATE '0001-01-02'", "0001-01-02"],
+            [new DateOnly(2023, 5, 29), "date", "DATE '2023-05-29'", "2023-05-29"],
+            [DateOnly.MinValue, "date", "DATE '-infinity'", "-infinity"],
+            [DateOnly.MaxValue, "date", "DATE 'infinity'", "infinity"],
+            [new DateTime(1, 1, 2), "date", "DATE '0001-01-02'", "0001-01-02"],
+            [new DateTime(2023, 5, 29), "date", "DATE '2023-05-29'", "2023-05-29"],
+            [DateTime.MinValue, "date", "DATE '-infinity'", "-infinity"],
+            [DateTime.MaxValue, "date", "DATE 'infinity'", "infinity"],
+            [new DateTime(1, 1, 2), "timestamp", "TIMESTAMP '0001-01-02T00:00:00'", "0001-01-02T00:00:00"],
+            [new DateTime(2023, 5, 29, 10, 52, 47, 206, 435), "timestamp",
+                "TIMESTAMP '2023-05-29T10:52:47.206435'", "2023-05-29T10:52:47.206435"],
+            [DateTime.MinValue, "timestamp", "TIMESTAMP '-infinity'", "-infinity"],
+            [DateTime.MaxValue, "timestamp", "TIMESTAMP 'infinity'", "infinity"],
+            [new DateTime(1, 1, 2, 0, 0, 0, DateTimeKind.Utc), "timestamptz",
+                "TIMESTAMPTZ '0001-01-02T00:00:00Z'", "0001-01-02T00:00:00Z"],
+            [new DateTime(2023, 5, 29, 10, 52, 47, 206, 435, DateTimeKind.Utc), "timestamptz",
+                "TIMESTAMPTZ '2023-05-29T10:52:47.206435Z'", "2023-05-29T10:52:47.206435Z"],
+            [DateTime.MinValue, "timestamptz", "TIMESTAMPTZ '-infinity'", "-infinity"],
+            [DateTime.MaxValue, "timestamptz", "TIMESTAMPTZ 'infinity'", "infinity"],
+            [new DateTimeOffset(1, 1, 2, 0, 0, 0, TimeSpan.Zero), "timestamptz",
+                "TIMESTAMPTZ '0001-01-02T00:00:00+00:00'", "0001-01-02T00:00:00+00:00"],
+            [new DateTimeOffset(2023, 5, 29, 10, 52, 47, TimeSpan.FromHours(2)), "timestamptz",
+                "TIMESTAMPTZ '2023-05-29T10:52:47+02:00'", "2023-05-29T10:52:47+02:00"],
+            [DateTimeOffset.MinValue, "timestamptz", "TIMESTAMPTZ '-infinity'", "-infinity"],
+            [DateTimeOffset.MaxValue, "timestamptz", "TIMESTAMPTZ 'infinity'", "infinity"],
+            [new TimeOnly(4, 5, 6, 123, 456), "time", "TIME '04:05:06.123456'", "04:05:06.1234560"],
+            [new TimeSpan(0, 4, 5, 6), "time", "TIME '04:05:06'", "4:05:06"],
+            [new DateTimeOffset(2023, 5, 29, 4, 5, 6, TimeSpan.FromHours(-3)), "timetz",
+                "TIMETZ '04:05:06-3'", "04:05:06-3"],
+            [new TimeSpan(3, 4, 5, 6, 7), "interval", "INTERVAL '3 04:05:06.007'", "3 04:05:06.007"],
+            [TimeSpan.Zero, "interval", "INTERVAL '00:00:00'", "00:00:00"]
+        ];
+
     [Fact]
     public void DateTime_type_maps_to_timestamptz_by_default()
         => Assert.Equal("timestamp with time zone", GetMapping(typeof(DateTime)).StoreType);
