@@ -155,9 +155,59 @@ LIMIT 2
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(null)]
+    [InlineData(0)]
+    [InlineData(8)]
+    [InlineData(-9)]
+    public virtual async Task DateTime_and_DateOnly_add_with_nullable_argument(int? amount)
+    {
+        var dateTime = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var dateOnly = new DateOnly(2000, 1, 1);
+        var contextFactory = await InitializeAsync<OperatorsContext>(
+            seed: context =>
+            {
+                context.Set<OperatorEntityDateOnly>().Add(
+                    new OperatorEntityDateOnly { Id = 1, Value = dateOnly, Amount = amount });
+                context.SaveChanges();
+            },
+            onModelCreating: modelBuilder => modelBuilder.Entity<OperatorEntityDateOnly>().Property(x => x.Id).ValueGeneratedNever());
+
+        await using var context = contextFactory.CreateContext();
+
+        var result = await context.Set<OperatorEntityDateOnly>()
+            .Select(
+                o => new
+                {
+                    Days = (DateTime?)dateTime.AddDays(o.Amount!.Value),
+                    Years = (DateOnly?)o.Value.AddYears(o.Amount!.Value),
+                    Months = (DateOnly?)o.Value.AddMonths(o.Amount!.Value)
+                })
+            .SingleAsync();
+
+        Assert.Equal(amount.HasValue ? dateTime.AddDays(amount.Value) : (DateTime?)null, result.Days);
+        Assert.Equal(amount.HasValue ? dateOnly.AddYears(amount.Value) : (DateOnly?)null, result.Years);
+        Assert.Equal(amount.HasValue ? dateOnly.AddMonths(amount.Value) : (DateOnly?)null, result.Months);
+
+        AssertSql(
+            """
+@__dateTime_0='2000-01-01T00:00:00.0000000Z' (DbType = DateTime)
+
+SELECT @__dateTime_0 + CAST((o."Amount"::double precision::text || ' days') AS interval) AS "Days", CAST(o."Value" + CAST((o."Amount"::text || ' years') AS interval) AS date) AS "Years", CAST(o."Value" + CAST((o."Amount"::text || ' months') AS interval) AS date) AS "Months"
+FROM "OperatorEntityDateOnly" AS o
+LIMIT 2
+""");
+    }
+
     public class OperatorEntityDateTime : OperatorEntityBase
     {
         public DateTime Value { get; set; }
+    }
+
+    public class OperatorEntityDateOnly : OperatorEntityBase
+    {
+        public DateOnly Value { get; set; }
+        public int? Amount { get; set; }
     }
 
     protected override void Seed(OperatorsContext ctx)
