@@ -251,6 +251,29 @@ public class NpgsqlTypeMappingSourceTest
         Assert.Same(typeof(int[]), mapping.ClrType);
     }
 
+    [Theory]
+    [InlineData("integer[]", "integer", false)]
+    [InlineData("integer[]", "integer", true)]
+    [InlineData("bigint[]", "bigint", false)]
+    [InlineData("bigint[]", "bigint", true)]
+    public void Array_property_with_explicit_store_type(string storeType, string elementStoreType, bool useConverter)
+    {
+        var collection = CreateModelBuilder().Entity("Entity")
+            .PrimitiveCollection<int[]>("Values")
+            .HasColumnType(storeType);
+        if (useConverter)
+        {
+            collection.ElementType().HasConversion(new ValueConverter<int, int>(v => v + 1, v => v - 1));
+        }
+
+        var mapping = Assert.IsAssignableFrom<NpgsqlArrayTypeMapping>(CreateTypeMappingSource().FindMapping((IProperty)collection.Metadata));
+
+        Assert.Equal(storeType, mapping.StoreType);
+        Assert.Equal(elementStoreType, mapping.ElementTypeMapping.StoreType);
+        var expectedElements = useConverter ? "2,3" : "1,2";
+        Assert.Equal($"ARRAY[{expectedElements}]::{storeType}", mapping.GenerateSqlLiteral(new[] { 1, 2 }));
+    }
+
     [Fact]
     public void Array_over_type_mapping_with_value_converter_by_clr_type_array()
         => Array_over_type_mapping_with_value_converter(CreateTypeMappingSource().FindMapping(typeof(LTree[])), typeof(LTree[]));
