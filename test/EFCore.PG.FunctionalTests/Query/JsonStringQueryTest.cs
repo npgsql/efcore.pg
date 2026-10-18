@@ -216,6 +216,63 @@ ORDER BY j."Id" NULLS FIRST
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Boxed_serialized_json_coalesce_null(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = jsonb
+            ? entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJsonb : null) ?? null)
+            : entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJson : null) ?? null);
+        var values = query.ToArray();
+        using var document = JsonDocument.Parse(Assert.IsType<string>(values[0]));
+        Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        Assert.Null(values[1]);
+
+        AssertSql(
+            $"""
+SELECT COALESCE(CASE
+    WHEN j."Id" = 1 THEN j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"
+END, NULL)
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void Boxed_serialized_json_native_text_composition(bool jsonb, bool coalesce)
+    {
+        using var ctx = CreateContext();
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = (jsonb, coalesce) switch
+        {
+            (true, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJsonb : (object)e.SomeString!),
+            (false, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJson : (object)e.SomeString!),
+            (true, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJsonb : null) ?? e.SomeString),
+            (false, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJson : null) ?? e.SomeString)
+        };
+        var values = query.ToArray();
+        using var document = JsonDocument.Parse(Assert.IsType<string>(values[0]));
+        Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        Assert.Equal("Moe", Assert.IsType<string>(values[1]));
+
+        var column = $"j.\"{(jsonb ? "CustomerJsonb" : "CustomerJson")}\"";
+        AssertSql(
+            $"""
+SELECT {(coalesce ? $"COALESCE(CAST(CASE\n    WHEN j.\"Id\" = 1 THEN {column}\nEND AS text), j.\"SomeString\")" : $"j.\"Id\" = 1, {column}, j.\"SomeString\"")}
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
     [InlineData(false, "\"foo\"")]
     [InlineData(true, "\"foo\"")]
     [InlineData(false, "null")]

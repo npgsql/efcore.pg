@@ -112,6 +112,17 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
             sqlIfTrue = ConvertToJson(sqlIfTrue!, resultMapping);
             sqlIfFalse = ConvertToJson(sqlIfFalse!, resultMapping);
+            // A parameter's serialization mapping must not determine CASE's materialization mapping.
+            if (sqlIfTrue.TypeMapping != resultMapping)
+            {
+                sqlIfTrue = _sqlExpressionFactory.Function(
+                    resultMapping.StoreType == "jsonb" ? "to_jsonb" : "to_json",
+                    [sqlIfTrue],
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    resultMapping.ClrType,
+                    resultMapping);
+            }
         }
 
         return _sqlExpressionFactory.Case([new CaseWhenClause(sqlTest!, sqlIfTrue!)], sqlIfFalse);
@@ -521,7 +532,13 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         left = Unbox(left);
         right = Unbox(right);
         var jsonMapping = (left.TypeMapping as NpgsqlJsonTypeMapping ?? right.TypeMapping as NpgsqlJsonTypeMapping)!;
-        var resultType = left.Type == right.Type ? left.Type : type;
+        var resultType = (left, right) switch
+        {
+            (SqlConstantExpression { Value: null }, _) => right.Type,
+            (_, SqlConstantExpression { Value: null }) => left.Type,
+            _ when left.Type == right.Type => left.Type,
+            _ => type
+        };
         var mapping = jsonMapping.ClrType == resultType
             ? jsonMapping
             : _jsonPocoTranslator.FindJsonMapping(resultType, jsonMapping.StoreType);
@@ -545,6 +562,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             return true;
         }
 
+        if (mapping.ClrType == typeof(string) && expression.TypeMapping is not NpgsqlJsonTypeMapping)
+        {
+            return false;
+        }
+
         var sourceConverter = expression.TypeMapping?.Converter;
         return (sourceConverter == NpgsqlJsonPocoTranslator.ObjectJsonConverter ? null : sourceConverter)
             == (mapping.Converter == NpgsqlJsonPocoTranslator.ObjectJsonConverter ? null : mapping.Converter);
@@ -565,7 +587,10 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                     is null or NpgsqlHstoreTypeMapping or NpgsqlArrayTypeMapping or NpgsqlEnumTypeMapping))
         {
             // Native SQL conversion must not bypass JSON serialization or configured converters.
-            return parameter.ApplyTypeMapping(mapping);
+            return parameter.ApplyTypeMapping(
+                mapping.Converter == NpgsqlJsonPocoTranslator.ObjectJsonConverter
+                    ? new NpgsqlJsonTypeMapping(mapping.StoreType, expression.Type)
+                    : mapping);
         }
 
         if (expression is { TypeMapping: { Converter: not null } and not NpgsqlJsonTypeMapping } and not SqlConstantExpression)

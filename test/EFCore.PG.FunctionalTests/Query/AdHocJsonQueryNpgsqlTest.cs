@@ -477,13 +477,12 @@ ORDER BY e."Id" NULLS FIRST
         var right = $"NULLIF(@{parameter}{(jsonb || operation is "ObjectPredicate" or "ArrayParameter" ? "" : "::jsonb")}, 'null'::jsonb)";
         var value = operation switch
         {
-            "ObjectPredicate" => "1",
-            "ArrayParameter" => "[1]",
+            "ArrayParameter" => "{ 'Sad' }",
             _ => "Sad"
         };
         AssertSql(
             $"""
-@{parameter}='{value}'{(operation == "ArrayParameter" ? " (Nullable = true)" : "")} (DbType = Object)
+@{parameter}={(operation == "ArrayParameter" ? value : $"'{value}'")} (DbType = Object)
 
 SELECT e."Id"
 FROM "Entities" AS e
@@ -1005,9 +1004,12 @@ ORDER BY e."Id" NULLS FIRST
         var traversal = """e."Payload" -> 'Values'""";
         var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
         var right = $"NULLIF(@{(timestamp ? "timestamps" : "dates")}, 'null'::jsonb)";
+        var logged = timestamp
+            ? "{ '9999-12-31T23:59:59.9999999'\n'0001-01-01T00:00:00.0000000' }"
+            : "{ '12/31/9999'\n'01/01/0001' }";
         AssertSql(
             $"""
-@{(timestamp ? "timestamps" : "dates")}='{serialized}' (Nullable = true) (DbType = Object)
+@{(timestamp ? "timestamps" : "dates")}={logged} (DbType = Object)
 
 SELECT {traversal}
 FROM "Entities" AS e
@@ -1051,7 +1053,7 @@ LIMIT 2
         var serialized = JsonSerializer.SerializeToElement(date).GetString();
         var right = $"NULLIF({(constant ? $"'\"{serialized}\"'" : "@date")}, 'null'::jsonb)";
         AssertSql(
-            (constant ? "" : $"@date='{serialized}' (DbType = Object)\n\n") + $"""
+            (constant ? "" : $"@date='{(maximum ? "12/31/9999" : "01/01/0001")}' (DbType = Object)\n\n") + $"""
 SELECT e."Id"
 FROM "Entities" AS e
 WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
@@ -1136,6 +1138,96 @@ ORDER BY e."Id" NULLS FIRST
         public Dictionary<string, object> Payload { get; set; }
     }
 
+    [Theory]
+    [InlineData(false, "Column")]
+    [InlineData(true, "Column")]
+    [InlineData(false, "ArrayColumn")]
+    [InlineData(true, "ArrayColumn")]
+    [InlineData(false, "Array")]
+    [InlineData(true, "Array")]
+    [InlineData(false, "Parameter")]
+    [InlineData(true, "Parameter")]
+    [InlineData(false, "Constant")]
+    [InlineData(true, "Constant")]
+    [InlineData(false, "ArrayParameter")]
+    [InlineData(true, "ArrayParameter")]
+    [InlineData(false, "ArrayConstant")]
+    [InlineData(true, "ArrayConstant")]
+    public async Task Native_time_json_conversion(bool jsonb, string operation)
+    {
+        var time = new TimeOnly(12, 30, 45);
+        TimeOnly[] times = [time];
+        var contextFactory = await InitializeNonSharedTest<TimestampJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<TimestampJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json"),
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.Add(new TimestampJsonEntity
+                {
+                    Id = 1,
+                    Time = time,
+                    Times = times,
+                    Payload = new() { ["Time"] = time, ["Times"] = times }
+                });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var entities = context.Entities;
+        var query = operation switch
+        {
+            "Column" => entities.Where(e => e.Payload["Time"] == (object)e.Time),
+            "ArrayColumn" => entities.Where(e => e.Payload["Times"] == (object)e.Times),
+            "Array" => entities.Where(e => e.Payload["Times"] == (object)new[] { e.Time }),
+            "Parameter" => entities.Where(e => e.Payload["Time"] == (object)EF.Parameter(time)),
+            "Constant" => entities.Where(e => e.Payload["Time"] == (object)EF.Constant(time)),
+            "ArrayParameter" => entities.Where(e => e.Payload["Times"] == (object)EF.Parameter(times)),
+            "ArrayConstant" => entities.Where(e => e.Payload["Times"] == (object)EF.Constant(times)),
+            _ => throw new UnreachableException()
+        };
+        if (operation is "Column" or "ArrayColumn" or "Array")
+        {
+            Assert.Equal(1, await query.Select(e => e.Id).SingleAsync());
+            var key = operation == "Column" ? "Time" : "Times";
+            var operand = operation switch
+            {
+                "Column" => "e.\"Time\"",
+                "ArrayColumn" => "e.\"Times\"",
+                _ => """ARRAY[e."Time"]::time without time zone[]"""
+            };
+            var fragment = $"e.\"Payload\" -> '{key}'";
+            var leftOperand = $"NULLIF({(jsonb ? fragment : $"CAST({fragment} AS jsonb)")}, 'null'::jsonb)";
+            var rightOperand = $"NULLIF(to_jsonb({operand}), 'null'::jsonb)";
+            AssertSql(
+                $"""
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE {leftOperand} = {rightOperand} OR ({leftOperand} IS NULL AND {rightOperand} IS NULL)
+LIMIT 2
+""");
+            return;
+        }
+
+        Assert.Equal(1, await query.Select(e => e.Id).SingleAsync());
+        var array = operation.StartsWith("Array", StringComparison.Ordinal);
+        var constant = operation.EndsWith("Constant", StringComparison.Ordinal);
+        var traversal = $"e.\"Payload\" -> '{(array ? "Times" : "Time")}'";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var serialized = JsonSerializer.Serialize(array ? (object)times : time);
+        var parameter = array ? "times" : "time";
+        var right = $"NULLIF({(constant ? $"'{serialized}'" : $"@{parameter}")}, 'null'::jsonb)";
+        AssertSql(
+            (constant ? "" : $"@{parameter}={(array ? "{ '12:30' }" : "'12:30'")} (DbType = Object)\n\n") + $"""
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
     protected class TimestampJsonContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<TimestampJsonEntity> Entities { get; set; }
@@ -1158,6 +1250,8 @@ ORDER BY e."Id" NULLS FIRST
         public DateTime DateTimeAsDate { get; set; }
         public DateOnly[] Dates { get; set; } = [];
         public DateTime[] LocalTimestamps { get; set; } = [];
+        public TimeOnly Time { get; set; }
+        public TimeOnly[] Times { get; set; } = [];
         public Dictionary<string, object> Payload { get; set; }
     }
 

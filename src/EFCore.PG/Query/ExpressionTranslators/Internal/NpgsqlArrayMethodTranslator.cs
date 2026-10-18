@@ -63,9 +63,9 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
             && method.DeclaringType == typeof(Enumerable)
             && arguments is [var first, var second]
             && first.Type.IsArrayOrGenericList()
-            && !IsMappedToNonArray(first)
             && second.Type.IsArrayOrGenericList()
-            && !IsMappedToNonArray(second))
+            && ((!IsMappedToNonArray(first) && !IsMappedToNonArray(second))
+                || first.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: true } && second.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: true }))
         {
             return _sqlExpressionFactory.Equal(first, second);
         }

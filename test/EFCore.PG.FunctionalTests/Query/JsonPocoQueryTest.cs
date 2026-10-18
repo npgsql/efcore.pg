@@ -36,6 +36,28 @@ public class JsonPocoQueryTest : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFi
         Assert.Equal(new DateTimeOffset(2020, 1, 1, 10, 30, 45, TimeSpan.Zero), types.DateTimeOffset);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Jsonb_array_sequence_equal(bool list)
+    {
+        using var ctx = CreateContext();
+        var query = list
+            ? ctx.JsonbEntities.Where(e => e.Customer.Statistics.Nested.IntList.SequenceEqual(e.Customer.Statistics.Nested.IntList))
+            : ctx.JsonbEntities.Where(e => e.Customer.Statistics.Nested.IntArray.SequenceEqual(e.Customer.Statistics.Nested.IntArray));
+        Assert.Equal([1, 2], query.OrderBy(e => e.Id).Select(e => e.Id).ToArray());
+
+        var fragment = $"j.\"Customer\" #> '{{Statistics,Nested,{(list ? "IntList" : "IntArray")}}}'";
+        var normalized = $"NULLIF({fragment}, 'null'::jsonb)";
+        AssertSql(
+            $"""
+SELECT j."Id"
+FROM "JsonbEntities" AS j
+WHERE {normalized} = {normalized} OR ({normalized} IS NULL AND {normalized} IS NULL)
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
     [Fact]
     public void Literal()
     {
@@ -1112,12 +1134,12 @@ LIMIT 2
         var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
         const string right = "NULLIF(@payloads, 'null'::jsonb)";
         AssertSql(
-            $"""
-@payloads='["AQID"]' (Nullable = true) (DbType = Object)
+            $$"""
+@payloads={ '0x010203' } (DbType = Object)
 
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
-WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+WHERE {{left}} = {{right}} OR ({{left}} IS NULL AND {{right}} IS NULL)
 LIMIT 2
 """);
     }
@@ -1354,7 +1376,7 @@ LIMIT 2
         var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{key}'""";
         var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
         var literal = dateTimeOffset
-            ? """'"2020-01-01T10:30:45.1234567\u002B02:00"'"""
+            ? """'"2020-01-01T10:30:45.1234567+02:00"'"""
             : """'"1.00:00:00.1234567"'""";
         var right = constant
             ? $"NULLIF({literal}, 'null'::jsonb)"
@@ -2313,13 +2335,13 @@ END, @fallback)
 """
             : $"""
 CASE
-    WHEN d."Id" = 1 THEN @fallback
+    WHEN d."Id" = 1 THEN {(jsonb ? "to_jsonb" : "to_json")}(@fallback)
     ELSE d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> 'Name'
 END
 """;
         AssertSql(
             $$"""
-@fallback='{"Age":99}' (Nullable = true) (DbType = Object)
+@fallback='{{fallback}}' (DbType = Object)
 
 SELECT {{projection}}
 FROM "DictionaryEntities" AS d
@@ -2385,13 +2407,13 @@ END, @fallback)
 """
             : $"""
 CASE
-    WHEN d."Id" = 1 THEN @fallback
+    WHEN d."Id" = 1 THEN {(jsonb ? "to_jsonb" : "to_json")}(@fallback)
     ELSE {column} -> 'Name'
 END
 """;
         AssertSql(
             $$"""
-@fallback='{"Name":"Fallback"}' (Nullable = true) (DbType = Object)
+@fallback='{{fallback}}' (DbType = Object)
 
 SELECT {{projection}}
 FROM "DictionaryEntities" AS d
@@ -2821,9 +2843,9 @@ END, d."JsonbDictionary" -> 'Name'), '$')
         };
         var serialized = key switch
         {
-            "Durations" => """["1.00:00:00.1234567"]""",
-            "Timestamps" => """["2020-01-01T10:30:45.1234567Z"]""",
-            "TimestampOffsets" => """["2020-01-01T10:30:45.1234567+02:00"]""",
+            "Durations" => "{ '1.00:00:00.1234567' }",
+            "Timestamps" => "{ '2020-01-01T10:30:45.1234567Z' }",
+            "TimestampOffsets" => "{ '2020-01-01T10:30:45.1234567+02:00' }",
             _ => throw new UnreachableException()
         };
         var traversal = $"""d."{(jsonb ? "JsonbDictionary" : "JsonDictionary")}" -> '{key}'""";
@@ -2831,7 +2853,7 @@ END, d."JsonbDictionary" -> 'Name'), '$')
         var right = $"NULLIF(@{parameter}, 'null'::jsonb)";
         AssertSql(
             $"""
-@{parameter}='{serialized}' (Nullable = true) (DbType = Object)
+@{parameter}={serialized} (DbType = Object)
 
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
@@ -2986,7 +3008,7 @@ ORDER BY d."Id" NULLS FIRST
         var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
         var right = $"""NULLIF({(constant ? """'"12:30:45.1234567"'""" : "@time")}, 'null'::jsonb)""";
         AssertSql(
-            (constant ? "" : "@time='12:30:45.1234567' (DbType = Object)\n\n") + $"""
+            (constant ? "" : "@time='12:30' (DbType = Object)\n\n") + $"""
 SELECT d."Id"
 FROM "DictionaryEntities" AS d
 WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
