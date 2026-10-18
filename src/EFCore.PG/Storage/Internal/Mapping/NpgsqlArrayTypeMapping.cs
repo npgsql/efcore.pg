@@ -131,31 +131,39 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         }
 
 #pragma warning disable EF1001
-        var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
-            ? null // TODO: Value comparer for multidimensional arrays
-            : (ValueComparer?)Activator.CreateInstance(
-                elementType.IsNullableValueType()
-                    ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
-                    : elementMapping.Comparer.Type.IsAssignableFrom(elementType)
-                        ? typeof(ListComparer<>).MakeGenericType(elementType)
-                        : typeof(ObjectListComparer<>).MakeGenericType(elementType),
-                elementMapping.Comparer.ToNullableComparer(elementType)!);
-#pragma warning restore EF1001
+        var comparer = CreateComparer(elementMapping.Comparer);
+        var keyComparer = CreateComparer(elementMapping.KeyComparer);
 
-        if (comparer is not null)
+        ValueComparer? CreateComparer(ValueComparer elementComparer)
         {
+            var collectionComparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
+                ? null // TODO: Value comparer for multidimensional arrays
+                : (ValueComparer?)Activator.CreateInstance(
+                    elementType.IsNullableValueType()
+                        ? typeof(NullableValueTypeListComparer<>).MakeGenericType(elementType.UnwrapNullableType())
+                        : elementComparer.Type.IsAssignableFrom(elementType)
+                            ? typeof(ListComparer<>).MakeGenericType(elementType)
+                            : typeof(ObjectListComparer<>).MakeGenericType(elementType),
+                    elementComparer.ToNullableComparer(elementType)!);
+
+            if (collectionComparer is null)
+            {
+                return null;
+            }
+
             var param1 = Expression.Parameter(typeof(TCollection), "v1");
             var param2 = Expression.Parameter(typeof(TCollection), "v2");
-            var convertedParam1 = Expression.Convert(param1, comparer.Type);
-            var convertedParam2 = Expression.Convert(param2, comparer.Type);
+            var convertedParam1 = Expression.Convert(param1, collectionComparer.Type);
+            var convertedParam2 = Expression.Convert(param2, collectionComparer.Type);
 
-            comparer = new ValueComparer<TCollection>(
+            return new ValueComparer<TCollection>(
                 Expression.Lambda<Func<TCollection?, TCollection?, bool>>(
-                    comparer.ExtractEqualsBody(convertedParam1, convertedParam2), param1, param2),
-                Expression.Lambda<Func<TCollection, int>>(comparer.ExtractHashCodeBody(convertedParam1), param1),
+                    collectionComparer.ExtractEqualsBody(convertedParam1, convertedParam2), param1, param2),
+                Expression.Lambda<Func<TCollection, int>>(collectionComparer.ExtractHashCodeBody(convertedParam1), param1),
                 Expression.Lambda<Func<TCollection, TCollection>>(
-                    Expression.Convert(comparer.ExtractSnapshotBody(convertedParam1), typeof(TCollection)), param1));
+                    Expression.Convert(collectionComparer.ExtractSnapshotBody(convertedParam1), typeof(TCollection)), param1));
         }
+#pragma warning restore EF1001
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
         if (elementJsonReaderWriter is not null)
@@ -186,7 +194,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
 
         return new RelationalTypeMappingParameters(
             new CoreTypeMappingParameters(
-                typeof(TCollection), converter, comparer, keyComparer: comparer, elementMapping: elementMapping,
+                typeof(TCollection), converter, comparer, keyComparer: keyComparer, elementMapping: elementMapping,
                 jsonValueReaderWriter: collectionJsonReaderWriter),
             storeType);
     }
