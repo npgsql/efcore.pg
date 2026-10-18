@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Calendars;
@@ -12,6 +13,82 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class NpgsqlNodaTimeTypeMappingTest
 {
+    [Theory]
+    [InlineData(2018, "2018", "2018", "")]
+    [InlineData(1, "0001", "0001", "")]
+    [InlineData(0, "0000", "0001", " BC")]
+    [InlineData(-1, "-0001", "0002", " BC")]
+    [InlineData(-383, "-0383", "0384", " BC")]
+    public void Date_time_literals(int year, string isoYear, string sqlYear, string era)
+    {
+        var dateTime = new LocalDateTime(year, 4, 20, 10, 31, 33).PlusNanoseconds(123456000);
+        var instant = dateTime.InUtc().ToInstant();
+        (object Value, string SqlType, string Sql, string Json)[] cases =
+        [
+            (dateTime.Date, "DATE", $"{sqlYear}-04-20{era}", $"{isoYear}-04-20"),
+            (dateTime, "TIMESTAMP", $"{sqlYear}-04-20T10:31:33.123456{era}", $"{isoYear}-04-20T10:31:33.123456"),
+            (instant, "TIMESTAMPTZ", $"{sqlYear}-04-20T10:31:33.123456Z{era}", $"{isoYear}-04-20T10:31:33.123456Z"),
+            (dateTime.WithOffset(Offset.FromHoursAndMinutes(-2, -30)), "TIMESTAMPTZ",
+                $"{sqlYear}-04-20T10:31:33.123456-02:30{era}", $"{isoYear}-04-20T10:31:33.123456-02:30"),
+            (dateTime.InUtc(), "TIMESTAMPTZ",
+                $"{sqlYear}-04-20T10:31:33.123456Z{era}", $"{isoYear}-04-20T10:31:33.123456Z")
+        ];
+
+        foreach (var (value, sqlType, sql, json) in cases)
+        {
+            var mapping = (NpgsqlTypeMapping)GetMapping(value.GetType());
+            Assert.Equal($"{sqlType} '{sql}'", mapping.GenerateSqlLiteral(value));
+            Assert.Equal(value is LocalDate ? sql : $"\"{sql}\"", mapping.GenerateEmbeddedSqlLiteral(value));
+
+            var readerWriter = mapping.JsonValueReaderWriter!;
+            var actualJson = readerWriter.ToJsonString(value);
+            Assert.Equal(json, JsonSerializer.Deserialize<string>(actualJson));
+
+            var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes(actualJson)), null);
+            readerManager.MoveNext();
+            Assert.Equal(value, readerWriter.FromJson(ref readerManager, existingObject: null));
+        }
+
+        var legacyMapping = (NpgsqlTypeMapping)GetMapping(typeof(Instant), "timestamp without time zone");
+        var legacySql = $"{sqlYear}-04-20T10:31:33.123456Z{era}";
+        Assert.Equal($"TIMESTAMP '{legacySql}'", legacyMapping.GenerateSqlLiteral(instant));
+        Assert.Equal($"\"{legacySql}\"", legacyMapping.GenerateEmbeddedSqlLiteral(instant));
+    }
+
+    [Theory]
+    [InlineData(2020, "2020", "")]
+    [InlineData(0, "0001", " BC")]
+    [InlineData(-383, "0384", " BC")]
+    public void Date_time_range_literals(int year, string sqlYear, string era)
+    {
+        var start = new LocalDateTime(year, 1, 1, 12, 0);
+        var end = start.PlusDays(1);
+        var dateRange = $"[{sqlYear}-01-01{era},{sqlYear}-01-02{era}]";
+        var timestampRange = $"[\"{sqlYear}-01-01T12:00:00{era}\",\"{sqlYear}-01-02T12:00:00{era}\"]";
+        var instantRange = $"[\"{sqlYear}-01-01T12:00:00Z{era}\",\"{sqlYear}-01-02T12:00:00Z{era}\"]";
+        var intervalRange = $"[{sqlYear}-01-01T12:00:00Z{era},{sqlYear}-01-02T12:00:00Z{era})";
+        (object Value, string StoreType, string Range)[] cases =
+        [
+            (new NpgsqlRange<LocalDate>(start.Date, end.Date), "daterange", dateRange),
+            (new DateInterval(start.Date, end.Date), "daterange", dateRange),
+            (new NpgsqlRange<LocalDateTime>(start, end), "tsrange", timestampRange),
+            (new NpgsqlRange<Instant>(start.InUtc().ToInstant(), end.InUtc().ToInstant()), "tstzrange", instantRange),
+            (new NpgsqlRange<OffsetDateTime>(start.WithOffset(Offset.Zero), end.WithOffset(Offset.Zero)), "tstzrange", instantRange),
+            (new NpgsqlRange<ZonedDateTime>(start.InUtc(), end.InUtc()), "tstzrange", instantRange),
+            (new Interval(start.InUtc().ToInstant(), end.InUtc().ToInstant()), "tstzrange", intervalRange)
+        ];
+
+        foreach (var (value, storeType, range) in cases)
+        {
+            Assert.Equal($"'{range}'::{storeType}", GetMapping(value.GetType()).GenerateSqlLiteral(value));
+            var multirange = Array.CreateInstance(value.GetType(), 1);
+            multirange.SetValue(value, 0);
+            Assert.Equal(
+                $"'{{{range}}}'::{storeType.Replace("range", "multirange")}",
+                GetMapping(multirange.GetType()).GenerateSqlLiteral(multirange));
+        }
+    }
+
     #region Timestamp without time zone
 
     [Fact]
@@ -72,6 +149,8 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [ConditionalTheory]
     [InlineData("0001-01-01T00:00:00")]
+    [InlineData("0000-01-01T00:00:00")]
+    [InlineData("-0383-01-01T00:00:00")]
     [InlineData("9999-12-31T23:59:59.9999999")]
     [InlineData("2023-05-29T10:52:47.2064353")]
     public void LocalDateTime_json(string dateString)
@@ -87,6 +166,23 @@ public class NpgsqlNodaTimeTypeMappingTest
         readerManager.MoveNext();
         var actualDate = readerWriter.FromJson(ref readerManager, existingObject: null);
         Assert.Equal(date, actualDate);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void LocalDateTime_json_infinity(bool positive)
+    {
+        var value = positive
+            ? LocalDate.MaxIsoValue + LocalTime.MaxValue
+            : LocalDate.MinIsoValue + LocalTime.MinValue;
+        var json = positive ? "\"infinity\"" : "\"-infinity\"";
+        var readerWriter = GetMapping(typeof(LocalDateTime)).JsonValueReaderWriter!;
+        Assert.Equal(json, readerWriter.ToJsonString(value));
+
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes(json)), null);
+        readerManager.MoveNext();
+        Assert.Equal(value, readerWriter.FromJson(ref readerManager, existingObject: null));
     }
 
     [Fact]
@@ -209,6 +305,7 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [ConditionalTheory]
     [InlineData("0001-01-01T00:00:00Z")]
+    [InlineData("0000-01-01T00:00:00Z")]
     [InlineData("2023-05-29T10:52:47.2064353Z")]
     [InlineData("-0005-05-05T05:55:55.555Z")]
     public void Instant_json(string instantString)
@@ -416,13 +513,25 @@ public class NpgsqlNodaTimeTypeMappingTest
         Assert.Same(typeof(LocalDate), GetMapping("date").ClrType);
     }
 
-    [Fact]
-    public void GenerateSqlLiteral_returns_LocalDate_literal()
+    [Theory]
+    [InlineData(2018, "DATE '2018-04-20'")]
+    [InlineData(1, "DATE '0001-04-20'")]
+    [InlineData(0, "DATE '0001-04-20 BC'")]
+    [InlineData(-1, "DATE '0002-04-20 BC'")]
+    [InlineData(-321, "DATE '0322-04-20 BC'")]
+    [InlineData(-383, "DATE '0384-04-20 BC'")]
+    public void GenerateSqlLiteral_returns_LocalDate_literal(int year, string expected)
     {
         var mapping = GetMapping(typeof(LocalDate));
 
-        Assert.Equal("DATE '2018-04-20'", mapping.GenerateSqlLiteral(new LocalDate(2018, 4, 20)));
+        Assert.Equal(expected, mapping.GenerateSqlLiteral(new LocalDate(year, 4, 20)));
     }
+
+    [Fact]
+    public void GenerateSqlLiteral_returns_LocalDate_BCE_literal()
+        => Assert.Equal(
+            "DATE '0384-01-01 BC'",
+            GetMapping(typeof(LocalDate)).GenerateSqlLiteral(new LocalDate(Era.BeforeCommon, 384, 1, 1)));
 
     [Fact]
     public void GenerateSqlLiteral_returns_LocalDate_infinity_literal()
@@ -442,8 +551,10 @@ public class NpgsqlNodaTimeTypeMappingTest
 
     [ConditionalTheory]
     [InlineData("0001-01-01")]
+    [InlineData("0000-01-01")]
     [InlineData("2023-05-29")]
     [InlineData("-0005-05-05")]
+    [InlineData("-0383-01-01")]
     public void LocalDate_json(string dateString)
     {
         var readerWriter = GetMapping(typeof(LocalDate)).JsonValueReaderWriter!;
@@ -622,9 +733,11 @@ public class NpgsqlNodaTimeTypeMappingTest
     [InlineData("11:05:12.3456789", "11:05:12.3456789")]
     public void LocalTime_json(string timeString, string json)
     {
-        var readerWriter = GetMapping(typeof(LocalTime)).JsonValueReaderWriter!;
+        var mapping = GetMapping(typeof(LocalTime));
+        var readerWriter = mapping.JsonValueReaderWriter!;
 
         var time = LocalTimePattern.ExtendedIso.Parse(timeString).GetValueOrThrow();
+        Assert.Equal($"TIME '{json}'", mapping.GenerateSqlLiteral(time));
         var actualJson = readerWriter.ToJsonString(time)[1..^1];
         Assert.Equal(json, actualJson);
 
@@ -667,9 +780,11 @@ public class NpgsqlNodaTimeTypeMappingTest
     [InlineData("11:05:12-02", "11:05:12-02")]
     public void OffsetTime_json(string timeString, string json)
     {
-        var readerWriter = GetMapping(typeof(OffsetTime)).JsonValueReaderWriter!;
+        var mapping = GetMapping(typeof(OffsetTime));
+        var readerWriter = mapping.JsonValueReaderWriter!;
 
         var timeOffset = OffsetTimePattern.ExtendedIso.Parse(timeString).GetValueOrThrow();
+        Assert.Equal($"TIMETZ '{json}'", mapping.GenerateSqlLiteral(timeOffset));
         var actualJson = readerWriter.ToJsonString(timeOffset)[1..^1];
         Assert.Equal(json, actualJson);
 
@@ -770,11 +885,13 @@ public class NpgsqlNodaTimeTypeMappingTest
     [InlineData("12:23:23.801885", "12:23:23.801885")]
     public void Duration_json(string durationString, string json)
     {
-        var readerWriter = GetMapping(typeof(Duration)).JsonValueReaderWriter!;
+        var mapping = GetMapping(typeof(Duration));
+        var readerWriter = mapping.JsonValueReaderWriter!;
 
         var duration = durationString.Count(c => c == ':') == 3 // there's a Days component
             ? DurationPattern.Roundtrip.Parse(durationString).GetValueOrThrow()
             : DurationPattern.JsonRoundtrip.Parse(durationString).GetValueOrThrow();
+        Assert.Equal($"INTERVAL '{json}'", mapping.GenerateSqlLiteral(duration));
         var actualJson = readerWriter.ToJsonString(duration)[1..^1];
         Assert.Equal(json, actualJson);
 
@@ -789,9 +906,11 @@ public class NpgsqlNodaTimeTypeMappingTest
     [InlineData("P2018Y4M20DT4H3M2S")]
     public void Period_json(string intervalString)
     {
-        var readerWriter = GetMapping(typeof(Period)).JsonValueReaderWriter!;
+        var mapping = GetMapping(typeof(Period));
+        var readerWriter = mapping.JsonValueReaderWriter!;
 
         var period = PeriodPattern.NormalizingIso.Parse(intervalString).GetValueOrThrow();
+        Assert.Equal($"INTERVAL '{intervalString}'", mapping.GenerateSqlLiteral(period));
         var actualJson = readerWriter.ToJsonString(period)[1..^1];
         Assert.Equal(intervalString, actualJson);
 
