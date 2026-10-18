@@ -59,7 +59,7 @@ WHERE o."OrderDate" IS NOT NULL
             """
 @years='2'
 
-SELECT o."OrderDate" + CAST(@years::text || ' years' AS interval) AS "OrderDate"
+SELECT o."OrderDate" + CAST((@years::text || ' years') AS interval) AS "OrderDate"
 FROM "Orders" AS o
 WHERE o."OrderDate" IS NOT NULL
 """);

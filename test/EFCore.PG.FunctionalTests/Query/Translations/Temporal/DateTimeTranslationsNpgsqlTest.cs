@@ -83,6 +83,35 @@ WHERE date_part('year', (b."DateTime" + INTERVAL '1 years') AT TIME ZONE 'UTC'):
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(-1, null)]
+    [InlineData(0, 0)]
+    [InlineData(1, 8)]
+    [InlineData(4, -9)]
+    public virtual async Task AddDays_with_nullable_argument(int id, int? days)
+    {
+        await using var context = Fixture.CreateContext();
+        var date = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var result = await context.Set<NullableBasicTypesEntity>()
+            .Where(b => b.Id == id)
+            .Select(b => (DateTime?)date.AddDays(b.Int!.Value))
+            .SingleAsync();
+
+        Assert.Equal(days.HasValue ? date.AddDays(days.Value) : (DateTime?)null, result);
+
+        AssertSql(
+            $"""
+@date='2000-01-01T00:00:00.0000000Z' (DbType = DateTime)
+@id='{id}'
+
+SELECT @date + CAST((n."Int"::double precision::text || ' days') AS interval)
+FROM "NullableBasicTypesEntities" AS n
+WHERE n."Id" = @id
+LIMIT 2
+""");
+    }
+
     public override async Task Year()
     {
         await base.Year();

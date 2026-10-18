@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Storage.Json;
@@ -86,7 +87,7 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping, INpgsqlJsonSca
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-        => $"TIMESTAMPTZ '{Pattern.Format((ZonedDateTime)value)}'";
+        => $"TIMESTAMPTZ '{Format((ZonedDateTime)value)}'";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -96,8 +97,13 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping, INpgsqlJsonSca
     /// </summary>
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
         => $"""
-            "{Pattern.Format((ZonedDateTime)value)}"
+            "{Format((ZonedDateTime)value)}"
             """;
+
+    private static string Format(ZonedDateTime zonedDateTime)
+        => zonedDateTime.Year > 0
+            ? Pattern.Format(zonedDateTime)
+            : zonedDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFo<G>", CultureInfo.InvariantCulture) + " BC";
 
     /// <inheritdoc />
     /// <remarks>

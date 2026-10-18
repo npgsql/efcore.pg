@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
@@ -91,7 +92,7 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
             "{Format((Instant)value)}"
             """;
 
-    private static string Format(Instant instant)
+    private static string Format(Instant instant, bool json = false)
     {
         if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
         {
@@ -106,8 +107,13 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
             }
         }
 
-        return InstantPattern.ExtendedIso.Format(instant);
+        return json ? InstantPattern.ExtendedIso.Format(instant) : FormatSql(instant);
     }
+
+    internal static string FormatSql(Instant instant)
+        => instant.InUtc().Year > 0
+            ? InstantPattern.ExtendedIso.Format(instant)
+            : instant.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFFF'Z'", CultureInfo.InvariantCulture) + " BC";
 
     internal static Expression GenerateCodeLiteral(Instant instant)
         => Expression.Call(_fromUnixTimeTicks, Expression.Constant(instant.ToUnixTimeTicks()));
@@ -149,7 +155,7 @@ public class TimestampTzInstantMapping : NpgsqlTypeMapping
         }
 
         public override void ToJsonTyped(Utf8JsonWriter writer, Instant value)
-            => writer.WriteStringValue(Format(value));
+            => writer.WriteStringValue(Format(value, json: true));
 
         /// <inheritdoc />
         public override Expression ConstructorExpression => Expression.Property(null, InstanceProperty);
