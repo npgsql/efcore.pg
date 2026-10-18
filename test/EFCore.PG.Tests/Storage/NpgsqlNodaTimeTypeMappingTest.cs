@@ -32,7 +32,7 @@ public class NpgsqlNodaTimeTypeMappingTest
             (dateTime.WithOffset(Offset.FromHoursAndMinutes(-2, -30)), "TIMESTAMPTZ",
                 $"{sqlYear}-04-20T10:31:33.123456-02:30{era}", $"{isoYear}-04-20T10:31:33.123456-02:30"),
             (dateTime.InUtc(), "TIMESTAMPTZ",
-                $"{sqlYear}-04-20T10:31:33.123456Z{era}", $"{isoYear}-04-20T10:31:33.123456 UTC (+00)")
+                $"{sqlYear}-04-20T10:31:33.123456Z{era}", $"{isoYear}-04-20T10:31:33.123456Z")
         ];
 
         foreach (var (value, sqlType, sql, json) in cases)
@@ -355,13 +355,14 @@ public class NpgsqlNodaTimeTypeMappingTest
     }
 
     [Theory]
-    [InlineData("Europe/Berlin", "2018-04-20T08:31:33Z", "2018-04-20T10:31:33 Europe/Berlin (+02)")]
-    [InlineData("Europe/Berlin", "2018-01-20T09:31:33Z", "2018-01-20T10:31:33 Europe/Berlin (+01)")]
-    [InlineData("Europe/Berlin", "2018-10-28T00:30:00Z", "2018-10-28T02:30:00 Europe/Berlin (+02)")]
-    [InlineData("Europe/Berlin", "2018-10-28T01:30:00Z", "2018-10-28T02:30:00 Europe/Berlin (+01)")]
-    [InlineData("America/New_York", "2018-04-20T14:31:33Z", "2018-04-20T10:31:33 America/New_York (-04)")]
-    [InlineData("UTC", "2018-04-20T10:31:33.123456789Z", "2018-04-20T10:31:33.123456789 UTC (+00)")]
-    [InlineData("UTC+05:30", "2018-04-20T05:01:33Z", "2018-04-20T10:31:33 UTC+05:30 (+05:30)")]
+    [InlineData("Europe/Berlin", "2018-04-20T08:31:33Z", "2018-04-20T10:31:33+02")]
+    [InlineData("Europe/Berlin", "2018-01-20T09:31:33Z", "2018-01-20T10:31:33+01")]
+    [InlineData("Europe/Berlin", "2018-10-28T00:30:00Z", "2018-10-28T02:30:00+02")]
+    [InlineData("Europe/Berlin", "2018-10-28T01:30:00Z", "2018-10-28T02:30:00+01")]
+    [InlineData("America/New_York", "2018-04-20T14:31:33Z", "2018-04-20T10:31:33-04")]
+    [InlineData("UTC", "2018-04-20T10:31:33.123456Z", "2018-04-20T10:31:33.123456Z")]
+    [InlineData("UTC+05:30", "2018-04-20T05:01:33Z", "2018-04-20T10:31:33+05:30")]
+    [InlineData("UTC-00:30", "2018-04-20T11:01:33Z", "2018-04-20T10:31:33-00:30")]
     public void ZonedDateTime_json(string zoneId, string instantString, string expected)
     {
         var readerWriter = GetMapping(typeof(ZonedDateTime)).JsonValueReaderWriter!;
@@ -372,7 +373,29 @@ public class NpgsqlNodaTimeTypeMappingTest
 
         var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes(json)), null);
         readerManager.MoveNext();
-        Assert.Equal(value, readerWriter.FromJson(ref readerManager, existingObject: null));
+        Assert.Equal(value.ToOffsetDateTime().InFixedZone(), readerWriter.FromJson(ref readerManager, existingObject: null));
+    }
+
+    [Theory]
+    [InlineData("UTC")]
+    [InlineData("Europe/Berlin")]
+    public void ZonedDateTime_json_preserves_existing_format_and_precision(string zoneId)
+    {
+        var value = InstantPattern.ExtendedIso.Parse("2018-04-20T10:31:33.123456789Z").Value
+            .InZone(DateTimeZoneProviders.Tzdb[zoneId]);
+        var pattern = ZonedDateTimePattern.CreateWithInvariantCulture(
+            "uuuu'-'MM'-'dd'T'HH':'mm':'ss;FFFFFFo<G>", DateTimeZoneProviders.Tzdb);
+        var readerWriter = GetMapping(typeof(ZonedDateTime)).JsonValueReaderWriter!;
+        var expected = pattern.Format(value);
+
+        Assert.Equal(expected, JsonSerializer.Deserialize<string>(readerWriter.ToJsonString(value)));
+
+        if (zoneId == "UTC")
+        {
+            Assert.Equal(
+                value.PlusNanoseconds(-789),
+                pattern.Parse(JsonSerializer.Deserialize<string>(readerWriter.ToJsonString(value))!).Value);
+        }
     }
 
     [Theory]

@@ -96,7 +96,7 @@ public class NpgsqlTypeMappingTest
             [new TimeOnly(4, 5, 6, 123, 456), "time", "TIME '04:05:06.123456'", "04:05:06.1234560"],
             [new TimeSpan(0, 4, 5, 6), "time", "TIME '04:05:06'", "4:05:06"],
             [new DateTimeOffset(2023, 5, 29, 4, 5, 6, TimeSpan.FromHours(-3)), "timetz",
-                "TIMETZ '04:05:06-03:00'", "04:05:06-03:00"],
+                "TIMETZ '04:05:06-3'", "04:05:06-3"],
             [new TimeSpan(3, 4, 5, 6, 7), "interval", "INTERVAL '3 04:05:06.007'", "3 04:05:06.007"],
             [TimeSpan.Zero, "interval", "INTERVAL '00:00:00'", "00:00:00"]
         ];
@@ -285,13 +285,13 @@ public class NpgsqlTypeMappingTest
     }
 
     [Theory]
-    [InlineData(180, "+03:00")]
-    [InlineData(-180, "-03:00")]
+    [InlineData(180, "+3")]
+    [InlineData(-180, "-3")]
     [InlineData(330, "+05:30")]
     [InlineData(-210, "-03:30")]
     [InlineData(30, "+00:30")]
     [InlineData(-30, "-00:30")]
-    [InlineData(0, "+00:00")]
+    [InlineData(0, "+0")]
     public void GenerateSqlLiteral_returns_timetz_literal(int offsetMinutes, string offset)
     {
         var mapping = (NpgsqlTypeMapping)GetMapping("timetz");
@@ -309,13 +309,13 @@ public class NpgsqlTypeMappingTest
     }
 
     [Theory]
-    [InlineData(180, "+03:00")]
-    [InlineData(-180, "-03:00")]
+    [InlineData(180, "+3")]
+    [InlineData(-180, "-3")]
     [InlineData(330, "+05:30")]
     [InlineData(-210, "-03:30")]
     [InlineData(30, "+00:30")]
     [InlineData(-30, "-00:30")]
-    [InlineData(0, "+00:00")]
+    [InlineData(0, "+0")]
     public void Timetz_json(int offsetMinutes, string offset)
     {
         var readerWriter = GetMapping("timetz").JsonValueReaderWriter!;

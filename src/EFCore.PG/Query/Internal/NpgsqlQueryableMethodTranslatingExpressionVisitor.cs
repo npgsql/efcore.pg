@@ -754,8 +754,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             }
 
             // Contains over JSON array: array ? 'foo' for text, array @> item for bool/numeric
-            case var _ when source.TryExtractJsonArray(out var array, out var projectedElement, out var isElementNullable, ignoreOrderings: true)
-                && projectedElement.TypeMapping is not INpgsqlJsonScalarTypeMapping
+            case var _ when source.TryExtractJsonArray(out var array, out _, out var isElementNullable, ignoreOrderings: true)
                 && TranslateExpression(item, applyDefaultTypeMapping: false) is SqlExpression translatedItem:
             {
                 (translatedItem, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(translatedItem, array);
