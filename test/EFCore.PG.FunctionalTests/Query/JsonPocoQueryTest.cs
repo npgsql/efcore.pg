@@ -58,6 +58,37 @@ ORDER BY j."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Jsonb_array_sequence_equal_value(bool constant, bool reverse)
+    {
+        using var ctx = CreateContext();
+        string[] expected = ["one", "two", "three"];
+        var query = (constant, reverse) switch
+        {
+            (false, false) => ctx.JsonbEntities.Where(e => e.ToplevelArray.SequenceEqual(expected)),
+            (false, true) => ctx.JsonbEntities.Where(e => expected.SequenceEqual(e.ToplevelArray)),
+            (true, false) => ctx.JsonbEntities.Where(e => e.ToplevelArray.SequenceEqual(EF.Constant(expected))),
+            (true, true) => ctx.JsonbEntities.Where(e => EF.Constant(expected).SequenceEqual(e.ToplevelArray))
+        };
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        const string column = """NULLIF(j."ToplevelArray", 'null'::jsonb)""";
+        var value = $"NULLIF({(constant ? """'["one","two","three"]'""" : "@expected")}, 'null'::jsonb)";
+        var left = reverse ? value : column;
+        var right = reverse ? column : value;
+        AssertSql(
+            (constant ? "" : """@expected='["one","two","three"]' (DbType = Object)""" + "\n\n") + $"""
+SELECT j."Id"
+FROM "JsonbEntities" AS j
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+LIMIT 2
+""");
+    }
+
     [Fact]
     public void Literal()
     {
@@ -1843,6 +1874,31 @@ ORDER BY d."Id" NULLS FIRST
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void Dictionary_indexer_nested_boxed_coalesce(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (e.Id == 1 ? (object)e.NestedDictionary["Customer"] : null) ?? e.Name)
+            : ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => (e.Id == 1 ? (object)e.JsonNestedDictionary["Customer"] : null) ?? e.Name);
+        var values = query.ToArray();
+        Assert.Equal(25, Assert.IsType<Dictionary<string, int>>(values[0])["Age"]);
+        Assert.Equal("Moe", Assert.IsType<string>(values[1]));
+
+        AssertSql(
+            $"""
+SELECT CASE
+    WHEN d."Id" = 1 THEN d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'Customer'
+END, d."Name"
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void Dictionary_indexer_coalesce_object_projection(bool jsonb)
     {
         using var ctx = CreateContext();
@@ -2369,6 +2425,50 @@ SELECT COALESCE(CASE
 END, d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'Customer')
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_composed_container_predicate(bool jsonb, bool coalesce)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, coalesce) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e =>
+                (e.Id == 1 ? e.NestedDictionary["Customer"] : e.NestedDictionary["NullableCustomer"])["Age"] == 25),
+            (false, false) => ctx.DictionaryEntities.Where(e =>
+                (e.Id == 1 ? e.JsonNestedDictionary["Customer"] : e.JsonNestedDictionary["NullableCustomer"])["Age"] == 25),
+            (true, true) => ctx.DictionaryEntities.Where(e =>
+                (e.NestedDictionary["NullableCustomer"] ?? e.NestedDictionary["Customer"])["Age"] == 25),
+            (false, true) => ctx.DictionaryEntities.Where(e =>
+                (e.JsonNestedDictionary["NullableCustomer"] ?? e.JsonNestedDictionary["Customer"])["Age"] == 25)
+        };
+        Assert.Equal(1, query.Select(e => e.Id).Single());
+
+        var column = $"d.\"{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}\"";
+        var container = coalesce
+            ? $"""
+COALESCE(CASE
+    WHEN {column} ->> 'NullableCustomer' IS NULL THEN NULL
+    ELSE {column} -> 'NullableCustomer'
+END, {column} -> 'Customer')
+"""
+            : $"""
+CASE
+    WHEN d."Id" = 1 THEN {column} -> 'Customer'
+    ELSE {column} -> 'NullableCustomer'
+END
+""";
+        AssertSql(
+            $"""
+SELECT d."Id"
+FROM "DictionaryEntities" AS d
+WHERE CAST({container} ->> 'Age' AS integer) = 25
+LIMIT 2
 """);
     }
 

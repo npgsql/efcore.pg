@@ -65,7 +65,7 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
             && first.Type.IsArrayOrGenericList()
             && second.Type.IsArrayOrGenericList()
             && ((!IsMappedToNonArray(first) && !IsMappedToNonArray(second))
-                || first.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: true } && second.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: true }))
+                || IsJsonbOrUnmappedValue(first) && IsJsonbOrUnmappedValue(second)))
         {
             return _sqlExpressionFactory.Equal(first, second);
         }
@@ -88,6 +88,10 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
         // value converters) - we don't want to translate for those cases.
         static bool IsMappedToNonArray(SqlExpression arrayOrList)
             => arrayOrList.TypeMapping is { } and not NpgsqlArrayTypeMapping;
+
+        static bool IsJsonbOrUnmappedValue(SqlExpression expression)
+            => expression.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: true }
+                || expression is SqlConstantExpression { TypeMapping: null } or SqlParameterExpression { TypeMapping: null };
 
 #pragma warning disable CS8321
         SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)

@@ -330,13 +330,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. Should never see ArrayIndex.");
 
         // Check before base translation can erase a boxed JSON operand's mapping.
-        if (binaryExpression.NodeType == ExpressionType.Coalesce && binaryExpression.Type == typeof(object))
+        if (binaryExpression.NodeType == ExpressionType.Coalesce && binaryExpression.Type == typeof(object)
+            && Visit(RemoveObjectConvert(binaryExpression.Left)) is SqlExpression translatedLeft
+            && Visit(RemoveObjectConvert(binaryExpression.Right)) is SqlExpression translatedRight)
         {
-            var left = RemoveObjectConvert(binaryExpression.Left);
-            var right = RemoveObjectConvert(binaryExpression.Right);
+            var left = Unbox(translatedLeft);
+            var right = Unbox(translatedRight);
             if (left.Type != right.Type && left.Type != typeof(object) && right.Type != typeof(object)
-                && (Visit(left) is SqlExpression { TypeMapping: NpgsqlJsonTypeMapping }
-                    || Visit(right) is SqlExpression { TypeMapping: NpgsqlJsonTypeMapping }))
+                && (left.TypeMapping is NpgsqlJsonTypeMapping || right.TypeMapping is NpgsqlJsonTypeMapping))
             {
                 return QueryCompilationContext.NotTranslatedExpression;
             }
