@@ -1,4 +1,3 @@
-using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 // ReSharper disable once CheckNamespace
@@ -84,7 +83,7 @@ public class DateIntervalRangeMapping : NpgsqlTypeMapping
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
     {
         var dateInterval = (DateInterval)value;
-        return $"[{LocalDatePattern.Iso.Format(dateInterval.Start)},{LocalDatePattern.Iso.Format(dateInterval.End)}]";
+        return $"[{DateMapping.FormatSql(dateInterval.Start)},{DateMapping.FormatSql(dateInterval.End)}]";
     }
 
     /// <summary>
