@@ -1,4 +1,3 @@
-using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 // ReSharper disable once CheckNamespace
@@ -109,7 +108,7 @@ public class LegacyTimestampInstantMapping : NpgsqlTypeMapping
             }
         }
 
-        return InstantPattern.ExtendedIso.Format(instant);
+        return TimestampTzInstantMapping.FormatSql(instant);
     }
 
     /// <summary>
