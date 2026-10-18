@@ -574,7 +574,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         }
 
         if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression
-            && expression.Type == typeof(DateTime))
+            && (expression.Type == typeof(DateTime) || expression.Type == typeof(DateTimeOffset)))
         {
             var textMapping = _typeMappingSource.FindMapping("text")!;
             var utcJson = _sqlExpressionFactory.Function(
@@ -590,7 +590,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 [
                     ConvertJsonToScalar(utcJson, typeof(string), textMapping),
                     _sqlExpressionFactory.Constant("$", textMapping),
-                    _sqlExpressionFactory.Constant("Z", textMapping)
+                    _sqlExpressionFactory.Constant(expression.Type == typeof(DateTimeOffset) ? "+00:00" : "Z", textMapping)
                 ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[3],
@@ -843,6 +843,16 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         {
             return translation switch
             {
+                SqlBinaryExpression { Left: SqlBinaryExpression { OperatorType: ExpressionType.And } bitwise }
+                    when declaringType == typeof(Enum) && method.Name == nameof(Enum.HasFlag)
+                        && (bitwise.Left.TypeMapping is NpgsqlJsonTypeMapping || bitwise.Right.TypeMapping is NpgsqlJsonTypeMapping)
+                    => QueryCompilationContext.NotTranslatedExpression,
+
+                CaseExpression { WhenClauses: [{ Test: SqlBinaryExpression comparison }, ..] }
+                    when declaringType == typeof(TimeSpan) && method.Name is nameof(TimeSpan.Compare) or nameof(TimeSpan.CompareTo)
+                        && (comparison.Left.TypeMapping is NpgsqlJsonTypeMapping || comparison.Right.TypeMapping is NpgsqlJsonTypeMapping)
+                    => QueryCompilationContext.NotTranslatedExpression,
+
                 SqlBinaryExpression { OperatorType: ExpressionType.Equal or ExpressionType.NotEqual } comparison
                     when TryTranslateJsonComparison(comparison, out var translatedComparison)
                     => translatedComparison,

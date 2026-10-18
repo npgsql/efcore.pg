@@ -1343,34 +1343,51 @@ LIMIT 2
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public void Dictionary_indexer_timestamp_expression_projection(bool jsonb, bool missing)
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public void Dictionary_indexer_timestamp_expression_projection(bool jsonb, bool missing, bool dateTimeOffset)
     {
         using var ctx = CreateContext();
-        var key = missing ? "Missing" : "Timestamp";
-        var query = jsonb
-            ? ctx.DictionaryEntities.OrderBy(e => e.Id)
-                .Select(e => e.Id == 1 ? e.JsonbDictionary["Timestamp"] : (object)((DateTime)e.JsonbDictionary[key]).AddSeconds(1))
-            : ctx.DictionaryEntities.OrderBy(e => e.Id)
-                .Select(e => e.Id == 1 ? e.JsonDictionary["Timestamp"] : (object)((DateTime)e.JsonDictionary[key]).AddSeconds(1));
+        ctx.Database.CreateExecutionStrategy().Execute(() =>
+        {
+            using var transaction = ctx.Database.BeginTransaction();
+            ctx.Database.ExecuteSql($"SET LOCAL TIME ZONE 'Europe/Berlin'");
+            Fixture.TestSqlLoggerFactory.Clear();
 
-        Assert.Equal(
-            ["2020-01-01T10:30:45.1234567Z", missing ? null : "1990-03-03T17:10:16.123456Z"],
-            query.ToArray().Select(v => v is null ? null : Assert.IsType<JsonElement>(v).GetString()));
+            var key = missing ? "Missing" : "Timestamp";
+            var query = (jsonb, dateTimeOffset) switch
+            {
+                (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => e.Id == 1 ? e.JsonbDictionary["Timestamp"] : (object)((DateTime)e.JsonbDictionary[key]).AddSeconds(1)),
+                (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => e.Id == 1 ? e.JsonDictionary["Timestamp"] : (object)((DateTime)e.JsonDictionary[key]).AddSeconds(1)),
+                (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => e.Id == 1 ? e.JsonbDictionary["Timestamp"] : (object)((DateTimeOffset)e.JsonbDictionary[key]).AddSeconds(1)),
+                (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                    .Select(e => e.Id == 1 ? e.JsonDictionary["Timestamp"] : (object)((DateTimeOffset)e.JsonDictionary[key]).AddSeconds(1))
+            };
 
-        var column = $"d.\"{(jsonb ? "JsonbDictionary" : "JsonDictionary")}\"";
-        AssertSql(
-            $$"""
+            Assert.Equal(
+                ["2020-01-01T10:30:45.1234567Z", missing ? null : $"1990-03-03T17:10:16.123456{(dateTimeOffset ? "+00:00" : "Z")}"],
+                query.ToArray().Select(v => v is null ? null : Assert.IsType<JsonElement>(v).GetString()));
+
+            var column = $"d.\"{(jsonb ? "JsonbDictionary" : "JsonDictionary")}\"";
+            AssertSql(
+                $$"""
 SELECT CASE
     WHEN d."Id" = 1 THEN {{column}} -> 'Timestamp'
-    ELSE {{(jsonb ? "to_jsonb" : "to_json")}}(regexp_replace(to_jsonb((CAST({{column}} ->> '{{key}}' AS timestamp with time zone) + INTERVAL '1 secs') AT TIME ZONE 'UTC') #>> '{}', '$', 'Z'))
+    ELSE {{(jsonb ? "to_jsonb" : "to_json")}}(regexp_replace(to_jsonb((CAST({{column}} ->> '{{key}}' AS timestamp with time zone) + INTERVAL '1 secs') AT TIME ZONE 'UTC') #>> '{}', '$', '{{(dateTimeOffset ? "+00:00" : "Z")}}'))
 END
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST
 """);
+        });
     }
 
     [Theory]

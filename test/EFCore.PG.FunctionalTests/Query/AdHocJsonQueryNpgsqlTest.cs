@@ -287,6 +287,14 @@ LIMIT 2
     [InlineData(true, "ArrayColumnCoalesce")]
     [InlineData(false, "ArrayParameter")]
     [InlineData(true, "ArrayParameter")]
+    [InlineData(false, "TypedHasFlag")]
+    [InlineData(true, "TypedHasFlag")]
+    [InlineData(false, "CastHasFlag")]
+    [InlineData(true, "CastHasFlag")]
+    [InlineData(false, "NullableHasValue")]
+    [InlineData(true, "NullableHasValue")]
+    [InlineData(false, "NullableValue")]
+    [InlineData(true, "NullableValue")]
     public async Task Native_enum_json_translation(bool jsonb, string operation)
     {
         var contextFactory = await InitializeNonSharedTest<EnumJsonContext>(
@@ -306,7 +314,7 @@ LIMIT 2
                     {
                         Id = 1,
                         Mood = JsonMood.Sad,
-                        Payload = new() { ["Mood"] = JsonMood.Sad, ["Moods"] = (JsonMood[])[JsonMood.Sad] },
+                        Payload = new() { ["Mood"] = JsonMood.Sad, ["Moods"] = (JsonMood[])[JsonMood.Sad], ["NullMood"] = null },
                         TypedPayload = new() { ["Mood"] = JsonMood.Sad },
                         CollectionPayload = new() { ["Moods"] = [JsonMood.Sad] }
                     },
@@ -314,7 +322,7 @@ LIMIT 2
                     {
                         Id = 2,
                         Mood = JsonMood.Happy,
-                        Payload = new() { ["Mood"] = JsonMood.Happy, ["Moods"] = (JsonMood[])[JsonMood.Happy] },
+                        Payload = new() { ["Mood"] = JsonMood.Happy, ["Moods"] = (JsonMood[])[JsonMood.Happy], ["NullMood"] = null },
                         TypedPayload = new() { ["Mood"] = JsonMood.Happy },
                         CollectionPayload = new() { ["Moods"] = [JsonMood.Happy] }
                     });
@@ -353,11 +361,56 @@ LIMIT 2
 
         var column = operation.StartsWith("Typed", StringComparison.Ordinal) ? "TypedPayload" : "Payload";
         var traversal = $"""e."{column}" -> '{(operation == "ArrayParameter" ? "Moods" : "Mood")}'""";
-        if (operation is "TypedProjection" or "CastProjection")
+        if (operation == "NullableHasValue")
         {
-            var projection = operation == "TypedProjection"
-                ? context.Entities.OrderBy(e => e.Id).Select(e => e.TypedPayload["Mood"])
-                : context.Entities.OrderBy(e => e.Id).Select(e => (JsonMood)e.Payload["Mood"]);
+            var values = await context.Entities.OrderBy(e => e.Id).Select(e => new
+            {
+                Present = ((JsonMood?)e.Payload["Mood"]).HasValue,
+                Null = ((JsonMood?)e.Payload["NullMood"]).HasValue,
+                Missing = ((JsonMood?)e.Payload["MissingMood"]).HasValue
+            }).ToArrayAsync();
+            Assert.All(values, value =>
+            {
+                Assert.True(value.Present);
+                Assert.False(value.Null);
+                Assert.False(value.Missing);
+            });
+
+            AssertSql(
+                """
+SELECT e."Payload" ->> 'Mood' IS NOT NULL AS "Present", e."Payload" ->> 'NullMood' IS NOT NULL AS "Null", e."Payload" ->> 'MissingMood' IS NOT NULL AS "Missing"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+            return;
+        }
+
+        if (operation is "TypedHasFlag" or "CastHasFlag")
+        {
+            var projection = operation == "TypedHasFlag"
+                ? context.Entities.OrderBy(e => e.Id).Select(e => e.TypedPayload["Mood"].HasFlag(JsonMood.Sad))
+                : context.Entities.OrderBy(e => e.Id).Select(e => ((JsonMood)e.Payload["Mood"]).HasFlag(JsonMood.Sad));
+            var values = await projection.ToArrayAsync();
+            Assert.Equal([true, false], values);
+
+            AssertSql(
+                $"""
+SELECT {traversal}, 'sad'::json_mood
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+            return;
+        }
+
+        if (operation is "TypedProjection" or "CastProjection" or "NullableValue")
+        {
+            var projection = operation switch
+            {
+                "TypedProjection" => context.Entities.OrderBy(e => e.Id).Select(e => e.TypedPayload["Mood"]),
+                "CastProjection" => context.Entities.OrderBy(e => e.Id).Select(e => (JsonMood)e.Payload["Mood"]),
+                "NullableValue" => context.Entities.OrderBy(e => e.Id).Select(e => ((JsonMood?)e.Payload["Mood"]).Value),
+                _ => throw new UnreachableException()
+            };
             var values = await projection.ToArrayAsync();
             Assert.Equal([JsonMood.Sad, JsonMood.Happy], values);
 
@@ -538,6 +591,67 @@ ORDER BY e."Id" NULLS FIRST
 SELECT e."Id"
 FROM "Entities" AS e
 WHERE e."Payload" ->> 'Duration' IS {(negated ? "" : "NOT ")}NULL
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, "Compare")]
+    [InlineData(true, "Compare")]
+    [InlineData(false, "CompareTo")]
+    [InlineData(true, "CompareTo")]
+    [InlineData(false, "ReverseCompare")]
+    [InlineData(true, "ReverseCompare")]
+    [InlineData(false, "ReverseCompareTo")]
+    [InlineData(true, "ReverseCompareTo")]
+    public async Task TimeSpan_json_dictionary_comparison(bool jsonb, string operation)
+    {
+        var contextFactory = await InitializeNonSharedTest<TimeSpanJsonContext>(
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.Payload).HasColumnType(jsonb ? "jsonb" : "json");
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.TypedPayload).HasColumnType(jsonb ? "jsonb" : "json");
+            },
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new TimeSpanJsonEntity
+                    {
+                        Id = 1,
+                        Payload = new() { ["Duration"] = TimeSpan.FromDays(2) },
+                        TypedPayload = new() { ["Duration"] = TimeSpan.FromDays(2) }
+                    },
+                    new TimeSpanJsonEntity
+                    {
+                        Id = 2,
+                        Payload = new() { ["Duration"] = TimeSpan.FromDays(10) },
+                        TypedPayload = new() { ["Duration"] = TimeSpan.FromDays(10) }
+                    });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var threshold = TimeSpan.FromDays(5);
+        var entities = context.Entities.OrderBy(e => e.Id);
+        var query = operation switch
+        {
+            "Compare" => entities.Select(e => TimeSpan.Compare(e.TypedPayload["Duration"], threshold)),
+            "CompareTo" => entities.Select(e => e.TypedPayload["Duration"].CompareTo(threshold)),
+            "ReverseCompare" => entities.Select(e => TimeSpan.Compare(threshold, (TimeSpan)e.Payload["Duration"])),
+            "ReverseCompareTo" => entities.Select(e => threshold.CompareTo((TimeSpan)e.Payload["Duration"])),
+            _ => throw new UnreachableException()
+        };
+        var values = await query.ToArrayAsync();
+        var reverse = operation.StartsWith("Reverse", StringComparison.Ordinal);
+        Assert.Equal(reverse ? [1, -1] : [-1, 1], values);
+
+        AssertSql(
+            $"""
+SELECT e."{(reverse ? "Payload" : "TypedPayload")}" -> 'Duration'
+FROM "Entities" AS e
 ORDER BY e."Id" NULLS FIRST
 """);
     }
