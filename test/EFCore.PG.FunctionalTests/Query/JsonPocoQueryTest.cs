@@ -2874,6 +2874,49 @@ LIMIT 2
         AssertSql();
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_count_projection(bool jsonb, bool readOnly)
+    {
+        using var ctx = CreateContext();
+        var query = (jsonb, readOnly) switch
+        {
+            (true, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.NestedDictionary["Customer"].Count),
+            (false, false) => ctx.DictionaryEntities.OrderBy(e => e.Id).Select(e => e.JsonNestedDictionary["Customer"].Count),
+            (true, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => ((IReadOnlyDictionary<string, int>)e.NestedDictionary["Customer"]).Count),
+            (false, true) => ctx.DictionaryEntities.OrderBy(e => e.Id)
+                .Select(e => ((IReadOnlyDictionary<string, int>)e.JsonNestedDictionary["Customer"]).Count)
+        };
+
+        Assert.Equal([1, 1], query.ToArray());
+
+        AssertSql(
+            $"""
+SELECT d."{(jsonb ? "NestedDictionary" : "JsonNestedDictionary")}" -> 'Customer'
+FROM "DictionaryEntities" AS d
+ORDER BY d."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_timestamp_array_expression_comparison_not_supported(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Timestamps"] == (object)new[] { (DateTime)e.JsonbDictionary["Timestamp"] })
+            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Timestamps"] == (object)new[] { (DateTime)e.JsonDictionary["Timestamp"] });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
+        Assert.Equal("Converting PostgreSQL timestamp with time zone arrays to JSON is not supported.", exception.Message);
+        AssertSql();
+    }
+
     #endregion Dictionaries
 
     #region Support

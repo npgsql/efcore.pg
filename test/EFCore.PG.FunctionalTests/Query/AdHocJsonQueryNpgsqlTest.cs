@@ -79,16 +79,32 @@ LIMIT 2
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public async Task Converted_json_composition(bool jsonb, bool coalesce)
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public async Task Converted_json_composition(bool jsonb, bool coalesce, bool domProvider)
     {
         var contextFactory = await InitializeNonSharedTest<ConvertedJsonContext>(
-            onModelCreating: modelBuilder => modelBuilder.Entity<ConvertedJsonEntity>().Property(e => e.Payload)
-                .HasColumnType(jsonb ? "jsonb" : "json")
-                .HasConversion(value => value.Json, value => new JsonWrapper(value)),
+            onModelCreating: modelBuilder =>
+            {
+                var property = modelBuilder.Entity<ConvertedJsonEntity>().Property(e => e.Payload)
+                    .HasColumnType(jsonb ? "jsonb" : "json");
+                if (domProvider)
+                {
+                    property.HasConversion(
+                        value => JsonSerializer.Deserialize<JsonElement>(value.Json, (JsonSerializerOptions)null),
+                        value => new JsonWrapper(value.GetRawText()));
+                }
+                else
+                {
+                    property.HasConversion(value => value.Json, value => new JsonWrapper(value));
+                }
+            },
             seed: async context =>
             {
                 context.Entities.AddRange(
@@ -113,6 +129,9 @@ LIMIT 2
         Assert.Equal(99, second.RootElement.GetProperty("Age").GetInt32());
         Assert.Equal(JsonValueKind.Null, third.RootElement.ValueKind);
 
+        var nullIds = await context.Entities.Where(e => e.Payload == null).Select(e => e.Id).ToArrayAsync();
+        Assert.Equal([2], nullIds);
+
         var projection = coalesce
             ? """COALESCE(e."Payload", @fallback)"""
             : """
@@ -123,11 +142,16 @@ END
 """;
         AssertSql(
             $$"""
-@fallback='{"Age":99}' (DbType = Object)
+@fallback='{"Age":99}'{{(domProvider ? " (Nullable = true)" : "")}} (DbType = Object)
 
 SELECT {{projection}}
 FROM "Entities" AS e
 ORDER BY e."Id" NULLS FIRST
+""",
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE e."Payload" IS NULL
 """);
     }
 
@@ -192,47 +216,92 @@ ORDER BY e."Id" NULLS FIRST
         Assert.Equal(1, await context.Entities.Where(e => e.Payload == 25).Select(e => e.Id).SingleAsync());
 
         var column = "e.\"Payload\"";
-        var left = $"NULLIF({column}{(jsonb ? "" : "::jsonb")}, 'null'::jsonb)";
-        var right = """NULLIF('[25]'::jsonb, 'null'::jsonb)""";
+        var left = $"{column}{(jsonb ? "" : "::jsonb")}";
+        var right = $"'[25]'{(jsonb ? "" : "::jsonb")}";
         AssertSql(
             $"""
 SELECT e."Id"
 FROM "Entities" AS e
-WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+WHERE {left} = {right}
 LIMIT 2
 """);
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Native_enum_json_parameter_comparison(bool jsonb)
+    [InlineData(false, "ObjectPredicate")]
+    [InlineData(true, "ObjectPredicate")]
+    [InlineData(false, "TypedPredicate")]
+    [InlineData(true, "TypedPredicate")]
+    [InlineData(false, "CastPredicate")]
+    [InlineData(true, "CastPredicate")]
+    [InlineData(false, "TypedProjection")]
+    [InlineData(true, "TypedProjection")]
+    [InlineData(false, "CastProjection")]
+    [InlineData(true, "CastProjection")]
+    public async Task Native_enum_json_translation(bool jsonb, string operation)
     {
         var contextFactory = await InitializeNonSharedTest<EnumJsonContext>(
-            onModelCreating: modelBuilder => modelBuilder.Entity<EnumJsonEntity>().Property(e => e.Payload)
-                .HasColumnType(jsonb ? "jsonb" : "json"),
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<EnumJsonEntity>().Property(e => e.Payload).HasColumnType(jsonb ? "jsonb" : "json");
+                modelBuilder.Entity<EnumJsonEntity>().Property(e => e.TypedPayload).HasColumnType(jsonb ? "jsonb" : "json");
+            },
             onConfiguring: options => options.UseNpgsql(
                 ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
                 o => o.MapEnum<JsonMood>("json_mood").ConfigureDataSource(b => b.EnableDynamicJson())),
             seed: async context =>
             {
                 context.Entities.AddRange(
-                    new EnumJsonEntity { Id = 1, Payload = new() { ["Mood"] = JsonMood.Sad } },
-                    new EnumJsonEntity { Id = 2, Payload = new() { ["Mood"] = JsonMood.Happy } });
+                    new EnumJsonEntity
+                    {
+                        Id = 1,
+                        Payload = new() { ["Mood"] = JsonMood.Sad },
+                        TypedPayload = new() { ["Mood"] = JsonMood.Sad }
+                    },
+                    new EnumJsonEntity
+                    {
+                        Id = 2,
+                        Payload = new() { ["Mood"] = JsonMood.Happy },
+                        TypedPayload = new() { ["Mood"] = JsonMood.Happy }
+                    });
                 await context.SaveChangesAsync();
             });
 
         using var context = contextFactory.CreateDbContext();
-        var mood = JsonMood.Sad;
-        Assert.Equal(1, await context.Entities.Where(e => e.Payload["Mood"] == (object)EF.Parameter(mood))
-            .Select(e => e.Id).SingleAsync());
+        var column = operation.StartsWith("Typed", StringComparison.Ordinal) ? "TypedPayload" : "Payload";
+        var traversal = $"""e."{column}" -> 'Mood'""";
+        if (operation is "TypedProjection" or "CastProjection")
+        {
+            var projection = operation == "TypedProjection"
+                ? context.Entities.OrderBy(e => e.Id).Select(e => e.TypedPayload["Mood"])
+                : context.Entities.OrderBy(e => e.Id).Select(e => (JsonMood)e.Payload["Mood"]);
+            var values = await projection.ToArrayAsync();
+            Assert.Equal([JsonMood.Sad, JsonMood.Happy], values);
 
-        var traversal = """e."Payload" -> 'Mood'""";
+            AssertSql(
+                $"""
+SELECT {traversal}
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+            return;
+        }
+
+        var mood = JsonMood.Sad;
+        var query = operation switch
+        {
+            "ObjectPredicate" => context.Entities.Where(e => e.Payload["Mood"] == (object)EF.Parameter(mood)),
+            "TypedPredicate" => context.Entities.Where(e => e.TypedPayload["Mood"] == EF.Parameter(mood)),
+            "CastPredicate" => context.Entities.Where(e => (JsonMood)e.Payload["Mood"] == EF.Parameter(mood)),
+            _ => throw new UnreachableException()
+        };
+        Assert.Equal(1, await query.Select(e => e.Id).SingleAsync());
+
         var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
-        var right = """NULLIF(@mood, 'null'::jsonb)""";
+        var right = $"NULLIF(@mood{(jsonb || operation == "ObjectPredicate" ? "" : "::jsonb")}, 'null'::jsonb)";
         AssertSql(
             $"""
-@mood='1' (DbType = Object)
+@mood='{(operation == "ObjectPredicate" ? "1" : "Sad")}' (DbType = Object)
 
 SELECT e."Id"
 FROM "Entities" AS e
@@ -250,6 +319,7 @@ LIMIT 2
     {
         public int Id { get; set; }
         public Dictionary<string, object> Payload { get; set; }
+        public Dictionary<string, JsonMood> TypedPayload { get; set; }
     }
 
     public enum JsonMood

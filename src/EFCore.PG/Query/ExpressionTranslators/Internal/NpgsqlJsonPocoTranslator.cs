@@ -23,7 +23,7 @@ public class NpgsqlJsonPocoTranslator(
     private readonly RelationalTypeMapping _stringTypeMapping = typeMappingSource.FindMapping(typeof(string), model)!;
     private readonly IModel _model = model;
 
-    private static readonly ValueConverter<object, JsonElement> ObjectJsonConverter = new(
+    internal static readonly ValueConverter<object, JsonElement> ObjectJsonConverter = new(
         value => JsonSerializer.SerializeToElement(value, (JsonSerializerOptions?)null),
         value => value.ValueKind == JsonValueKind.Null ? null! : (object)value);
 
@@ -40,13 +40,10 @@ public class NpgsqlJsonPocoTranslator(
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (instance is not null
-            && method is { Name: "get_Item", DeclaringType.IsGenericType: true }
+            && method is { Name: "get_Item", DeclaringType: { } declaringType }
             && arguments is [var key]
             && key.Type == typeof(string)
-            && method.DeclaringType.GetGenericTypeDefinition() is var declaringType
-            && (declaringType == typeof(Dictionary<,>)
-                || declaringType == typeof(IDictionary<,>)
-                || declaringType == typeof(IReadOnlyDictionary<,>)))
+            && IsDictionary(declaringType))
         {
             return TranslateMemberAccess(instance, key, method.ReturnType);
         }
@@ -73,6 +70,11 @@ public class NpgsqlJsonPocoTranslator(
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
         if (instance?.TypeMapping is not NpgsqlJsonTypeMapping && instance is not PgJsonTraversalExpression)
+        {
+            return null;
+        }
+
+        if (IsDictionary(instance.Type) || member.DeclaringType is { } declaringType && IsDictionary(declaringType))
         {
             return null;
         }
@@ -112,7 +114,7 @@ public class NpgsqlJsonPocoTranslator(
         }
 
         var mapping = _typeMappingSource.FindMapping(returnType.UnwrapNullableType(), _model);
-        if (mapping is not (null or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlJsonTypeMapping))
+        if (mapping is not (null or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlJsonTypeMapping or NpgsqlEnumTypeMapping))
         {
             var text = _sqlExpressionFactory.JsonTraversal(root, path, returnsText: true, typeof(string), _stringTypeMapping);
 
@@ -138,6 +140,12 @@ public class NpgsqlJsonPocoTranslator(
             ? new NpgsqlJsonTypeMapping(storeType, type, elementMapping)
             : mapping;
     }
+
+    private static bool IsDictionary(Type type)
+        => type.IsGenericType && type.GetGenericTypeDefinition() is var definition
+            && (definition == typeof(Dictionary<,>)
+                || definition == typeof(IDictionary<,>)
+                || definition == typeof(IReadOnlyDictionary<,>));
 
     internal SqlExpression ConvertFromText(SqlExpression text, Type type, RelationalTypeMapping mapping)
         => mapping is NpgsqlByteArrayTypeMapping

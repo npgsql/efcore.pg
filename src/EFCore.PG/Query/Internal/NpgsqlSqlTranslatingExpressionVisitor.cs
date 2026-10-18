@@ -182,7 +182,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 }
 
                 var mapping = _typeMappingSource.FindMapping(unaryExpression.Type, Dependencies.Model);
-                if (mapping is not (null or NpgsqlJsonTypeMapping or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping))
+                if (mapping is not (null or NpgsqlJsonTypeMapping or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlEnumTypeMapping))
                 {
                     return ConvertJsonToScalar(json, unaryExpression.Type, mapping);
                 }
@@ -425,7 +425,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             right = ConvertJsonToScalar(right, typeof(string), textMapping);
         }
         else if (JsonNullIsClrNull(left) && left is not SqlConstantExpression
-            || JsonNullIsClrNull(right) && right is not SqlConstantExpression)
+            || JsonNullIsClrNull(right) && right is not SqlConstantExpression
+            || (left is not SqlConstantExpression { Value: null }
+                && right is not SqlConstantExpression { Value: null }
+                && (left.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: false }
+                    || right.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: false })))
         {
             var jsonbMapping = _typeMappingSource.FindMapping("jsonb")!;
             var objectMapping = _jsonPocoTranslator.FindJsonMapping(typeof(object), "jsonb");
@@ -517,6 +521,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             throw new InvalidOperationException("Converting PostgreSQL interval expressions to JSON is not supported.");
         }
 
+        if (expression is { TypeMapping: NpgsqlArrayTypeMapping { ElementTypeMapping: NpgsqlTimestampTzTypeMapping } }
+            and not SqlConstantExpression)
+        {
+            throw new InvalidOperationException("Converting PostgreSQL timestamp with time zone arrays to JSON is not supported.");
+        }
+
         if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression
             && expression.Type == typeof(DateTime))
         {
@@ -581,7 +591,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     }
 
     private SqlExpression NormalizeJsonNull(SqlExpression expression)
-        // Serialized-string converters retain JSON null, except for primitive collections that deserialize it as CLR null.
+        // Custom converters must receive JSON null unchanged; normalize only known CLR-null mappings.
         => JsonNullIsClrNull(expression)
             ? _sqlExpressionFactory.Case(
                 [
@@ -595,7 +605,9 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
 
     private static bool JsonNullIsClrNull(SqlExpression expression)
         => expression.TypeMapping is NpgsqlJsonTypeMapping mapping
-            && (mapping.Converter?.ProviderClrType != typeof(string) || mapping.ElementTypeMapping is not null)
+            && (mapping.Converter is null
+                || mapping.Converter == NpgsqlJsonPocoTranslator.ObjectJsonConverter
+                || mapping.ElementTypeMapping is not null && mapping.Converter.ProviderClrType == typeof(string))
             && expression.Type.UnwrapNullableType() is var type
             && type != typeof(string) && type != typeof(JsonElement) && type != typeof(JsonDocument);
 
