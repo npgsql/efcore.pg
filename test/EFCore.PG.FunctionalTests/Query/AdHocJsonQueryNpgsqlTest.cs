@@ -238,6 +238,14 @@ LIMIT 2
     [InlineData(true, "TypedProjection")]
     [InlineData(false, "CastProjection")]
     [InlineData(true, "CastProjection")]
+    [InlineData(false, "ColumnPredicate")]
+    [InlineData(true, "ColumnPredicate")]
+    [InlineData(false, "ColumnCase")]
+    [InlineData(true, "ColumnCase")]
+    [InlineData(false, "ColumnCoalesce")]
+    [InlineData(true, "ColumnCoalesce")]
+    [InlineData(false, "CollectionExpansion")]
+    [InlineData(true, "CollectionExpansion")]
     public async Task Native_enum_json_translation(bool jsonb, string operation)
     {
         var contextFactory = await InitializeNonSharedTest<EnumJsonContext>(
@@ -245,6 +253,7 @@ LIMIT 2
             {
                 modelBuilder.Entity<EnumJsonEntity>().Property(e => e.Payload).HasColumnType(jsonb ? "jsonb" : "json");
                 modelBuilder.Entity<EnumJsonEntity>().Property(e => e.TypedPayload).HasColumnType(jsonb ? "jsonb" : "json");
+                modelBuilder.Entity<EnumJsonEntity>().Property(e => e.CollectionPayload).HasColumnType(jsonb ? "jsonb" : "json");
             },
             onConfiguring: options => options.UseNpgsql(
                 ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
@@ -255,19 +264,47 @@ LIMIT 2
                     new EnumJsonEntity
                     {
                         Id = 1,
+                        Mood = JsonMood.Sad,
                         Payload = new() { ["Mood"] = JsonMood.Sad },
-                        TypedPayload = new() { ["Mood"] = JsonMood.Sad }
+                        TypedPayload = new() { ["Mood"] = JsonMood.Sad },
+                        CollectionPayload = new() { ["Moods"] = [JsonMood.Sad] }
                     },
                     new EnumJsonEntity
                     {
                         Id = 2,
+                        Mood = JsonMood.Happy,
                         Payload = new() { ["Mood"] = JsonMood.Happy },
-                        TypedPayload = new() { ["Mood"] = JsonMood.Happy }
+                        TypedPayload = new() { ["Mood"] = JsonMood.Happy },
+                        CollectionPayload = new() { ["Moods"] = [JsonMood.Happy] }
                     });
                 await context.SaveChangesAsync();
             });
 
         using var context = contextFactory.CreateDbContext();
+        if (operation == "CollectionExpansion")
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.Entities.SelectMany(e => e.CollectionPayload["Moods"]).ToArrayAsync());
+            Assert.Contains("could not be translated", exception.Message);
+            AssertSql();
+            return;
+        }
+
+        if (operation is "ColumnPredicate" or "ColumnCase" or "ColumnCoalesce")
+        {
+            var columnQuery = operation switch
+            {
+                "ColumnPredicate" => context.Entities.Where(e => e.Payload["Mood"] == (object)e.Mood).Select(e => e.Payload["Mood"]),
+                "ColumnCase" => context.Entities.Select(e => e.Id == 1 ? e.Payload["Mood"] : (object)e.Mood),
+                "ColumnCoalesce" => context.Entities.Select(e => e.Payload["Mood"] ?? (object)e.Mood),
+                _ => throw new UnreachableException()
+            };
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => columnQuery.ToArrayAsync());
+            Assert.Equal("Converting PostgreSQL enum expressions to JSON is not supported.", exception.Message);
+            AssertSql();
+            return;
+        }
+
         var column = operation.StartsWith("Typed", StringComparison.Ordinal) ? "TypedPayload" : "Payload";
         var traversal = $"""e."{column}" -> 'Mood'""";
         if (operation is "TypedProjection" or "CastProjection")
@@ -318,14 +355,84 @@ LIMIT 2
     public class EnumJsonEntity
     {
         public int Id { get; set; }
+        public JsonMood Mood { get; set; }
         public Dictionary<string, object> Payload { get; set; }
         public Dictionary<string, JsonMood> TypedPayload { get; set; }
+        public Dictionary<string, JsonMood[]> CollectionPayload { get; set; }
     }
 
     public enum JsonMood
     {
         Happy,
         Sad
+    }
+
+    [Theory]
+    [InlineData(false, "Typed")]
+    [InlineData(true, "Typed")]
+    [InlineData(false, "Cast")]
+    [InlineData(true, "Cast")]
+    [InlineData(false, "Days")]
+    [InlineData(true, "Days")]
+    [InlineData(false, "Add")]
+    [InlineData(true, "Add")]
+    public async Task TimeSpan_json_dictionary_projection(bool jsonb, string operation)
+    {
+        var first = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567));
+        var second = -TimeSpan.FromDays(2).Add(TimeSpan.FromTicks(1234567));
+        var contextFactory = await InitializeNonSharedTest<TimeSpanJsonContext>(
+            onModelCreating: modelBuilder =>
+            {
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.Payload).HasColumnType(jsonb ? "jsonb" : "json");
+                modelBuilder.Entity<TimeSpanJsonEntity>().Property(e => e.TypedPayload).HasColumnType(jsonb ? "jsonb" : "json");
+            },
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new TimeSpanJsonEntity { Id = 1, Payload = new() { ["Duration"] = first }, TypedPayload = new() { ["Duration"] = first } },
+                    new TimeSpanJsonEntity { Id = 2, Payload = new() { ["Duration"] = second }, TypedPayload = new() { ["Duration"] = second } });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var entities = context.Entities.OrderBy(e => e.Id);
+        if (operation == "Days")
+        {
+            var days = await entities.Select(e => ((TimeSpan)e.Payload["Duration"]).Days).ToArrayAsync();
+            Assert.Equal([1, -2], days);
+        }
+        else
+        {
+            var query = operation switch
+            {
+                "Typed" => entities.Select(e => e.TypedPayload["Duration"]),
+                "Cast" => entities.Select(e => (TimeSpan)e.Payload["Duration"]),
+                "Add" => entities.Select(e => (TimeSpan)e.Payload["Duration"] + TimeSpan.FromHours(1)),
+                _ => throw new UnreachableException()
+            };
+            var values = await query.ToArrayAsync();
+            TimeSpan[] expected = operation == "Add" ? [first + TimeSpan.FromHours(1), second + TimeSpan.FromHours(1)] : [first, second];
+            Assert.Equal(expected, values);
+        }
+
+        AssertSql(
+            $"""
+SELECT e."{(operation == "Typed" ? "TypedPayload" : "Payload")}" -> 'Duration'
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    protected class TimeSpanJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<TimeSpanJsonEntity> Entities { get; set; }
+    }
+
+    public class TimeSpanJsonEntity
+    {
+        public int Id { get; set; }
+        public Dictionary<string, object> Payload { get; set; }
+        public Dictionary<string, TimeSpan> TypedPayload { get; set; }
     }
 
     protected class ScalarConvertedJsonContext(DbContextOptions options) : DbContext(options)

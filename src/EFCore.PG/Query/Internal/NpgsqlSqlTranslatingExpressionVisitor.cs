@@ -182,7 +182,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 }
 
                 var mapping = _typeMappingSource.FindMapping(unaryExpression.Type, Dependencies.Model);
-                if (mapping is not (null or NpgsqlJsonTypeMapping or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlEnumTypeMapping))
+                if (mapping is not (null or NpgsqlJsonTypeMapping or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping
+                    or NpgsqlEnumTypeMapping or NpgsqlIntervalTypeMapping))
                 {
                     return ConvertJsonToScalar(json, unaryExpression.Type, mapping);
                 }
@@ -342,6 +343,12 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             SqlFunctionExpression { Name: "COALESCE", Arguments: [var left, var right] }
                 when Unbox(left).TypeMapping is NpgsqlJsonTypeMapping || Unbox(right).TypeMapping is NpgsqlJsonTypeMapping
                 => TranslateJsonCoalesce(left, right, binaryExpression.Type),
+
+            // Serialized JSON durations are not PostgreSQL intervals.
+            SqlBinaryExpression { OperatorType: not (ExpressionType.Equal or ExpressionType.NotEqual) } binary
+                when binary.Left.Type.UnwrapNullableType() == typeof(TimeSpan) && binary.Left.TypeMapping is NpgsqlJsonTypeMapping
+                    || binary.Right.Type.UnwrapNullableType() == typeof(TimeSpan) && binary.Right.TypeMapping is NpgsqlJsonTypeMapping
+                => QueryCompilationContext.NotTranslatedExpression,
 
             // Optimize (x - c) - (y - c) to x - y.
             // This is particularly useful for DateOnly.DayNumber - DateOnly.DayNumber, which is the way to express DateOnly subtraction
@@ -525,6 +532,11 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             and not SqlConstantExpression)
         {
             throw new InvalidOperationException("Converting PostgreSQL timestamp with time zone arrays to JSON is not supported.");
+        }
+
+        if (expression is { TypeMapping: NpgsqlEnumTypeMapping } and not SqlConstantExpression)
+        {
+            throw new InvalidOperationException("Converting PostgreSQL enum expressions to JSON is not supported.");
         }
 
         if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression

@@ -1332,8 +1332,10 @@ LIMIT 2
     {
         using var ctx = CreateContext();
         var query = jsonb
-            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Duration"] == (object)(TimeSpan)e.JsonbDictionary["Duration"])
-            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Duration"] == (object)(TimeSpan)e.JsonDictionary["Duration"]);
+            ? ctx.DictionaryEntities.Where(e =>
+                e.JsonbDictionary["Duration"] == (object)((DateTime)e.JsonbDictionary["Timestamp"] - (DateTime)e.JsonbDictionary["Timestamp"]))
+            : ctx.DictionaryEntities.Where(e =>
+                e.JsonDictionary["Duration"] == (object)((DateTime)e.JsonDictionary["Timestamp"] - (DateTime)e.JsonDictionary["Timestamp"]));
 
         var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
         Assert.Equal("Converting PostgreSQL interval expressions to JSON is not supported.", exception.Message);
@@ -2866,8 +2868,10 @@ LIMIT 2
     {
         using var ctx = CreateContext();
         var query = jsonb
-            ? ctx.DictionaryEntities.Where(e => e.JsonbDictionary["Durations"] == (object)new[] { (TimeSpan)e.JsonbDictionary["Duration"] })
-            : ctx.DictionaryEntities.Where(e => e.JsonDictionary["Durations"] == (object)new[] { (TimeSpan)e.JsonDictionary["Duration"] });
+            ? ctx.DictionaryEntities.Where(e =>
+                e.JsonbDictionary["Durations"] == (object)new[] { (DateTime)e.JsonbDictionary["Timestamp"] - (DateTime)e.JsonbDictionary["Timestamp"] })
+            : ctx.DictionaryEntities.Where(e =>
+                e.JsonDictionary["Durations"] == (object)new[] { (DateTime)e.JsonDictionary["Timestamp"] - (DateTime)e.JsonDictionary["Timestamp"] });
 
         var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
         Assert.Equal("Converting PostgreSQL interval expressions to JSON is not supported.", exception.Message);
@@ -2914,6 +2918,47 @@ ORDER BY d."Id" NULLS FIRST
 
         var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
         Assert.Equal("Converting PostgreSQL timestamp with time zone arrays to JSON is not supported.", exception.Message);
+        AssertSql();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Dictionary_indexer_array_contains_not_supported(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var query = jsonb
+            ? ctx.DictionaryEntities.Where(e => ((Dictionary<string, int[]>)e.JsonbDictionary["Collections"])["Array"].Contains(3))
+            : ctx.DictionaryEntities.Where(e => ((Dictionary<string, int[]>)e.JsonDictionary["Collections"])["Array"].Contains(3));
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
+        Assert.Contains("could not be translated", exception.Message);
+        AssertSql();
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Dictionary_indexer_timestamp_array_contains_not_supported(bool jsonb, bool constant)
+    {
+        using var ctx = CreateContext();
+        var timestamp = new DateTime(2020, 1, 1, 10, 30, 45, DateTimeKind.Utc).AddTicks(1234567);
+        var query = (jsonb, constant) switch
+        {
+            (true, false) => ctx.DictionaryEntities.Where(e =>
+                ((Dictionary<string, DateTime[]>)e.JsonbDictionary["Collections"])["Timestamps"].Contains(EF.Parameter(timestamp))),
+            (false, false) => ctx.DictionaryEntities.Where(e =>
+                ((Dictionary<string, DateTime[]>)e.JsonDictionary["Collections"])["Timestamps"].Contains(EF.Parameter(timestamp))),
+            (true, true) => ctx.DictionaryEntities.Where(e =>
+                ((Dictionary<string, DateTime[]>)e.JsonbDictionary["Collections"])["Timestamps"].Contains(EF.Constant(timestamp))),
+            (false, true) => ctx.DictionaryEntities.Where(e =>
+                ((Dictionary<string, DateTime[]>)e.JsonDictionary["Collections"])["Timestamps"].Contains(EF.Constant(timestamp)))
+        };
+
+        var exception = Assert.Throws<InvalidOperationException>(() => query.Select(e => e.Id).ToArray());
+        Assert.Contains("could not be translated", exception.Message);
         AssertSql();
     }
 

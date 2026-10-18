@@ -74,7 +74,9 @@ public class NpgsqlJsonPocoTranslator(
             return null;
         }
 
-        if (IsDictionary(instance.Type) || member.DeclaringType is { } declaringType && IsDictionary(declaringType))
+        if (IsDictionary(instance.Type)
+            || instance.Type.UnwrapNullableType() == typeof(TimeSpan)
+            || member.DeclaringType is { } declaringType && IsDictionary(declaringType))
         {
             return null;
         }
@@ -114,7 +116,8 @@ public class NpgsqlJsonPocoTranslator(
         }
 
         var mapping = _typeMappingSource.FindMapping(returnType.UnwrapNullableType(), _model);
-        if (mapping is not (null or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlJsonTypeMapping or NpgsqlEnumTypeMapping))
+        if (mapping is not (null or NpgsqlArrayTypeMapping or NpgsqlHstoreTypeMapping or NpgsqlJsonTypeMapping
+            or NpgsqlEnumTypeMapping or NpgsqlIntervalTypeMapping))
         {
             var text = _sqlExpressionFactory.JsonTraversal(root, path, returnsText: true, typeof(string), _stringTypeMapping);
 
