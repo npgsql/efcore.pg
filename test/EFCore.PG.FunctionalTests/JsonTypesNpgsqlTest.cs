@@ -369,6 +369,9 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
 
     [ConditionalTheory]
     [InlineData("12:34:56.123456+05:00", """{"Prop":"12:34:56.123456\u002B5"}""")]
+    [InlineData("12:34:56.123456+05:30", """{"Prop":"12:34:56.123456\u002B05:30"}""")]
+    [InlineData("12:34:56.123456-03:30", """{"Prop":"12:34:56.123456-03:30"}""")]
+    [InlineData("12:34:56.123456-00:30", """{"Prop":"12:34:56.123456-00:30"}""")]
     public virtual void Can_read_write_timetz_JSON_values(string value, string json)
         => Can_read_and_write_JSON_property_value<DateTimeOffsetType, DateTimeOffset>(
             b => b.HasColumnType("timetz"),
