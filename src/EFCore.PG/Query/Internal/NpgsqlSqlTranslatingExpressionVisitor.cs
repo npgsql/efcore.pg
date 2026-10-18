@@ -581,10 +581,17 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             throw new InvalidOperationException("Converting PostgreSQL interval expressions to JSON is not supported.");
         }
 
-        if (expression is { TypeMapping: NpgsqlArrayTypeMapping { ElementTypeMapping: NpgsqlTimestampTzTypeMapping } }
+        if (expression is
+            {
+                TypeMapping: NpgsqlArrayTypeMapping
+                {
+                    ElementTypeMapping: NpgsqlTimestampTzTypeMapping or NpgsqlTimestampTypeMapping or NpgsqlDateOnlyTypeMapping
+                        or NpgsqlDateTimeDateTypeMapping
+                } arrayMapping
+            }
             and not SqlConstantExpression)
         {
-            throw new InvalidOperationException("Converting PostgreSQL timestamp with time zone arrays to JSON is not supported.");
+            throw new InvalidOperationException($"Converting PostgreSQL {arrayMapping.ElementTypeMapping.StoreType} arrays to JSON is not supported.");
         }
 
         if (expression is { TypeMapping: NpgsqlArrayTypeMapping { ElementTypeMapping: NpgsqlByteArrayTypeMapping } }
@@ -604,11 +611,17 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         if (expression is
             {
                 TypeMapping: NpgsqlTimestampTzTypeMapping or NpgsqlTimestampTypeMapping or NpgsqlDateOnlyTypeMapping
+                    or NpgsqlDateTimeDateTypeMapping
             } and not SqlConstantExpression
             && (expression.Type == typeof(DateTime) || expression.Type == typeof(DateTimeOffset) || expression.Type == typeof(DateOnly)))
         {
             var type = expression.Type;
             var hasTimeZone = expression.TypeMapping is NpgsqlTimestampTzTypeMapping;
+            if (expression.TypeMapping is NpgsqlDateTimeDateTypeMapping)
+            {
+                expression = _sqlExpressionFactory.Convert(expression, typeof(DateTime), _timestampMapping);
+            }
+
             var textMapping = _typeMappingSource.FindMapping("text")!;
             var json = _sqlExpressionFactory.Function(
                 "to_jsonb",
