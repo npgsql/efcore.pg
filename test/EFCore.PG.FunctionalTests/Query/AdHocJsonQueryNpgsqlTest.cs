@@ -527,6 +527,10 @@ LIMIT 2
     [InlineData(true, "TypedToString")]
     [InlineData(false, "CastToString")]
     [InlineData(true, "CastToString")]
+    [InlineData(false, "TypedDateTrunc")]
+    [InlineData(true, "TypedDateTrunc")]
+    [InlineData(false, "CastDateTrunc")]
+    [InlineData(true, "CastDateTrunc")]
     public async Task TimeSpan_json_dictionary_projection(bool jsonb, string operation)
     {
         var first = TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(1234567));
@@ -550,6 +554,17 @@ LIMIT 2
 
         using var context = contextFactory.CreateDbContext();
         var entities = context.Entities.OrderBy(e => e.Id);
+        if (operation is "TypedDateTrunc" or "CastDateTrunc")
+        {
+            var query = operation == "TypedDateTrunc"
+                ? entities.Where(e => EF.Functions.DateTrunc("hour", e.TypedPayload["Duration"]) == TimeSpan.Zero)
+                : entities.Where(e => EF.Functions.DateTrunc("hour", (TimeSpan)e.Payload["Duration"]) == TimeSpan.Zero);
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => query.ToArrayAsync());
+            Assert.Contains("could not be translated", exception.Message);
+            AssertSql();
+            return;
+        }
+
         if (operation is "TypedToString" or "CastToString")
         {
             var query = operation == "TypedToString"
@@ -733,6 +748,119 @@ SELECT e."Payload" -> 'Duration'
 FROM "Entities" AS e
 ORDER BY e."Id" NULLS FIRST
 """);
+    }
+
+    [Theory]
+    [InlineData(false, false, "Predicate")]
+    [InlineData(true, false, "Predicate")]
+    [InlineData(false, true, "Predicate")]
+    [InlineData(true, true, "Predicate")]
+    [InlineData(false, false, "Case")]
+    [InlineData(true, false, "Case")]
+    [InlineData(false, true, "Case")]
+    [InlineData(true, true, "Case")]
+    [InlineData(false, false, "Coalesce")]
+    [InlineData(true, false, "Coalesce")]
+    [InlineData(false, true, "Coalesce")]
+    [InlineData(true, true, "Coalesce")]
+    public async Task Timestamp_json_dictionary_extrema(bool jsonb, bool dateTimeOffset, string operation)
+    {
+        object minimum = dateTimeOffset ? DateTimeOffset.MinValue : (object)DateTime.MinValue;
+        object maximum = dateTimeOffset ? DateTimeOffset.MaxValue : (object)DateTime.MaxValue;
+        var contextFactory = await InitializeNonSharedTest<TimestampJsonContext>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<TimestampJsonEntity>().Property(e => e.Payload)
+                .HasColumnType(jsonb ? "jsonb" : "json"),
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new TimestampJsonEntity
+                    {
+                        Id = 1,
+                        Timestamp = DateTime.MinValue,
+                        TimestampOffset = DateTimeOffset.MinValue,
+                        Payload = new() { ["Timestamp"] = minimum }
+                    },
+                    new TimestampJsonEntity
+                    {
+                        Id = 2,
+                        Timestamp = DateTime.MaxValue,
+                        TimestampOffset = DateTimeOffset.MaxValue,
+                        Payload = new() { ["Timestamp"] = maximum }
+                    });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var entities = context.Entities.OrderBy(e => e.Id);
+        var query = (operation, dateTimeOffset) switch
+        {
+            ("Predicate", false) => entities.Where(e => e.Payload["Timestamp"] == (object)e.Timestamp).Select(e => e.Payload["Timestamp"]),
+            ("Predicate", true) => entities.Where(e => e.Payload["Timestamp"] == (object)e.TimestampOffset).Select(e => e.Payload["Timestamp"]),
+            ("Case", false) => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.Timestamp),
+            ("Case", true) => entities.Select(e => e.Id == 1 ? e.Payload["Timestamp"] : (object)e.TimestampOffset),
+            ("Coalesce", false) => entities.Select(e => e.Payload["Missing"] ?? (object)e.Timestamp),
+            ("Coalesce", true) => entities.Select(e => e.Payload["Missing"] ?? (object)e.TimestampOffset),
+            _ => throw new UnreachableException()
+        };
+        var values = await query.ToArrayAsync();
+        Assert.Equal(
+            [JsonSerializer.SerializeToElement(minimum).GetString(), JsonSerializer.SerializeToElement(maximum).GetString()],
+            values.Select(value => Assert.IsType<JsonElement>(value).GetString()));
+
+        var utcText = $$"""to_jsonb(e."{{(dateTimeOffset ? "TimestampOffset" : "Timestamp")}}" AT TIME ZONE 'UTC') #>> '{}'""";
+        var serialized = $"""
+{(jsonb || operation == "Predicate" ? "to_jsonb" : "to_json")}(CASE
+    WHEN {utcText} = '-infinity' THEN '{JsonSerializer.SerializeToElement(minimum).GetString()}'
+    WHEN {utcText} = 'infinity' THEN '{JsonSerializer.SerializeToElement(maximum).GetString()}'
+    ELSE regexp_replace({utcText}, '$', '{(dateTimeOffset ? "+00:00" : "Z")}')
+END)
+""";
+        var traversal = """e."Payload" -> 'Timestamp'""";
+        var left = $"NULLIF({(jsonb ? traversal : $"CAST({traversal} AS jsonb)")}, 'null'::jsonb)";
+        var right = $"NULLIF({serialized}, 'null'::jsonb)";
+        var sql = operation switch
+        {
+            "Predicate" => $"""
+SELECT {traversal}
+FROM "Entities" AS e
+WHERE {left} = {right} OR ({left} IS NULL AND {right} IS NULL)
+ORDER BY e."Id" NULLS FIRST
+""",
+            "Case" => $"""
+SELECT CASE
+    WHEN e."Id" = 1 THEN {traversal}
+    ELSE {serialized.Replace("\n", "\n    ")}
+END
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""",
+            "Coalesce" => $"""
+SELECT COALESCE(CASE
+    WHEN e."Payload" ->> 'Missing' IS NULL THEN NULL
+    ELSE e."Payload" -> 'Missing'
+END, {serialized})
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""",
+            _ => throw new UnreachableException()
+        };
+        AssertSql(sql);
+    }
+
+    protected class TimestampJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<TimestampJsonEntity> Entities { get; set; }
+    }
+
+    public class TimestampJsonEntity
+    {
+        public int Id { get; set; }
+        public DateTime Timestamp { get; set; }
+        public DateTimeOffset TimestampOffset { get; set; }
+        public Dictionary<string, object> Payload { get; set; }
     }
 
     protected class TimeSpanJsonContext(DbContextOptions options) : DbContext(options)

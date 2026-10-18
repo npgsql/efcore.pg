@@ -1425,7 +1425,11 @@ LIMIT 2
                 $$"""
 SELECT CASE
     WHEN d."Id" = 1 THEN {{column}} -> 'Timestamp'
-    ELSE {{(jsonb ? "to_jsonb" : "to_json")}}(regexp_replace(to_jsonb((CAST({{column}} ->> '{{key}}' AS timestamp with time zone) + INTERVAL '1 secs') AT TIME ZONE 'UTC') #>> '{}', '$', '{{(dateTimeOffset ? "+00:00" : "Z")}}'))
+    ELSE {{(jsonb ? "to_jsonb" : "to_json")}}(CASE
+        WHEN to_jsonb((CAST({{column}} ->> '{{key}}' AS timestamp with time zone) + INTERVAL '1 secs') AT TIME ZONE 'UTC') #>> '{}' = '-infinity' THEN '0001-01-01T00:00:00{{(dateTimeOffset ? "+00:00" : "")}}'
+        WHEN to_jsonb((CAST({{column}} ->> '{{key}}' AS timestamp with time zone) + INTERVAL '1 secs') AT TIME ZONE 'UTC') #>> '{}' = 'infinity' THEN '9999-12-31T23:59:59.9999999{{(dateTimeOffset ? "+00:00" : "")}}'
+        ELSE regexp_replace(to_jsonb((CAST({{column}} ->> '{{key}}' AS timestamp with time zone) + INTERVAL '1 secs') AT TIME ZONE 'UTC') #>> '{}', '$', '{{(dateTimeOffset ? "+00:00" : "Z")}}')
+    END)
 END
 FROM "DictionaryEntities" AS d
 ORDER BY d."Id" NULLS FIRST

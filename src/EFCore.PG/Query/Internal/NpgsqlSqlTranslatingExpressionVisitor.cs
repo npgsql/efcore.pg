@@ -7,6 +7,7 @@ using System.Text.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
@@ -596,6 +597,7 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
         if (expression is { TypeMapping: NpgsqlTimestampTzTypeMapping } and not SqlConstantExpression
             && (expression.Type == typeof(DateTime) || expression.Type == typeof(DateTimeOffset)))
         {
+            var dateTimeOffset = expression.Type == typeof(DateTimeOffset);
             var textMapping = _typeMappingSource.FindMapping("text")!;
             var utcJson = _sqlExpressionFactory.Function(
                 "to_jsonb",
@@ -604,18 +606,37 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 argumentsPropagateNullability: TrueArrays[1],
                 typeof(JsonElement),
                 _typeMappingSource.FindMapping(typeof(JsonElement), "jsonb"));
+            var text = ConvertJsonToScalar(utcJson, typeof(string), textMapping);
             // Append the serializer's UTC suffix without string concatenation's null-to-empty compensation.
             expression = _sqlExpressionFactory.Function(
                 "regexp_replace",
                 [
-                    ConvertJsonToScalar(utcJson, typeof(string), textMapping),
+                    text,
                     _sqlExpressionFactory.Constant("$", textMapping),
-                    _sqlExpressionFactory.Constant(expression.Type == typeof(DateTimeOffset) ? "+00:00" : "Z", textMapping)
+                    _sqlExpressionFactory.Constant(dateTimeOffset ? "+00:00" : "Z", textMapping)
                 ],
                 nullable: true,
                 argumentsPropagateNullability: TrueArrays[3],
                 typeof(string),
                 textMapping);
+
+            if (!NpgsqlTypeMappingSource.DisableDateTimeInfinityConversions)
+            {
+                expression = _sqlExpressionFactory.Case(
+                    [
+                        new CaseWhenClause(
+                            _sqlExpressionFactory.Equal(text, _sqlExpressionFactory.Constant("-infinity", textMapping)),
+                            _sqlExpressionFactory.Constant(
+                                JsonSerializer.SerializeToElement(dateTimeOffset ? DateTimeOffset.MinValue : (object)DateTime.MinValue).GetString()!,
+                                textMapping)),
+                        new CaseWhenClause(
+                            _sqlExpressionFactory.Equal(text, _sqlExpressionFactory.Constant("infinity", textMapping)),
+                            _sqlExpressionFactory.Constant(
+                                JsonSerializer.SerializeToElement(dateTimeOffset ? DateTimeOffset.MaxValue : (object)DateTime.MaxValue).GetString()!,
+                                textMapping))
+                    ],
+                    expression);
+            }
         }
 
         if (expression is { TypeMapping: NpgsqlByteArrayTypeMapping } and not SqlConstantExpression)

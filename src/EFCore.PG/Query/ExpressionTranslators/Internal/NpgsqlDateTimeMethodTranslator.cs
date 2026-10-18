@@ -61,7 +61,8 @@ public class NpgsqlDateTimeMethodTranslator(
     {
         var type = Nullable.GetUnderlyingType(returnType) ?? returnType;
 
-        if (type != typeof(DateTime) && type != typeof(DateTimeOffset) && type != typeof(TimeSpan))
+        if (value.TypeMapping is NpgsqlJsonTypeMapping
+            || type != typeof(DateTime) && type != typeof(DateTimeOffset) && type != typeof(TimeSpan))
         {
             return null;
         }
