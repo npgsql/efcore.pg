@@ -9,6 +9,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 
 public class NpgsqlAnnotationCodeGeneratorTest
 {
+    [Fact]
+    public void Database_encoding_is_preserved_as_an_annotation()
+    {
+        var generator = CreateGenerator();
+        var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+        modelBuilder.UseDatabaseEncoding("UTF8");
+
+        var annotations = modelBuilder.Model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+        generator.GenerateFluentApiCalls((IModel)modelBuilder.Model, annotations);
+
+        Assert.Equal("UTF8", annotations[NpgsqlAnnotationNames.DatabaseEncoding].Value);
+    }
+
     #region Identity / sequence / HiLo
 
     [Fact]

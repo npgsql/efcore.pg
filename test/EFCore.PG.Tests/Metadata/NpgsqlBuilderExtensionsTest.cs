@@ -6,6 +6,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 public class NpgsqlBuilderExtensionsTest
 {
     [Fact]
+    public void Can_set_database_encoding()
+    {
+        var modelBuilder = CreateConventionModelBuilder();
+
+        Assert.Null(modelBuilder.Model.GetDatabaseEncoding());
+        Assert.Same(modelBuilder, modelBuilder.UseDatabaseEncoding("UTF8"));
+        Assert.Equal("UTF8", modelBuilder.Model.GetDatabaseEncoding());
+        Assert.Null(modelBuilder.FinalizeModel().GetDatabaseEncoding());
+    }
+
+    [Fact]
     public void Can_disable_identity_generation()
     {
         var modelBuilder = CreateConventionModelBuilder();

@@ -581,6 +581,31 @@ public static class NpgsqlModelBuilderExtensions
 
     #endregion
 
+    #region Encoding
+
+    /// <summary>
+    ///     Specifies the PostgreSQL encoding to use when creating a new database for this model.
+    /// </summary>
+    /// <remarks>
+    ///     By default, the encoding is inherited from the template database. To use a different encoding,
+    ///     also call <see cref="UseDatabaseTemplate" /> with <c>template0</c>.
+    ///     The encoding must be compatible with the database's locale settings.
+    ///     This setting does not change the encoding of an existing database.
+    /// </remarks>
+    /// <param name="modelBuilder">The model builder.</param>
+    /// <param name="encoding">The PostgreSQL encoding name, such as <c>UTF8</c>.</param>
+    /// <returns>The same model builder so that additional configuration calls can be chained.</returns>
+    public static ModelBuilder UseDatabaseEncoding(this ModelBuilder modelBuilder, string encoding)
+    {
+        Check.NotNull(modelBuilder, nameof(modelBuilder));
+        Check.NotEmpty(encoding, nameof(encoding));
+
+        modelBuilder.Model.SetDatabaseEncoding(encoding);
+        return modelBuilder;
+    }
+
+    #endregion
+
     #region Templates
 
     /// <summary>

@@ -5,6 +5,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 public class NpgsqlMetadataExtensionsTest
 {
     [ConditionalFact]
+    public void Can_get_and_set_database_encoding()
+    {
+        var model = GetModelBuilder().Model;
+
+        Assert.Null(model.GetDatabaseEncoding());
+        Assert.Null(((IConventionModel)model).GetDatabaseEncodingConfigurationSource());
+
+        ((IConventionModel)model).SetDatabaseEncoding("LATIN1", fromDataAnnotation: true);
+
+        Assert.Equal("LATIN1", model.GetDatabaseEncoding());
+        Assert.Equal(ConfigurationSource.DataAnnotation, ((IConventionModel)model).GetDatabaseEncodingConfigurationSource());
+
+        model.SetDatabaseEncoding("UTF8");
+
+        Assert.Equal("UTF8", model.GetDatabaseEncoding());
+        Assert.Equal(ConfigurationSource.Explicit, ((IConventionModel)model).GetDatabaseEncodingConfigurationSource());
+
+        model.SetDatabaseEncoding(null);
+
+        Assert.Null(model.GetDatabaseEncoding());
+        Assert.Null(((IConventionModel)model).GetDatabaseEncodingConfigurationSource());
+    }
+
+    [ConditionalFact]
     public void Can_get_and_set_column_name()
     {
         var modelBuilder = GetModelBuilder();

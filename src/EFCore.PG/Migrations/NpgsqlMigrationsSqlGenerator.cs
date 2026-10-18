@@ -1041,6 +1041,14 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             .Append("CREATE DATABASE ")
             .Append(DelimitIdentifier(operation.Name));
 
+        if (!string.IsNullOrEmpty(operation.Encoding))
+        {
+            builder
+                .AppendLine()
+                .Append("ENCODING ")
+                .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Encoding));
+        }
+
         if (!string.IsNullOrEmpty(operation.Template))
         {
             builder

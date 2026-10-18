@@ -199,6 +199,7 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator
         if (!parameters.IsRuntime)
         {
             var annotations = parameters.Annotations;
+            annotations.Remove(NpgsqlAnnotationNames.DatabaseEncoding);
             annotations.Remove(NpgsqlAnnotationNames.DatabaseTemplate);
             annotations.Remove(NpgsqlAnnotationNames.Tablespace);
             annotations.Remove(NpgsqlAnnotationNames.CollationDefinitionPrefix);
@@ -226,6 +227,7 @@ public class NpgsqlCSharpRuntimeAnnotationCodeGenerator
         if (!parameters.IsRuntime)
         {
             var annotations = parameters.Annotations;
+            annotations.Remove(NpgsqlAnnotationNames.DatabaseEncoding);
             annotations.Remove(NpgsqlAnnotationNames.DatabaseTemplate);
             annotations.Remove(NpgsqlAnnotationNames.Tablespace);
             annotations.Remove(NpgsqlAnnotationNames.CollationDefinitionPrefix);

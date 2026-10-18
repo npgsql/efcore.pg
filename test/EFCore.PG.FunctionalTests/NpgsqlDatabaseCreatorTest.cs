@@ -498,6 +498,47 @@ public class NpgsqlDatabaseCreatorCreateTablesTest : NpgsqlDatabaseCreatorTest
 public class NpgsqlDatabaseCreatorCreateTest : NpgsqlDatabaseCreatorTest
 {
     [ConditionalTheory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Creates_database_with_encoding(bool async)
+    {
+        await using var testDatabase = NpgsqlTestStore.Create($"CreateWithEncoding{async}");
+        await using var context = new EncodingContext(testDatabase.ConnectionString, "UTF8");
+        var creator = GetDatabaseCreator(context);
+        await creator.EnsureDeletedAsync();
+
+        Assert.Null(context.Model.GetDatabaseEncoding());
+        Assert.Equal("UTF8", context.GetService<IDesignTimeModel>().Model.GetDatabaseEncoding());
+
+        if (async)
+        {
+            await creator.CreateAsync();
+        }
+        else
+        {
+            creator.Create();
+        }
+
+        Assert.Equal("UTF8", (await testDatabase.QueryAsync<string>("SHOW server_encoding")).Single());
+    }
+
+    [ConditionalTheory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Throws_if_database_encoding_is_invalid(bool async)
+    {
+        await using var testDatabase = NpgsqlTestStore.Create($"CreateWithInvalidEncoding{async}");
+        await using var context = new EncodingContext(testDatabase.ConnectionString, "invalid_encoding");
+        var creator = GetDatabaseCreator(context);
+        await creator.EnsureDeletedAsync();
+
+        var ex = async
+            ? await Assert.ThrowsAsync<PostgresException>(() => creator.CreateAsync())
+            : Assert.Throws<PostgresException>(() => creator.Create());
+        Assert.Equal(PostgresErrorCodes.UndefinedObject, ex.SqlState);
+    }
+
+    [ConditionalTheory]
     [InlineData(true, false)]
     [InlineData(false, true)]
     public async Task Creates_physical_database_but_not_tables(bool async, bool ambientTransaction)
@@ -547,6 +588,15 @@ public class NpgsqlDatabaseCreatorCreateTest : NpgsqlDatabaseCreatorTest
             ? await Assert.ThrowsAsync<PostgresException>(() => creator.CreateAsync())
             : Assert.Throws<PostgresException>(() => creator.Create());
         Assert.Equal(PostgresErrorCodes.DuplicateDatabase, ex.SqlState);
+    }
+
+    private class EncodingContext(string connectionString, string encoding) : BloggingContext(connectionString)
+    {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.UseDatabaseTemplate("template0").UseDatabaseEncoding(encoding);
+        }
     }
 }
 
