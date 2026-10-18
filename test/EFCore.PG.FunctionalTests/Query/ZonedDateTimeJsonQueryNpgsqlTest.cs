@@ -57,7 +57,7 @@ LIMIT 2
 """,
             //
             """
-SELECT c."Id", c."Details", c."Items"
+SELECT c."Id", c."NativeValue", c."Details", c."Items"
 FROM "Container" AS c
 LIMIT 2
 """);
@@ -294,13 +294,58 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."Items") AS ("Value" text)) WITH OR
         Assert.All(entity.Details.Values, v => Assert.Equal(instant, v.ToInstant()));
     }
 
-    private async Task<ContextFactory<DbContext>> Initialize(Instant? instant = null)
+    [ConditionalTheory]
+    [InlineData("1999-12-31T23:59:59.123456789Z", 0)]
+    [InlineData("1999-12-31T23:59:59.123456789Z", 3)]
+    [InlineData("1999-12-31T23:59:59.123456789Z", 6)]
+    [InlineData("1999-12-31T23:59:59.999999999Z", 3)]
+    [InlineData("1999-12-31T23:59:59.123456Z", 3)]
+    [InlineData("2018-04-20T10:31:33.123456789Z", 3)]
+    public async Task Precision_matches_native_column(string text, int precision)
+    {
+        var instant = InstantPattern.ExtendedIso.Parse(text).GetValueOrThrow();
+        var contextFactory = await Initialize(instant, precision);
+        await using var context = contextFactory.CreateDbContext();
+        var expected = await context.Set<Container>().Select(e => e.NativeValue).SingleAsync();
+
+        Assert.Equal(expected, await context.Set<Container>().Select(e => e.Details.Value).SingleAsync());
+        Assert.All(
+            await context.Set<Container>().SelectMany(e => e.Items).Select(e => e.Value).ToListAsync(),
+            v => Assert.Equal(expected, v));
+        Assert.Equal(
+            expected,
+            await context.Set<Container>().SelectMany(e => e.Items)
+                .Where(e => e.NullableValue != null).Select(e => e.NullableValue).SingleAsync());
+        Assert.Equal(expected, await context.Set<Container>().Select(e => e.Details.Values[0]).SingleAsync());
+        Assert.All(
+            await context.Set<Container>().SelectMany(e => e.Details.Values).ToListAsync(),
+            v => Assert.Equal(expected, v));
+        Assert.Equal(1, await context.Set<Container>().CountAsync(e => e.Details.Value == expected));
+        Assert.Equal(2, await context.Set<Container>().SelectMany(e => e.Items).CountAsync(e => e.Value == expected));
+        Assert.Equal(1, await context.Set<Container>().CountAsync(e => e.Details.Values.Contains(expected)));
+
+        var entity = await context.Set<Container>().AsNoTracking().SingleAsync();
+        Assert.Equal(instant, entity.Details.Value.ToInstant());
+        Assert.All(entity.Details.Values, v => Assert.Equal(instant, v.ToInstant()));
+    }
+
+    private async Task<ContextFactory<DbContext>> Initialize(Instant? instant = null, int? precision = null)
     {
         var contextFactory = await InitializeNonSharedTest<DbContext>(
             onModelCreating: modelBuilder => modelBuilder.Entity<Container>(b =>
             {
-                b.ComplexProperty(e => e.Details).ToJson();
-                b.ComplexCollection(e => e.Items).ToJson();
+                var details = b.ComplexProperty(e => e.Details).ToJson();
+                var items = b.ComplexCollection(e => e.Items).ToJson();
+                if (precision is { } p)
+                {
+                    b.Property(e => e.NativeValue).HasPrecision(p);
+                    details.Property(e => e.Value).HasPrecision(p);
+                    details.Property(e => e.NullableValue).HasPrecision(p);
+                    details.PrimitiveCollection(e => e.Values).ElementType().HasPrecision(p);
+                    items.Property(e => e.Value).Metadata.SetPrecision(p);
+                    items.Property(e => e.NullableValue).Metadata.SetPrecision(p);
+                    items.PrimitiveCollection(e => e.Values).ElementType().HasPrecision(p);
+                }
             }),
             onConfiguring: b => new NpgsqlDbContextOptionsBuilder(b).UseNodaTime(),
             addServices: s => s.AddEntityFrameworkNpgsqlNodaTime(),
@@ -312,6 +357,7 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."Items") AS ("Value" text)) WITH OR
                 context.Add(
                     new Container
                     {
+                        NativeValue = earlier.ToInstant().InUtc(),
                         Details = new Details
                         {
                             Value = earlier,
@@ -339,6 +385,7 @@ JOIN LATERAL ROWS FROM (jsonb_to_recordset(c."Items") AS ("Value" text)) WITH OR
     public class Container
     {
         public int Id { get; set; }
+        public ZonedDateTime NativeValue { get; set; }
         public Details Details { get; set; } = null!;
         public List<Details> Items { get; set; } = [];
     }

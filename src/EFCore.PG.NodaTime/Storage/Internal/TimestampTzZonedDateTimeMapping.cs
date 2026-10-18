@@ -113,6 +113,9 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping, INpgsqlJsonSca
     {
         // PostgreSQL rounds fractional seconds on input. Truncate the text first, then round up pre-2000 instants with
         // discarded nanoseconds to match Npgsql's truncation toward the PostgreSQL epoch.
+        var timestampMapping = Precision is null
+            ? this
+            : Clone(Parameters.WithPrecision(null).WithStoreTypeAndSize("timestamp with time zone", Size));
         var timestamp = new SqlUnaryExpression(
             ExpressionType.Convert,
             new SqlFunctionExpression(
@@ -128,9 +131,9 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping, INpgsqlJsonSca
                 typeof(string),
                 NpgsqlStringTypeMapping.Default),
             ClrType,
-            this);
+            timestampMapping);
 
-        return new CaseExpression(
+        var result = new CaseExpression(
             [
                 new CaseWhenClause(
                     new SqlBinaryExpression(
@@ -155,9 +158,11 @@ public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping, INpgsqlJsonSca
                         timestamp,
                         new SqlConstantExpression(Duration.FromNanoseconds(1000), DurationIntervalMapping.Default),
                         ClrType,
-                        this))
+                        timestampMapping))
             ],
             timestamp);
+
+        return Precision is null ? result : new SqlUnaryExpression(ExpressionType.Convert, result, ClrType, this);
     }
 
     /// <summary>
