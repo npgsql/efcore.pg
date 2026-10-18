@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
@@ -84,7 +85,7 @@ public class DateMapping : NpgsqlTypeMapping
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
         => FormatLocalDate((LocalDate)value);
 
-    private static string FormatLocalDate(LocalDate date)
+    private static string FormatLocalDate(LocalDate date, bool json = false)
     {
         if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
         {
@@ -99,8 +100,12 @@ public class DateMapping : NpgsqlTypeMapping
             }
         }
 
-        return LocalDatePattern.Iso.Format(date);
+        return json ? LocalDatePattern.Iso.Format(date) : FormatSql(date);
     }
+
+    // JSON uses ISO astronomical years (0 = 1 BCE); PostgreSQL date literals require year-of-era and a BC suffix.
+    internal static string FormatSql(LocalDate date)
+        => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + (date.Year <= 0 ? " BC" : "");
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -137,6 +142,6 @@ public class DateMapping : NpgsqlTypeMapping
         }
 
         public override void ToJsonTyped(Utf8JsonWriter writer, LocalDate value)
-            => writer.WriteStringValue(FormatLocalDate(value));
+            => writer.WriteStringValue(FormatLocalDate(value, json: true));
     }
 }

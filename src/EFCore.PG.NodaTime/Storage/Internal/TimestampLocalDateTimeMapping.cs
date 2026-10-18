@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
@@ -99,7 +100,7 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
         => $@"""{Format((LocalDateTime)value)}""";
 
-    private static string Format(LocalDateTime localDateTime)
+    private static string Format(LocalDateTime localDateTime, bool json = false)
     {
         if (!NpgsqlNodaTimeTypeMappingSourcePlugin.DisableDateTimeInfinityConversions)
         {
@@ -114,7 +115,9 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
             }
         }
 
-        return LocalDateTimePattern.ExtendedIso.Format(localDateTime);
+        return json || localDateTime.Year > 0
+            ? LocalDateTimePattern.ExtendedIso.Format(localDateTime)
+            : localDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFFF", CultureInfo.InvariantCulture) + " BC";
     }
 
     /// <summary>
@@ -164,6 +167,6 @@ public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
         }
 
         public override void ToJsonTyped(Utf8JsonWriter writer, LocalDateTime value)
-            => writer.WriteStringValue(Format(value));
+            => writer.WriteStringValue(Format(value, json: true));
     }
 }

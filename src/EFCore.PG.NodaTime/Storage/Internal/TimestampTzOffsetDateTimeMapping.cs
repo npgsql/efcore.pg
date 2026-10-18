@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NodaTime.Text;
@@ -99,8 +100,10 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     protected override string GenerateEmbeddedNonNullSqlLiteral(object value)
         => $@"""{Format((OffsetDateTime)value)}""";
 
-    private static string Format(OffsetDateTime offsetDateTime)
-        => OffsetDateTimePattern.ExtendedIso.Format(offsetDateTime);
+    private static string Format(OffsetDateTime offsetDateTime, bool json = false)
+        => json || offsetDateTime.Year > 0
+            ? OffsetDateTimePattern.ExtendedIso.Format(offsetDateTime)
+            : offsetDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFFFo<G>", CultureInfo.InvariantCulture) + " BC";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -129,6 +132,6 @@ public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
             => OffsetDateTimePattern.ExtendedIso.Parse(manager.CurrentReader.GetString()!).GetValueOrThrow();
 
         public override void ToJsonTyped(Utf8JsonWriter writer, OffsetDateTime value)
-            => writer.WriteStringValue(Format(value));
+            => writer.WriteStringValue(Format(value, json: true));
     }
 }
