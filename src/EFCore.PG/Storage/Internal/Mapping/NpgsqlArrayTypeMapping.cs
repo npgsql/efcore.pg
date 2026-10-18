@@ -145,6 +145,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
                 elementType.UnwrapNullableType() == typeof(object)
                     ? elementMapping.Comparer.ComposeConversion(elementType)!
                     : elementMapping.Comparer.ToNullableComparer(elementType)!);
+        comparer = comparer.ComposeConversion(typeof(TCollection));
 #pragma warning restore EF1001
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
@@ -184,7 +185,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
 
         return new RelationalTypeMappingParameters(
             new CoreTypeMappingParameters(
-                typeof(TCollection), converter, comparer, elementMapping: elementMapping,
+                typeof(TCollection), converter, comparer, keyComparer: comparer, elementMapping: elementMapping,
                 jsonValueReaderWriter: collectionJsonReaderWriter),
             storeType);
     }
