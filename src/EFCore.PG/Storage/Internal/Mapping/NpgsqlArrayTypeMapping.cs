@@ -131,21 +131,27 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
         }
 
 #pragma warning disable EF1001
-        var comparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
-            ? null // TODO: Value comparer for multidimensional arrays
-            : (ValueComparer?)Activator.CreateInstance(
-                elementType.IsNullableValueType()
-                    || (elementType.IsValueType && elementMapping.Comparer.Type.IsNullableValueType())
-                    ? typeof(ListOfNullableValueTypesComparer<,>)
-                        .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
-                    : elementType.IsValueType
-                        ? typeof(ListOfValueTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType)
-                        : typeof(ListOfReferenceTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType),
-                // ComposeConversion adapts a value comparer to object. Typed elements keep ToNullableComparer.
-                elementType.UnwrapNullableType() == typeof(object)
-                    ? elementMapping.Comparer.ComposeConversion(elementType)!
-                    : elementMapping.Comparer.ToNullableComparer(elementType)!);
-        comparer = comparer.ComposeConversion(typeof(TCollection));
+        var comparer = CreateComparer(elementMapping.Comparer);
+        var keyComparer = CreateComparer(elementMapping.KeyComparer);
+
+        ValueComparer? CreateComparer(ValueComparer elementComparer)
+        {
+            var collectionComparer = typeof(TCollection).IsArray && typeof(TCollection).GetArrayRank() > 1
+                ? null // TODO: Value comparer for multidimensional arrays
+                : (ValueComparer?)Activator.CreateInstance(
+                    elementType.IsNullableValueType()
+                        || (elementType.IsValueType && elementComparer.Type.IsNullableValueType())
+                        ? typeof(ListOfNullableValueTypesComparer<,>)
+                            .MakeGenericType(typeof(TConcreteCollection), elementType.UnwrapNullableType())
+                        : elementType.IsValueType
+                            ? typeof(ListOfValueTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType)
+                            : typeof(ListOfReferenceTypesComparer<,>).MakeGenericType(typeof(TConcreteCollection), elementType),
+                    // ComposeConversion adapts a value comparer to object. Typed elements keep ToNullableComparer.
+                    elementType.UnwrapNullableType() == typeof(object)
+                        ? elementComparer.ComposeConversion(elementType)!
+                        : elementComparer.ToNullableComparer(elementType)!);
+            return collectionComparer.ComposeConversion(typeof(TCollection));
+        }
 #pragma warning restore EF1001
 
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
@@ -185,7 +191,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
 
         return new RelationalTypeMappingParameters(
             new CoreTypeMappingParameters(
-                typeof(TCollection), converter, comparer, keyComparer: comparer, elementMapping: elementMapping,
+                typeof(TCollection), converter, comparer, keyComparer: keyComparer, elementMapping: elementMapping,
                 jsonValueReaderWriter: collectionJsonReaderWriter),
             storeType);
     }
