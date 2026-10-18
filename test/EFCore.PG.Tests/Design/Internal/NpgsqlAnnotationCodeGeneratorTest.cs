@@ -226,6 +226,7 @@ public class NpgsqlAnnotationCodeGeneratorTest
     {
         var generator = CreateGenerator();
         var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+        modelBuilder.UseHiLo("ModelHiLoIndexName", "ModelHiLoIndexSchema");
         modelBuilder.Entity("Post", x => x.Property<int>("Id").UseHiLo("HiLoIndexName", "HiLoIndexSchema"));
         var property = (IProperty)modelBuilder.Model.FindEntityType("Post").FindProperty("Id");
 
@@ -239,6 +240,31 @@ public class NpgsqlAnnotationCodeGeneratorTest
             result.Arguments,
             name => Assert.Equal("HiLoIndexName", name),
             schema => Assert.Equal("HiLoIndexSchema", schema));
+    }
+
+    [ConditionalTheory]
+    [InlineData(null, null)]
+    [InlineData("HiLoIndexName", null)]
+    [InlineData(null, "HiLoIndexSchema")]
+    [InlineData("HiLoIndexName", "HiLoIndexSchema")]
+    public void GenerateFluentApi_IProperty_works_with_inherited_HiLo(string name, string schema)
+    {
+        var generator = CreateGenerator();
+        var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+        modelBuilder.UseHiLo(name, schema);
+        modelBuilder.Entity("Post", x => x.Property<int>("Id"));
+        var property = modelBuilder.FinalizeModel().FindEntityType("Post").FindProperty("Id");
+
+        var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+        var result = generator.GenerateFluentApiCalls(property, annotations).Single();
+
+        Assert.Equal("UseHiLo", result.Method);
+        Assert.Equal("NpgsqlPropertyBuilderExtensions", result.DeclaringType);
+
+        object[] expectedArguments = schema is null
+            ? [name ?? NpgsqlModelExtensions.DefaultHiLoSequenceName]
+            : [name ?? NpgsqlModelExtensions.DefaultHiLoSequenceName, schema];
+        Assert.Equal(expectedArguments, result.Arguments);
     }
 
     #endregion Identity / sequence / HiLo
