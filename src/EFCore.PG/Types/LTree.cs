@@ -1,11 +1,16 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 // ReSharper disable once CheckNamespace
 
 namespace Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Represents a PostgreSQL ltree type. This type is implicitly convertible to a .NET <see cref="string" />.
+///     Serialized as a JSON string by <see cref="JsonSerializer" />.
 /// </summary>
 /// <remarks>See https://www.postgresql.org/docs/current/ltree.html</remarks>
+[JsonConverter(typeof(LTreeJsonConverter))]
 public readonly struct LTree : IEquatable<LTree>
 {
     private readonly string _value;
@@ -173,4 +178,18 @@ public readonly struct LTree : IEquatable<LTree>
     /// <inheritdocs />
     public override string ToString()
         => _value;
+
+    /// <summary>
+    ///     Converts <see cref="LTree" /> values to and from JSON strings.
+    /// </summary>
+    public sealed class LTreeJsonConverter : JsonConverter<LTree>
+    {
+        /// <inheritdoc />
+        public override LTree Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => new(reader.GetString()!);
+
+        /// <inheritdoc />
+        public override void Write(Utf8JsonWriter writer, LTree value, JsonSerializerOptions options)
+            => writer.WriteStringValue(value.ToString());
+    }
 }
