@@ -212,7 +212,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
     {
         var fragments = new List<MethodCallCodeFragment>(base.GenerateFluentApiCalls(model, annotations));
 
-        if (GenerateValueGenerationStrategy(annotations, onModel: true) is { } valueGenerationStrategy)
+        if (GenerateValueGenerationStrategy(annotations, model, onModel: true) is { } valueGenerationStrategy)
         {
             fragments.Add(valueGenerationStrategy);
         }
@@ -307,7 +307,7 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
     {
         var fragments = new List<MethodCallCodeFragment>(base.GenerateFluentApiCalls(property, annotations));
 
-        if (GenerateValueGenerationStrategy(annotations, onModel: false) is { } valueGenerationStrategy)
+        if (GenerateValueGenerationStrategy(annotations, property.DeclaringType.Model, onModel: false) is { } valueGenerationStrategy)
         {
             fragments.Add(valueGenerationStrategy);
         }
@@ -320,7 +320,10 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         return fragments;
     }
 
-    private MethodCallCodeFragment? GenerateValueGenerationStrategy(IDictionary<string, IAnnotation> annotations, bool onModel)
+    private MethodCallCodeFragment? GenerateValueGenerationStrategy(
+        IDictionary<string, IAnnotation> annotations,
+        IModel model,
+        bool onModel)
     {
         if (!TryGetAndRemove(annotations, NpgsqlAnnotationNames.ValueGenerationStrategy, out NpgsqlValueGenerationStrategy strategy))
         {
@@ -342,8 +345,10 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
 
             case NpgsqlValueGenerationStrategy.SequenceHiLo:
             {
-                var name = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceName)!;
-                var schema = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceSchema);
+                var name = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceName)
+                    ?? (onModel ? null : model.GetHiLoSequenceName());
+                var schema = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceSchema)
+                    ?? (onModel ? null : model.GetHiLoSequenceSchema());
                 return new MethodCallCodeFragment(
                     onModel ? ModelUseHiLoMethodInfo : PropertyUseHiLoMethodInfo,
                     (name, schema) switch
