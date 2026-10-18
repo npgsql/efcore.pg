@@ -142,6 +142,21 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
                 elementMapping.Comparer.ToNullableComparer(elementType)!);
 #pragma warning restore EF1001
 
+        if (comparer is not null)
+        {
+            var param1 = Expression.Parameter(typeof(TCollection), "v1");
+            var param2 = Expression.Parameter(typeof(TCollection), "v2");
+            var convertedParam1 = Expression.Convert(param1, comparer.Type);
+            var convertedParam2 = Expression.Convert(param2, comparer.Type);
+
+            comparer = new ValueComparer<TCollection>(
+                Expression.Lambda<Func<TCollection?, TCollection?, bool>>(
+                    comparer.ExtractEqualsBody(convertedParam1, convertedParam2), param1, param2),
+                Expression.Lambda<Func<TCollection, int>>(comparer.ExtractHashCodeBody(convertedParam1), param1),
+                Expression.Lambda<Func<TCollection, TCollection>>(
+                    Expression.Convert(comparer.ExtractSnapshotBody(convertedParam1), typeof(TCollection)), param1));
+        }
+
         var elementJsonReaderWriter = elementMapping.JsonValueReaderWriter;
         if (elementJsonReaderWriter is not null)
         {
@@ -171,7 +186,7 @@ public class NpgsqlArrayTypeMapping<TCollection, TConcreteCollection, TElement> 
 
         return new RelationalTypeMappingParameters(
             new CoreTypeMappingParameters(
-                typeof(TCollection), converter, comparer, elementMapping: elementMapping,
+                typeof(TCollection), converter, comparer, keyComparer: comparer, elementMapping: elementMapping,
                 jsonValueReaderWriter: collectionJsonReaderWriter),
             storeType);
     }
