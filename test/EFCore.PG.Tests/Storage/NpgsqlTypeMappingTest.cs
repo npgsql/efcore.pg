@@ -1066,6 +1066,21 @@ public class NpgsqlTypeMappingTest
     public void GenerateSqlLiteral_returns_json_string_literal()
         => Assert.Equal("""'{"a":1}'""", GetMapping("json").GenerateSqlLiteral("""{"a":1}"""));
 
+    [Theory]
+    [InlineData("json")]
+    [InlineData("jsonb")]
+    public void GenerateSqlLiteral_returns_json_byte_array_literal(string storeType)
+    {
+        var mapping = GetMapping(typeof(byte[]), storeType);
+
+        Assert.Equal("""'{"a":1}'""", mapping.GenerateSqlLiteral("""{"a":1}"""u8.ToArray()));
+        Assert.Equal(
+            "'{\"Name\":\"O''Reilly \u00e9\"}'",
+            mapping.GenerateSqlLiteral(Encoding.UTF8.GetBytes("{\"Name\":\"O'Reilly \u00e9\"}")));
+        Assert.Equal("'[1,2]'", mapping.GenerateSqlLiteral("[1,2]"u8.ToArray()));
+        Assert.Equal("'null'", mapping.GenerateSqlLiteral("null"u8.ToArray()));
+    }
+
     [Fact]
     public void GenerateSqlLiteral_returns_jsonb_object_literal()
     {
