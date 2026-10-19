@@ -34,6 +34,7 @@ array.Take(2)                                 | [array\[,2\]](https://www.postgr
 array.Skip(1).Take(2)                         | [array\[2,3\]](https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING)                                                     | Added in 8.0
 array1 == array2                              | [array1 = array2](https://www.postgresql.org/docs/current/static/arrays.html)                                                            |
 array1.SequenceEqual(array2)                  | [array1 = array2](https://www.postgresql.org/docs/current/static/arrays.html)                                                            |
+array1.Take(2).SequenceEqual(array2)          | [array1\[:2\] = array2](https://www.postgresql.org/docs/current/arrays.html#ARRAYS-ACCESSING)                                               | Added in 11.0; also supports Skip() and Skip().Take()
 arrayNonColumn.Contains(element)              | [element = ANY(arrayNonColumn)](https://www.postgresql.org/docs/current/static/functions-comparisons.html#AEN21104)                      | Can use regular index
 arrayColumn.Contains(element)                 | [arrayColumn @> ARRAY\[element\]](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-OPERATORS-TABLE)                    | Can use GIN index
 array.Append(element)                         | [array_append(array, element)](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)                       | Added in 6.0

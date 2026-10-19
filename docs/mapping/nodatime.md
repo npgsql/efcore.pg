@@ -82,9 +82,13 @@ var oldEvents = context.Events.Where(p => p.SomeDate.Year < 2000);
 
 Following is the list of supported NodaTime translations; If an operation you need is missing, please open an issue to request for it.
 
+Starting with version 11.0, `EF.Functions.DateTrunc()` supports `LocalDateTime`, `Instant`, `ZonedDateTime`, `Period` and `Duration`. Its optional time zone argument is only supported for `Instant` and `ZonedDateTime` mapped to `timestamp with time zone`; without that argument, PostgreSQL uses the session time zone for these values.
+
 .NET                                                                                   | SQL                                                                                                                                        | Notes
 -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -----------
 SystemClock.Instance.GetCurrentInstant()                                               | [now()](https://www.postgresql.org/docs/current/functions-datetime.html)                                                                   |
+EF.Functions.DateTrunc("month", value)                                                  | [date_trunc('month', value)](https://www.postgresql.org/docs/current/functions-datetime.html)                                               | Added in 11.0
+EF.Functions.DateTrunc("month", instant, "Europe/Berlin")                              | [date_trunc('month', instant, 'Europe/Berlin')](https://www.postgresql.org/docs/current/functions-datetime.html)                             | Added in 11.0
 LocalDateTime.Date                                                                     | [date_trunc('day', timestamp)](https://www.postgresql.org/docs/current/functions-datetime.html)                                            |
 LocalDateTime.Second (also LocalTime, ZonedDateTime)                                   | [date_part('second', timestamp)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                     |
 LocalDateTime.Minute (also LocalTime, ZonedDateTime)                                   | [date_part('minute', timestamp)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                     |

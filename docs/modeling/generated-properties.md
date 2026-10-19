@@ -27,6 +27,15 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.UseIdentityByDefaultColumns();
 ```
 
+Starting with version 11.0, you can disable the default PostgreSQL value generation strategy for the entire model:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.UseNoIdentityGeneration();
+```
+
+Explicitly configured property strategies are unaffected. This does not disable EF value generation or remove database defaults or computed expressions; use `ValueGeneratedNever()` to disable value generation for an individual property.
+
 ### Defining the strategy for a single property
 
 Regardless of the model default, you can define a value-generation strategy on a property-by-property basis:

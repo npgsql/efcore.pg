@@ -33,7 +33,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
         // Configure the temporal primary key
         b.HasKey(e => new { e.EmployeeId, e.ValidPeriod })
-            .HasWithoutOverlaps();
+            .WithoutOverlaps();
     });
 }
 ```
@@ -98,7 +98,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
             .HasDefaultValueSql("tstzrange(now(), 'infinity', '[)')");
 
         b.HasKey(e => new { e.EmployeeId, e.ValidPeriod })
-            .HasWithoutOverlaps();
+            .WithoutOverlaps();
     });
 
     modelBuilder.Entity<ProjectAssignment>(b =>
@@ -107,7 +107,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
             .WithMany()
             .HasForeignKey(e => new { e.EmployeeId, e.AssignmentPeriod })
             .HasPrincipalKey(e => new { e.EmployeeId, e.ValidPeriod })
-            .HasPeriod();
+            .WithPeriod();
     });
 }
 ```
@@ -132,6 +132,16 @@ VALUES (1, 'Website Redesign', tstzrange('2024-03-01', '2024-06-01', '[)'));
 INSERT INTO project_assignments (employee_id, project_name, assignment_period)
 VALUES (1, 'Legacy Project', tstzrange('2022-01-01', '2022-06-01', '[)'));
 ```
+
+## NodaTime ranges
+
+With the [NodaTime plugin](../mapping/nodatime.md) enabled, temporal constraints also support `Interval` (mapped to `tstzrange`) and `DateInterval` (mapped to `daterange`). For example, the employee's validity period can be declared as:
+
+```csharp
+public Interval ValidPeriod { get; set; }
+```
+
+Configure the key with `.WithoutOverlaps()` and the foreign key with `.WithPeriod()` as above; both sides of the relationship must use compatible range mappings. The range property must be last in both keys.
 
 ## Querying temporal data
 

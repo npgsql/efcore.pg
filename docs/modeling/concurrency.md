@@ -46,3 +46,9 @@ public class SomeEntity
 ```
 
 ***
+
+## Database concurrency failures
+
+Starting with version 11.0, PostgreSQL serialization failures (`40001`) and deadlocks (`40P01`) during `SaveChanges()` or `SaveChangesAsync()` are reported as `DbUpdateConcurrencyException`, with the original `PostgresException` as the inner exception. This also covers failures during the automatic transaction commit performed by `SaveChanges`. An explicit application call to commit a transaction is not covered by this conversion.
+
+As with other concurrency failures, the application must decide whether and how to retry the operation. See the [EF Core concurrency documentation](https://learn.microsoft.com/ef/core/saving/concurrency#resolving-concurrency-conflicts) and [execution strategies](../misc/other.md#execution-strategy).
