@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using DotNet.Testcontainers.Images;
 using Microsoft.Extensions.Configuration;
 using Testcontainers.PostgreSql;
 
@@ -34,7 +35,7 @@ public static class TestEnvironment
         {
             Console.WriteLine("No connection string configured via Test:Npgsql:DefaultConnection, starting up testcontainer...");
 
-            _postgreSqlContainer = new PostgreSqlBuilder("postgres:latest")
+            _postgreSqlContainer = new PostgreSqlBuilder(new DockerImage("postgis/postgis:18-3.6", new Platform("linux/amd64")))
                 .WithCommand("-c", "max_connections=200")
                 .Build();
             _postgreSqlContainer.StartAsync().GetAwaiter().GetResult();

@@ -4,6 +4,10 @@ This is the PostgreSQL provider for [Entity Framework Core](https://github.com/d
 
 ## Build and Test
 
+Use the SDK pinned in `global.json` and dependency versions centralized in `Directory.Packages.props`. Consult EF APIs and test bases matching the pinned version; do not upgrade dependencies just to make a change compile.
+
+Tests use Microsoft.Testing.Platform; select projects with `--project` and use its native filters:
+
 ```bash
 # Build
 dotnet build
@@ -12,25 +16,31 @@ dotnet build
 dotnet test
 
 # Run a specific test project
-dotnet test test/EFCore.PG.FunctionalTests
-dotnet test test/EFCore.PG.Tests
+dotnet test --project test/EFCore.PG.FunctionalTests
+dotnet test --project test/EFCore.PG.Tests
 
 # Run a single test class
-dotnet test test/EFCore.PG.FunctionalTests --filter FullyQualifiedName~NorthwindSelectQueryNpgsqlTest
+dotnet test --project test/EFCore.PG.FunctionalTests --filter-class '*GuidTranslationsNpgsqlTest'
 
 # Run a single test method
-dotnet test test/EFCore.PG.FunctionalTests --filter "FullyQualifiedName~NorthwindSelectQueryNpgsqlTest.Select_bool_closure"
+dotnet test --project test/EFCore.PG.FunctionalTests --filter-method '*GuidTranslationsNpgsqlTest.ToString_projection'
 ```
 
 ### Test Database
 
-Tests auto-start a PostgreSQL testcontainer if no connection string is configured. To use an existing PostgreSQL instance, set the environment variable:
+Prefer the automatic, isolated PostgreSQL instance provided by Testcontainers for .NET. With a Docker-compatible container runtime running, tests start their own container when no connection string is configured. Each test process gets its own PostgreSQL instance, allowing multiple sessions to test concurrently without interfering with one another.
+
+For normal test runs, leave `Test__Npgsql__DefaultConnection` unset and do not configure `Test:Npgsql:DefaultConnection` in `config.json` or `config.test.json`. Do not start or reuse a shared local PostgreSQL instance by default.
+
+In the Copilot cloud agent, retain the job-isolated PostGIS service and exported connection string provided by `.github/workflows/copilot-setup-steps.yml`.
+
+Only when an existing PostgreSQL instance is specifically needed, set the environment variable:
 
 ```bash
 export Test__Npgsql__DefaultConnection="Server=localhost;Username=npgsql_tests;Password=npgsql_tests"
 ```
 
-Some tests require PostGIS. Set `NPGSQL_TEST_POSTGIS=true` to enforce PostGIS availability (tests fail instead of skip if PostGIS is missing).
+The default container uses `postgis/postgis` and includes PostGIS for spatial tests. It runs as `linux/amd64`, using emulation on ARM64 hosts such as Apple Silicon. When using an existing PostgreSQL instance, ensure PostGIS is installed if running spatial tests. Set `NPGSQL_TEST_POSTGIS=true` to enforce PostGIS availability (tests fail instead of skip if PostGIS is missing).
 
 ## Architecture
 
@@ -61,21 +71,30 @@ NodaTime and NTS plugins hook into the main provider via EF Core's plugin interf
 
 ## Test Patterns
 
+Query tests should assert both results (typically via `AssertQuery`) and exact generated SQL (`AssertSql`). Follow the suite's sync/async patterns and cover constants, parameters, and null semantics where relevant to the change.
+
+### Choosing Where to Add Tests
+
+- First look for an existing, focused test suite with a robust, shared model. For query translation tests, prefer the suites under `test/EFCore.PG.FunctionalTests/Query/Translations/`, which are organized around specific types, operators, and features.
+- Avoid adding new tests to broad legacy suites such as Northwind and GearsOfWar; their models and tests are generally messy and not focused on a specific area.
+- Where practical, extend a fixture's shared model with features that can support multiple tests rather than introducing a one-off model. Fixtures inherited from upstream EF Core are often difficult or impossible to extend, so do not force this approach when it is impractical.
+- Suites with `AdHoc` or `NonShared` in their names are generally for issues requiring a very specific model. Use them only as a last resort, after trying to cover the scenario in an existing shared-model suite.
+
 ### Inherited Specification Tests
 
 Most functional tests inherit from EF Core base test classes and override methods to add PostgreSQL-specific SQL assertions:
 
 ```csharp
-public class NorthwindSelectQueryNpgsqlTest : NorthwindSelectQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+public class GuidTranslationsNpgsqlTest : GuidTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
 {
-    public override async Task Select_bool_closure(bool async)
+    public override async Task ToString_projection()
     {
-        await base.Select_bool_closure(async);
+        await base.ToString_projection();
 
         AssertSql(
             """
-SELECT c."CustomerID", c."Address", ...
-FROM "Customers" AS c
+SELECT b."Guid"::text
+FROM "BasicTypesEntities" AS b
 """);
     }
 }
@@ -83,7 +102,7 @@ FROM "Customers" AS c
 
 * All inherited query tests systematically override all methods in the EF-provided base class, in order to call `AssertSql()` to assert on the exact generated SQL. Always do this when e.g. inheriting a new EF functional test class.
 * Such test overrides must be placed in the same position in the file as its base test method in EF, to maintain consistency between EF and EFCore.PG. To do that, check the source for the base test class in the EF repo (https://github.com/dotnet/efcore); note that you may need to consult a specific commit in the EF repo that corresponds to what EFCore.PG is referencing.
-* EF query test contains a built-in ability to rewrite the SQL inside `AssertSql()` calls to whatever the provider currently emits; to trigger this, set the `EF_TEST_REWRITE_BASELINES` env var to `1` and run any test(s) - this will modify the source code. You can then inspect the change to confirm that it makes sense, etc.
+* To regenerate SQL baselines, run only the affected tests with `EF_TEST_REWRITE_BASELINES=1`. Review the rewritten SQL for correctness, then rerun without the variable.
 
 ### Conditional Execution
 

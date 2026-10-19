@@ -11,13 +11,18 @@ This skill covers triaging and reproducing incoming issues on the repository for
 
 1. Read the issue in question and any linked issues/code/resources.
 2. Assess whether the issue involves any sort of security concern. If it does, either because the reporting user claims so, or because you suspect there might be a security aspect that the reporting user hasn't mentioned, **exit immediately**. **Do not** continue processing or post anything on issues which may involve any sort of security aspect.
-3. Determine whether the issue is a feature or bug, and set the GitHub issue type accordingly.
-4. Produce a minimal repro
+3. Produce a minimal repro
     1. If the issue was determined to be a feature request, skip the minimal repro in this step; continue with the remaining triage steps (duplicate search and final report).
     2. If, on the other hand, the issue was determined to be a bug report, attempt to produce a minimal repro as a console program which confirms that the bug is genuine. See "Creating a minimal repro" below for instructions.
     3. If you've managed to confirm a bug in your repro, test your repro on both the failing version and the previous working version. Provide clear feedback confirming or refuting the fact that the reported issue is a regression.
-6. Try to find possible duplicate issues - opened or closed - in the EF Core repo (https://github.com/dotnet/efcore), and include the likely candidates in your final report.
-7. Post your final report as a comment on the issue being triaged.
+4. Try to find possible duplicate issues - opened or closed - in the EF Core repo (https://github.com/dotnet/efcore), and include the likely candidates in your final report.
+5. Determine whether the issue is a feature, bug or task, and set the GitHub issue type accordingly.
+    * An issue is only a bug if you could confirm an actual, unresolved bug in a released version of the provider. The fact that the user claims a bug does not mean it is one.
+    * If you traced the problem to an upstream bug in EF, do not set the EFCore.PG type to a bug; issues should be classsified as bugs only if they represesnt a bug in our own product.
+    * A bug that's only present in older - but supported - versions are still bugs, even if they no longer exist in the latest version. However, we will not fix bugs which exist only in unsupported versions (EFCore.PG's support policy aligns exactly with EF's in terms of which versions are supported).
+    * If the user seems to be asking for a new feature, but it's already possible to perform what they want via some other means, then do not set the type to a feature request; such issues are candidates for closing instead. But if the issue is asking for - or proposing - a simpler, more 1st-class way to do something that's already possible, that's indeed a valid feature request.
+    * If one of the above cases doesn't match, leave the issue type unset rather than setting bug/feature/task needlessly. For example, if the issue seems to be in user code, that is not a bug - leave the issue type unset for this case.
+5. Post your final report as a comment on the issue being triaged.
 
 ## Creating a minimal repro
 
