@@ -277,11 +277,11 @@ WHERE c."CompanyName" ~ '(?px)^ A'
     {
         await AssertQuery(
             async,
-            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B")));
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "a", "B")));
 
         AssertSql(
             """
-SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
+SELECT regexp_replace(c."CompanyName", 'a', 'B', 'pg')
 FROM "Customers" AS c
 """
         );
@@ -291,7 +291,7 @@ FROM "Customers" AS c
     [MemberData(nameof(IsAsyncData))]
     public async Task Regex_Replace_with_parameter_pattern_and_replacement(bool async)
     {
-        var pattern = "^A";
+        var pattern = "a";
         var replacement = "B";
 
         await AssertQuery(
@@ -300,10 +300,10 @@ FROM "Customers" AS c
 
         AssertSql(
             """
-@pattern='^A'
+@pattern='a'
 @replacement='B'
 
-SELECT regexp_replace(c."CompanyName", @pattern, @replacement, 'p')
+SELECT regexp_replace(c."CompanyName", @pattern, @replacement, 'pg')
 FROM "Customers" AS c
 """);
     }
@@ -314,11 +314,11 @@ FROM "Customers" AS c
     {
         await AssertQuery(
             async,
-            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.None)));
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "a", "B", RegexOptions.None)));
 
         AssertSql(
             """
-SELECT regexp_replace(c."CompanyName", '^A', 'B', 'p')
+SELECT regexp_replace(c."CompanyName", 'a', 'B', 'pg')
 FROM "Customers" AS c
 """
         );
@@ -330,11 +330,11 @@ FROM "Customers" AS c
     {
         await AssertQuery(
             async,
-            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.IgnoreCase)));
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "a", "B", RegexOptions.IgnoreCase)));
 
         AssertSql(
             """
-SELECT regexp_replace(c."CompanyName", '^a', 'B', 'pi')
+SELECT regexp_replace(c."CompanyName", 'a', 'B', 'pig')
 FROM "Customers" AS c
 """
         );
@@ -346,11 +346,11 @@ FROM "Customers" AS c
     {
         await AssertQuery(
             async,
-            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.Multiline)));
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "a", "B", RegexOptions.Multiline)));
 
         AssertSql(
             """
-SELECT regexp_replace(c."CompanyName", '^A', 'B', 'n')
+SELECT regexp_replace(c."CompanyName", 'a', 'B', 'ng')
 FROM "Customers" AS c
 """
         );
@@ -362,11 +362,11 @@ FROM "Customers" AS c
     {
         await AssertQuery(
             async,
-            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^A", "B", RegexOptions.Singleline)));
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "a", "B", RegexOptions.Singleline)));
 
         AssertSql(
             """
-SELECT regexp_replace(c."CompanyName", '^A', 'B')
+SELECT regexp_replace(c."CompanyName", 'a', 'B', 'g')
 FROM "Customers" AS c
 """
         );
@@ -379,11 +379,11 @@ FROM "Customers" AS c
         await AssertQuery(
             async,
             source => source.Set<Customer>()
-                .Select(x => Regex.Replace(x.CompanyName, "^a", "B", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
+                .Select(x => Regex.Replace(x.CompanyName, "a", "B", RegexOptions.Singleline | RegexOptions.IgnoreCase)));
 
         AssertSql(
             """
-SELECT regexp_replace(c."CompanyName", '^a', 'B', 'i')
+SELECT regexp_replace(c."CompanyName", 'a', 'B', 'ig')
 FROM "Customers" AS c
 """
         );
@@ -395,11 +395,11 @@ FROM "Customers" AS c
     {
         await AssertQuery(
             async,
-            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, "^ A", "B", RegexOptions.IgnorePatternWhitespace)));
+            source => source.Set<Customer>().Select(x => Regex.Replace(x.CompanyName, " a", "B", RegexOptions.IgnorePatternWhitespace)));
 
         AssertSql(
             """
-SELECT regexp_replace(c."CompanyName", '^ A', 'B', 'px')
+SELECT regexp_replace(c."CompanyName", ' a', 'B', 'pxg')
 FROM "Customers" AS c
 """
         );
