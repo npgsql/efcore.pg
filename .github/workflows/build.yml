@@ -15,7 +15,6 @@ permissions:
   id-token: write # required for GitHub OIDC
 
 env:
-  postgis_version: 3
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
@@ -26,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-26.04]
-        pg_major: [18, 17, 16, 15, 14, 13]
+        pg_major: [18, 17, 16, 15, 14]
         config: [Release]
         include:
           - os: windows-2022
@@ -50,32 +49,24 @@ jobs:
     env:
       NPGSQL_TEST_POSTGIS: ${{ !startsWith(matrix.os, 'windows') }}
 
+    services:
+      postgres:
+        image: ${{ startsWith(matrix.os, 'ubuntu') && format('postgis/postgis:{0}-3.6', matrix.pg_major) || '' }}
+        command: postgres -c max_connections=200
+        env:
+          POSTGRES_USER: npgsql_tests
+          POSTGRES_PASSWORD: npgsql_tests
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready --host localhost --username npgsql_tests"
+          --health-interval 1s
+          --health-timeout 5s
+          --health-retries 60
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
-        id: setup-postgresql-linux
-        if: startsWith(matrix.os, 'ubuntu')
-        background: true
-        run: |
-          # First uninstall any PostgreSQL installed on the image
-          dpkg-query -W --showformat='${Package}\n' 'postgresql-*' | xargs sudo dpkg -P postgresql
-
-          # Automated repository configuration
-          sudo apt install -y postgresql-common
-          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -v ${{ matrix.pg_major }} -y
-          sudo apt-get update -qq
-          sudo apt-get install -qq postgresql-${{ matrix.pg_major  }}
-
-          # To disable PostGIS for prereleases (because it usually isn't available until late), surround with the following:
-          #if [ -z "${{ matrix.pg_prerelease }}" ]; then
-            sudo apt-get install -qq postgresql-${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
-          #fi
-
-          sudo sed -i 's/max_connections = 100/max_connections = 200/g' /etc/postgresql/${{ matrix.pg_major }}/main/postgresql.conf
-          sudo systemctl restart postgresql
-          sudo -u postgres psql -c "CREATE USER npgsql_tests SUPERUSER PASSWORD 'npgsql_tests'"
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
         id: setup-postgresql-windows
@@ -125,7 +116,7 @@ jobs:
         shell: bash
         env:
           # Disable SSL to avoid unnecessary handshake pressure in the Windows functional tests.
-          Test__Npgsql__DefaultConnection: Server=localhost;Username=npgsql_tests;Password=npgsql_tests;SSL Mode=Disable
+          Test__Npgsql__DefaultConnection: Server=localhost;Port=${{ job.services.postgres.ports[5432] || 5432 }};Username=npgsql_tests;Password=npgsql_tests;SSL Mode=Disable
 
       - id: analyze_tag
         name: Analyze tag
