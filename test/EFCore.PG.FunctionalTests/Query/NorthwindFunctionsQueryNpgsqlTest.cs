@@ -701,6 +701,30 @@ GROUP BY c."City"
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData("jsonb")]
+    [InlineData("json")]
+    public virtual async Task GroupBy_Json_aggregate_over_byte_values(string storeType)
+    {
+        await using var context = CreateContext();
+
+        var groups = context.Set<Employee>().Where(e => e.EmployeeID <= 2).GroupBy(e => e.Country);
+        var values = storeType == "jsonb"
+            ? await groups.Select(g => EF.Functions.JsonbAgg(g.Select(e => (byte)e.EmployeeID).OrderBy(v => v))).SingleAsync()
+            : await groups.Select(g => EF.Functions.JsonAgg(g.Select(e => (byte)e.EmployeeID).OrderBy(v => v))).SingleAsync();
+
+        Assert.Equal(new byte[] { 1, 2 }, values);
+
+        AssertSql(
+            $"""
+SELECT {storeType}_agg(e."EmployeeID"::smallint ORDER BY e."EmployeeID"::smallint NULLS FIRST)
+FROM "Employees" AS e
+WHERE e."EmployeeID" <= 2
+GROUP BY e."Country"
+LIMIT 2
+""");
+    }
+
     #endregion Aggregate functions
 
     #region JsonObjectAgg
