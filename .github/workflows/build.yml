@@ -34,24 +34,25 @@ jobs:
           - os: ubuntu-26.04
             pg_major: 18
             config: Debug
-#          - os: ubuntu-26.04
-#            pg_major: 19
-#            config: Debug
-#            pg_prerelease: 'PG Prerelease'
+          - os: ubuntu-26.04
+            pg_major: 19
+            config: Debug
+            pg_prerelease: rc1
 
     outputs:
       is_release: ${{ steps.analyze_tag.outputs.is_release }}
       is_prerelease: ${{ steps.analyze_tag.outputs.is_prerelease }}
 
     # Installing PostGIS on Windows is complicated/unreliable, so we don't test on it.
+    # PostGIS geography queries currently crash PostgreSQL 19 RC1.
     # The NPGSQL_TEST_POSTGIS environment variable ensures that if PostGIS isn't installed,
     # the PostGIS tests fail and therefore fail the build.
     env:
-      NPGSQL_TEST_POSTGIS: ${{ !startsWith(matrix.os, 'windows') }}
+      NPGSQL_TEST_POSTGIS: ${{ !startsWith(matrix.os, 'windows') && !matrix.pg_prerelease }}
 
     services:
       postgres:
-        image: ${{ startsWith(matrix.os, 'ubuntu') && format('postgis/postgis:{0}-3.6', matrix.pg_major) || '' }}
+        image: ${{ startsWith(matrix.os, 'ubuntu') && (matrix.pg_prerelease && format('postgres:{0}{1}', matrix.pg_major, matrix.pg_prerelease) || format('postgis/postgis:{0}-3.6', matrix.pg_major)) || '' }}
         command: postgres -c max_connections=200
         env:
           POSTGRES_USER: npgsql_tests
