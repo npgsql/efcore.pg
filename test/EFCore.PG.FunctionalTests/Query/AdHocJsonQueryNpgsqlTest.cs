@@ -118,6 +118,41 @@ LIMIT 2
                 .SingleAsync());
     }
 
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
+    public virtual async Task Byte_array_mapped_to_json_column_in_predicate(bool async)
+    {
+        var json = """{"Foo":"O'Reilly"}"""u8.ToArray();
+        var contextFactory = await InitializeNonSharedTest<ByteArrayJsonDbContext>(
+            onModelCreating: mb => mb.Entity<ByteArrayJsonEntity>().Property(e => e.Json).HasColumnType("jsonb"),
+            seed: async context =>
+            {
+                context.Entities.AddRange(
+                    new ByteArrayJsonEntity { Id = 1, Json = json },
+                    new ByteArrayJsonEntity { Id = 2, Json = """{"Foo":"Bar"}"""u8.ToArray() });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+
+        var parameterQuery = context.Entities.Where(e => e.Json == json);
+        var parameterResult = async ? await parameterQuery.SingleAsync() : parameterQuery.Single();
+        Assert.Equal(1, parameterResult.Id);
+
+        ((TestSqlLoggerFactory)ListLoggerFactory).Clear();
+
+        var constantQuery = context.Entities.Where(e => e.Json == EF.Constant(json));
+        var constantResult = async ? await constantQuery.SingleAsync() : constantQuery.Single();
+        Assert.Equal(1, constantResult.Id);
+
+        AssertSql(
+            """
+SELECT e."Id", e."Json"
+FROM "Entities" AS e
+WHERE e."Json" = '{"Foo":"O''Reilly"}'
+LIMIT 2
+""");
+    }
+
     [ConditionalTheory]
     [InlineData("jsonb")]
     [InlineData("json")]
