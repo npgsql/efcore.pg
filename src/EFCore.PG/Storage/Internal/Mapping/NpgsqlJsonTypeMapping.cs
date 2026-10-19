@@ -100,6 +100,8 @@ public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
             }
             case string s:
                 return $"'{EscapeSqlLiteral(s)}'";
+            case byte[] bytes:
+                return $"'{EscapeSqlLiteral(Encoding.UTF8.GetString(bytes))}'";
             default: // User POCO
                 return $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
         }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text;
 using System.Text.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -88,6 +89,33 @@ LIMIT 1
 SELECT j."Id", j."CustomerJson", j."CustomerJsonb", j."SomeString"
 FROM "JsonEntities" AS j
 WHERE j."CustomerJsonb" = @__expected_0
+LIMIT 2
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Byte_array_mapped_to_json_column_in_predicate(bool async)
+    {
+        using var ctx = CreateContext();
+
+        var json = Encoding.UTF8.GetBytes("""{"Foo":"O'Reilly"}""");
+        var parameterQuery = ctx.JsonByteArrayEntities.Where(e => e.Json == json);
+        var parameterResult = async ? await parameterQuery.SingleAsync() : parameterQuery.Single();
+        Assert.Equal(1, parameterResult.Id);
+
+        Fixture.TestSqlLoggerFactory.Clear();
+
+        var constantQuery = ctx.JsonByteArrayEntities.Where(e => e.Json == EF.Constant(json));
+        var constantResult = async ? await constantQuery.SingleAsync() : constantQuery.Single();
+        Assert.Equal(1, constantResult.Id);
+
+        AssertSql(
+            """
+SELECT j."Id", j."Json"
+FROM "JsonByteArrayEntities" AS j
+WHERE j."Json" = '{"Foo":"O''Reilly"}'
 LIMIT 2
 """);
     }
@@ -251,6 +279,8 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
     {
         public DbSet<JsonEntity> JsonEntities { get; set; }
 
+        public DbSet<JsonByteArrayEntity> JsonByteArrayEntities { get; set; }
+
         public JsonStringQueryContext(DbContextOptions options)
             : base(options)
         {
@@ -336,6 +366,9 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
                     CustomerJsonb = array,
                     CustomerJson = array
                 });
+            context.JsonByteArrayEntities.AddRange(
+                new JsonByteArrayEntity { Id = 1, Json = """{"Foo":"O'Reilly"}"""u8.ToArray() },
+                new JsonByteArrayEntity { Id = 2, Json = """{"Foo":"Bar"}"""u8.ToArray() });
             context.SaveChanges();
         }
     }
@@ -351,6 +384,14 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
         public string CustomerJson { get; set; }
 
         public string SomeString { get; set; }
+    }
+
+    public class JsonByteArrayEntity
+    {
+        public int Id { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public byte[] Json { get; set; }
     }
 
     public class JsonStringQueryFixture : SharedStoreFixtureBase<JsonStringQueryContext>
