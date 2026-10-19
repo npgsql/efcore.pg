@@ -114,13 +114,9 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
         [
             _sqlExpressionFactory.ApplyDefaultTypeMapping(input),
             _sqlExpressionFactory.ApplyDefaultTypeMapping(pattern),
-            _sqlExpressionFactory.ApplyDefaultTypeMapping(replacement)
+            _sqlExpressionFactory.ApplyDefaultTypeMapping(replacement),
+            _sqlExpressionFactory.Constant(TranslateOptions(regexOptions) + "g")
         ];
-
-        if (TranslateOptions(regexOptions) is { Length: not 0 } translatedOptions)
-        {
-            passingArguments.Add(_sqlExpressionFactory.Constant(translatedOptions));
-        }
 
         return _sqlExpressionFactory.Function(
             "regexp_replace",
