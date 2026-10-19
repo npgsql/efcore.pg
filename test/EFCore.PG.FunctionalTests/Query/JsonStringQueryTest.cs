@@ -92,6 +92,33 @@ LIMIT 2
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Byte_array_mapped_to_json_column_in_predicate(bool async)
+    {
+        await using var ctx = CreateContext();
+        var json = """{"Foo":"O'Reilly"}"""u8.ToArray();
+
+        var parameterQuery = ctx.ByteArrayJsonEntities.Where(e => e.Jsonb == json);
+        var parameterResult = async ? await parameterQuery.SingleAsync() : parameterQuery.Single();
+        Assert.Equal(1, parameterResult.Id);
+
+        Fixture.TestSqlLoggerFactory.Clear();
+
+        var constantQuery = ctx.ByteArrayJsonEntities.Where(e => e.Jsonb == EF.Constant(json));
+        var constantResult = async ? await constantQuery.SingleAsync() : constantQuery.Single();
+        Assert.Equal(1, constantResult.Id);
+
+        AssertSql(
+            """
+SELECT b."Id", b."Jsonb"
+FROM "ByteArrayJsonEntities" AS b
+WHERE b."Jsonb" = '{"Foo":"O''Reilly"}'
+LIMIT 2
+""");
+    }
+
     #region Functions
 
     [Fact]
@@ -254,6 +281,7 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
     public class JsonStringQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<JsonEntity> JsonEntities { get; set; }
+        public DbSet<ByteArrayJsonEntity> ByteArrayJsonEntities { get; set; }
 
         public static async Task SeedAsync(JsonStringQueryContext context)
         {
@@ -340,6 +368,10 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
                     CustomerJson = array
                 });
 
+            context.ByteArrayJsonEntities.AddRange(
+                new ByteArrayJsonEntity { Id = 1, Jsonb = """{"Foo":"O'Reilly"}"""u8.ToArray() },
+                new ByteArrayJsonEntity { Id = 2, Jsonb = """{"Foo":"Bar"}"""u8.ToArray() });
+
             await context.SaveChangesAsync();
         }
     }
@@ -355,6 +387,14 @@ WHERE j."CustomerJsonb" ?& ARRAY['foo','Age']::text[]
         public string CustomerJson { get; set; }
 
         public string SomeString { get; set; }
+    }
+
+    public class ByteArrayJsonEntity
+    {
+        public int Id { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        public byte[] Jsonb { get; set; }
     }
 
     public class JsonStringQueryFixture : SharedStoreFixtureBase<JsonStringQueryContext>
