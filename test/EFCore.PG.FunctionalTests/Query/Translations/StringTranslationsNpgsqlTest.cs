@@ -115,6 +115,75 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
+    [ConditionalFact]
+    public async Task ToString_on_string()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(b => b.String.ToString() == "Seattle").Select(b => b.String));
+
+        AssertSql(
+            """
+SELECT b."String"
+FROM "BasicTypesEntities" AS b
+WHERE b."String" = 'Seattle'
+""");
+    }
+
+    [ConditionalFact]
+    public async Task ToString_on_nullable_string()
+    {
+        await AssertQuery(
+            ss => ss.Set<NullableBasicTypesEntity>().Where(b => b.String!.ToString() == null).Select(b => b.Id),
+            ss => ss.Set<NullableBasicTypesEntity>().Where(b => b.String == null).Select(b => b.Id));
+
+        AssertSql(
+            """
+SELECT n."Id"
+FROM "NullableBasicTypesEntities" AS n
+WHERE n."String" IS NULL
+""");
+    }
+
+    [ConditionalFact]
+    public async Task ToString_on_object_typed_string_grouping_key_order_by()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>()
+                .Where(b => b.String == "Seattle" || b.String == "Berlin")
+                .GroupBy(b => (object)b.String)
+                .Select(g => new { Key = g.Key.ToString(), Count = g.Count() })
+                .OrderBy(g => g.Key),
+            assertOrder: true);
+
+        AssertSql(
+            """
+SELECT b."String", count(*)::int
+FROM "BasicTypesEntities" AS b
+WHERE b."String" IN ('Seattle', 'Berlin')
+GROUP BY b."String"
+ORDER BY b."String" NULLS FIRST
+""");
+    }
+
+    [ConditionalFact]
+    public async Task ToString_on_object_typed_string_grouping_key_where()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>()
+                .GroupBy(b => (object)b.String)
+                .Select(g => new { Key = g.Key.ToString(), Count = g.Count() })
+                .Where(g => g.Key == "Seattle"),
+            elementSorter: g => g.Key);
+
+        AssertSql(
+            """
+SELECT b."String", count(*)::int
+FROM "BasicTypesEntities" AS b
+GROUP BY b."String"
+HAVING b."String" = 'Seattle'
+""");
+    }
+
     #endregion Miscellaneous
 
     #region IndexOf
