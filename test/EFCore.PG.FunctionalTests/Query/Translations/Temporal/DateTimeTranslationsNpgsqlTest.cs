@@ -83,6 +83,112 @@ WHERE date_part('year', (b."DateTime" + INTERVAL '1 years') AT TIME ZONE 'UTC'):
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Add_subsecond_constants()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().OrderBy(b => b.Id).Select(b => new
+            {
+                Milliseconds = b.DateTime.AddMilliseconds(1.5),
+                NegativeMilliseconds = b.DateTime.AddMilliseconds(-0.125),
+                Microseconds = b.DateTime.AddMicroseconds(1500),
+                NegativeMicroseconds = b.DateTime.AddMicroseconds(-1)
+            }),
+            assertOrder: true);
+
+        AssertSql(
+            """
+SELECT b."DateTime" + INTERVAL '1.5 milliseconds' AS "Milliseconds", b."DateTime" + INTERVAL '-0.125 milliseconds' AS "NegativeMilliseconds", b."DateTime" + INTERVAL '1500 microseconds' AS "Microseconds", b."DateTime" + INTERVAL '-1 microseconds' AS "NegativeMicroseconds"
+FROM "BasicTypesEntities" AS b
+ORDER BY b."Id" NULLS FIRST
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(-1.5)]
+    [InlineData(0)]
+    [InlineData(1.5)]
+    public virtual async Task Add_subsecond_parameters(double value)
+    {
+        var microseconds = value * 1000;
+
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(b => b.DateTime.AddMilliseconds(value) == b.DateTime.AddMicroseconds(microseconds)));
+
+        AssertSql(
+            $"""
+@value='{value}'
+@microseconds='{microseconds}'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."DateTime" + CAST((@value::text || ' milliseconds') AS interval) = b."DateTime" + CAST((@microseconds::text || ' microseconds') AS interval)
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(-1, null)]
+    [InlineData(0, 0)]
+    [InlineData(1, 8)]
+    [InlineData(4, -9)]
+    public virtual async Task Add_subsecond_with_nullable_argument(int id, int? value)
+    {
+        await using var context = Fixture.CreateContext();
+        var date = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var result = await context.Set<NullableBasicTypesEntity>()
+            .Where(b => b.Id == id)
+            .Select(b => new
+            {
+                Milliseconds = (DateTime?)date.AddMilliseconds(b.Int!.Value),
+                Microseconds = (DateTime?)date.AddMicroseconds(b.Int!.Value)
+            })
+            .SingleAsync();
+
+        Assert.Equal(value.HasValue ? date.AddMilliseconds(value.Value) : (DateTime?)null, result.Milliseconds);
+        Assert.Equal(value.HasValue ? date.AddMicroseconds(value.Value) : (DateTime?)null, result.Microseconds);
+
+        AssertSql(
+            $"""
+@date='2000-01-01T00:00:00.0000000Z' (DbType = DateTime)
+@id='{id}'
+
+SELECT @date + CAST((n."Int"::double precision::text || ' milliseconds') AS interval) AS "Milliseconds", @date + CAST((n."Int"::double precision::text || ' microseconds') AS interval) AS "Microseconds"
+FROM "NullableBasicTypesEntities" AS n
+WHERE n."Id" = @id
+LIMIT 2
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Add_subsecond_rounds_to_microsecond_precision()
+    {
+        // PostgreSQL rounds intervals to microseconds rather than preserving .NET's 100ns ticks.
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().OrderBy(b => b.Id).Select(b => new
+            {
+                Milliseconds = b.DateTime.AddMilliseconds(0.00075),
+                NegativeMilliseconds = b.DateTime.AddMilliseconds(-0.00025),
+                Microseconds = b.DateTime.AddMicroseconds(0.25),
+                NegativeMicroseconds = b.DateTime.AddMicroseconds(-0.75)
+            }),
+            expectedQuery: ss => ss.Set<BasicTypesEntity>().OrderBy(b => b.Id).Select(b => new
+            {
+                Milliseconds = b.DateTime.AddMicroseconds(1),
+                NegativeMilliseconds = b.DateTime,
+                Microseconds = b.DateTime,
+                NegativeMicroseconds = b.DateTime.AddMicroseconds(-1)
+            }),
+            assertOrder: true);
+
+        AssertSql(
+            """
+SELECT b."DateTime" + INTERVAL '0.00075 milliseconds' AS "Milliseconds", b."DateTime" + INTERVAL '-0.00025 milliseconds' AS "NegativeMilliseconds", b."DateTime" + INTERVAL '0.25 microseconds' AS "Microseconds", b."DateTime" + INTERVAL '-0.75 microseconds' AS "NegativeMicroseconds"
+FROM "BasicTypesEntities" AS b
+ORDER BY b."Id" NULLS FIRST
+""");
+    }
+
     [ConditionalTheory]
     [InlineData(-1, null)]
     [InlineData(0, 0)]

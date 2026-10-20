@@ -108,6 +108,8 @@ public class NpgsqlDateTimeMethodTranslator(
             nameof(DateTime.AddHours) => "hours",
             nameof(DateTime.AddMinutes) => "mins",
             nameof(DateTime.AddSeconds) => "secs",
+            nameof(DateTime.AddMilliseconds) => "milliseconds",
+            nameof(DateTime.AddMicroseconds) => "microseconds",
             _ => null
         };
 

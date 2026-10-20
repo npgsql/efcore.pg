@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
 using Xunit.Sdk;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations.Temporal;
@@ -239,7 +240,20 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset"
+SELECT b."DateTimeOffset" + INTERVAL '300 milliseconds'
+FROM "BasicTypesEntities" AS b
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task AddMicroseconds()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Select(b => b.DateTimeOffset.AddMicroseconds(-1500)));
+
+        AssertSql(
+            """
+SELECT b."DateTimeOffset" + INTERVAL '-1500 microseconds'
 FROM "BasicTypesEntities" AS b
 """);
     }
