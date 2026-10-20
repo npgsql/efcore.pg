@@ -11,6 +11,17 @@ public class TPCGearsOfWarQueryNpgsqlTest : TPCGearsOfWarQueryRelationalTestBase
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
 
+    public override async Task ToString_string_property_projection(bool async)
+    {
+        await base.ToString_string_property_projection(async);
+
+        AssertSql(
+            """
+SELECT w."Name"
+FROM "Weapons" AS w
+""");
+    }
+
     [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/2039")]
     public override Task Where_DateOnly_Year(bool async)
         => base.Where_DateOnly_Year(async);

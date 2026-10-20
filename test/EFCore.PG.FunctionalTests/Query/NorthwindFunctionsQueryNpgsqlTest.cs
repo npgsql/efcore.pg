@@ -47,6 +47,83 @@ WHERE c."Region" IS NULL OR btrim(c."Region", E' \t\n\r') = ''
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task ToString_on_string(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(c => c.CustomerID.ToString() == "ALFKI").Select(c => c.CustomerID));
+
+        AssertSql(
+            """
+SELECT c."CustomerID"
+FROM "Customers" AS c
+WHERE c."CustomerID" = 'ALFKI'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task ToString_on_nullable_string(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>().Where(c => c.Region.ToString() == null).Select(c => c.CustomerID),
+            ss => ss.Set<Customer>().Where(c => c.Region == null).Select(c => c.CustomerID));
+
+        AssertSql(
+            """
+SELECT c."CustomerID"
+FROM "Customers" AS c
+WHERE c."Region" IS NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task ToString_on_object_typed_string_grouping_key_order_by(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>()
+                .Where(c => c.City == "London" || c.City == "Berlin")
+                .GroupBy(c => (object)c.City)
+                .Select(g => new { Key = g.Key.ToString(), Count = g.Count() })
+                .OrderBy(g => g.Key),
+            assertOrder: true);
+
+        AssertSql(
+            """
+SELECT c."City", count(*)::int
+FROM "Customers" AS c
+WHERE c."City" IN ('London', 'Berlin')
+GROUP BY c."City"
+ORDER BY c."City" NULLS FIRST
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task ToString_on_object_typed_string_grouping_key_where(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Customer>()
+                .GroupBy(c => (object)c.City)
+                .Select(g => new { Key = g.Key.ToString(), Count = g.Count() })
+                .Where(g => g.Key == "London"),
+            elementSorter: g => g.Key);
+
+        AssertSql(
+            """
+SELECT c."City", count(*)::int
+FROM "Customers" AS c
+GROUP BY c."City"
+HAVING c."City" = 'London'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public virtual async Task String_Join_non_aggregate(bool async)
     {
         var param = "param";
