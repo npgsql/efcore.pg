@@ -104,7 +104,7 @@ WHERE date_part('year', b."DateTime" + INTERVAL '1 years')::int = 1999
 
         AssertSql(
             """
-SELECT b."DateTime" + INTERVAL '1.5 milliseconds' AS "Milliseconds", b."DateTime" + INTERVAL '-0.125 milliseconds' AS "NegativeMilliseconds", b."DateTime" + INTERVAL '1500 microseconds' AS "Microseconds", b."DateTime" + INTERVAL '-1 microseconds' AS "NegativeMicroseconds"
+SELECT b."DateTime" + 1.5 * INTERVAL '1 milliseconds' AS "Milliseconds", b."DateTime" + -0.125 * INTERVAL '1 milliseconds' AS "NegativeMilliseconds", b."DateTime" + 1500.0 * INTERVAL '1 microseconds' AS "Microseconds", b."DateTime" + -1.0 * INTERVAL '1 microseconds' AS "NegativeMicroseconds"
 FROM "BasicTypesEntities" AS b
 ORDER BY b."Id" NULLS FIRST
 """);
@@ -128,7 +128,7 @@ ORDER BY b."Id" NULLS FIRST
 
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."DateTime" + CAST((@value::text || ' milliseconds') AS interval) = b."DateTime" + CAST((@microseconds::text || ' microseconds') AS interval)
+WHERE b."DateTime" + @value * INTERVAL '1 milliseconds' = b."DateTime" + @microseconds * INTERVAL '1 microseconds'
 """);
     }
 

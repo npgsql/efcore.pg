@@ -358,13 +358,23 @@ public class NpgsqlDateTimeMethodTranslator(
 
     private SqlExpression? CreateIntervalExpression(SqlExpression intervalNum, string datePart)
     {
+        if (datePart is "milliseconds" or "microseconds")
+        {
+            // Interval text does not support floating-point values formatted in scientific notation.
+            return new SqlBinaryExpression(
+                ExpressionType.Multiply,
+                _sqlExpressionFactory.ApplyDefaultTypeMapping(intervalNum),
+                _sqlExpressionFactory.Fragment($"INTERVAL '1 {datePart}'"),
+                typeof(TimeSpan),
+                _intervalMapping);
+        }
+
         // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,
         // which does not work for months, years, etc. So we generate special fragments instead.
         if (intervalNum is SqlConstantExpression constantExpression)
         {
             // We generate constant intervals as INTERVAL '1 days'
             if (constantExpression.Type == typeof(double)
-                && datePart is not ("milliseconds" or "microseconds")
                 && ((double)constantExpression.Value! >= int.MaxValue || (double)constantExpression.Value <= int.MinValue))
             {
                 return null;

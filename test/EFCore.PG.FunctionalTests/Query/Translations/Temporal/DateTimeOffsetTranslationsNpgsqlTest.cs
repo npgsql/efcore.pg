@@ -240,7 +240,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '300 milliseconds'
+SELECT b."DateTimeOffset" + 300.0 * INTERVAL '1 milliseconds'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -253,7 +253,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '-1500 microseconds'
+SELECT b."DateTimeOffset" + -1500.0 * INTERVAL '1 microseconds'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -273,7 +273,7 @@ FROM "BasicTypesEntities" AS b
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Id" = 1 AND b."DateTimeOffset" + INTERVAL '2592000000 milliseconds' = b."DateTimeOffset" + INTERVAL '720 hours' AND b."DateTimeOffset" + INTERVAL '-2592000000 milliseconds' = b."DateTimeOffset" + INTERVAL '-720 hours' AND b."DateTimeOffset" + INTERVAL '3600000000 microseconds' = b."DateTimeOffset" + INTERVAL '1 hours' AND b."DateTimeOffset" + INTERVAL '-3600000000 microseconds' = b."DateTimeOffset" + INTERVAL '-1 hours'
+WHERE b."Id" = 1 AND b."DateTimeOffset" + 2592000000.0 * INTERVAL '1 milliseconds' = b."DateTimeOffset" + INTERVAL '720 hours' AND b."DateTimeOffset" + -2592000000.0 * INTERVAL '1 milliseconds' = b."DateTimeOffset" + INTERVAL '-720 hours' AND b."DateTimeOffset" + 3600000000.0 * INTERVAL '1 microseconds' = b."DateTimeOffset" + INTERVAL '1 hours' AND b."DateTimeOffset" + -3600000000.0 * INTERVAL '1 microseconds' = b."DateTimeOffset" + INTERVAL '-1 hours'
 """);
     }
 
