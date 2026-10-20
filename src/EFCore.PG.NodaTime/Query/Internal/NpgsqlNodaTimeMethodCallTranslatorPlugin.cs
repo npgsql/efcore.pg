@@ -229,6 +229,12 @@ public class NpgsqlNodaTimeMethodCallTranslator(
                 when method.DeclaringType == typeof(NpgsqlNodaTimeDbFunctionsExtensions)
                 => _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.Distance, arguments[1], arguments[2]),
 
+            nameof(LocalDateTime.ToDateTimeUnspecified) when method.DeclaringType == typeof(LocalDateTime)
+                => _sqlExpressionFactory.Convert(
+                    instance!,
+                    typeof(DateTime),
+                    _typeMappingSource.FindMapping(typeof(DateTime), "timestamp without time zone")),
+
             _ => null
         };
 
