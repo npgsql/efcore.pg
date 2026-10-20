@@ -201,9 +201,9 @@ ORDER BY o0."CustomerID" NULLS FIRST
 """);
     }
 
-    // TODO: #3406
+    // Nanosecond translation throws because PostgreSQL only supports microsecond precision.
     public override Task Where_nanosecond_and_microsecond_component(bool async)
-        => AssertTranslationFailed(() => base.Where_nanosecond_and_microsecond_component(async));
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Where_nanosecond_and_microsecond_component(async));
 
     // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
 
