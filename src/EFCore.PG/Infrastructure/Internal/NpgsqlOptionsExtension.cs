@@ -208,6 +208,17 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         return clone;
     }
 
+    /// <inheritdoc />
+    public override RelationalOptionsExtension WithConnection(DbConnection? connection, bool owned)
+    {
+        var clone = (NpgsqlOptionsExtension)base.WithConnection(connection, owned);
+
+        // A previously configured data source would otherwise take precedence over the supplied connection.
+        clone.DataSource = null;
+
+        return clone;
+    }
+
     /// <summary>
     ///     Returns a copy of the current instance configured with the specified range mapping.
     /// </summary>
