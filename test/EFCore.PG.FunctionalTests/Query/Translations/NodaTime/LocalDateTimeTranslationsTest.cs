@@ -288,7 +288,7 @@ LIMIT 1
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE n."LocalDateTime"::timestamp = TIMESTAMP '2018-04-20 10:31:33.666'
+WHERE n."LocalDateTime" = TIMESTAMP '2018-04-20T10:31:33.666'
 """);
     }
 
