@@ -364,6 +364,7 @@ public class NpgsqlDateTimeMethodTranslator(
         {
             // We generate constant intervals as INTERVAL '1 days'
             if (constantExpression.Type == typeof(double)
+                && datePart is not ("milliseconds" or "microseconds")
                 && ((double)constantExpression.Value! >= int.MaxValue || (double)constantExpression.Value <= int.MinValue))
             {
                 return null;

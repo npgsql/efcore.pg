@@ -104,6 +104,25 @@ ORDER BY b."Id" NULLS FIRST
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Add_subsecond_constants_beyond_int32_bounds()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(b =>
+                b.Id == 1
+                && b.DateTime.AddMilliseconds(2_592_000_000d) == b.DateTime.AddHours(720)
+                && b.DateTime.AddMilliseconds(-2_592_000_000d) == b.DateTime.AddHours(-720)
+                && b.DateTime.AddMicroseconds(3_600_000_000d) == b.DateTime.AddHours(1)
+                && b.DateTime.AddMicroseconds(-3_600_000_000d) == b.DateTime.AddHours(-1)));
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."Id" = 1 AND b."DateTime" + INTERVAL '2592000000 milliseconds' = b."DateTime" + INTERVAL '720 hours' AND b."DateTime" + INTERVAL '-2592000000 milliseconds' = b."DateTime" + INTERVAL '-720 hours' AND b."DateTime" + INTERVAL '3600000000 microseconds' = b."DateTime" + INTERVAL '1 hours' AND b."DateTime" + INTERVAL '-3600000000 microseconds' = b."DateTime" + INTERVAL '-1 hours'
+""");
+    }
+
     [ConditionalTheory]
     [InlineData(-1.5)]
     [InlineData(0)]

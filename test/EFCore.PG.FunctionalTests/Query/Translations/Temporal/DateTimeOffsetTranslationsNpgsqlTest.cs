@@ -258,6 +258,25 @@ FROM "BasicTypesEntities" AS b
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Add_subsecond_constants_beyond_int32_bounds()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(b =>
+                b.Id == 1
+                && b.DateTimeOffset.AddMilliseconds(2_592_000_000d) == b.DateTimeOffset.AddHours(720)
+                && b.DateTimeOffset.AddMilliseconds(-2_592_000_000d) == b.DateTimeOffset.AddHours(-720)
+                && b.DateTimeOffset.AddMicroseconds(3_600_000_000d) == b.DateTimeOffset.AddHours(1)
+                && b.DateTimeOffset.AddMicroseconds(-3_600_000_000d) == b.DateTimeOffset.AddHours(-1)));
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."Id" = 1 AND b."DateTimeOffset" + INTERVAL '2592000000 milliseconds' = b."DateTimeOffset" + INTERVAL '720 hours' AND b."DateTimeOffset" + INTERVAL '-2592000000 milliseconds' = b."DateTimeOffset" + INTERVAL '-720 hours' AND b."DateTimeOffset" + INTERVAL '3600000000 microseconds' = b."DateTimeOffset" + INTERVAL '1 hours' AND b."DateTimeOffset" + INTERVAL '-3600000000 microseconds' = b."DateTimeOffset" + INTERVAL '-1 hours'
+""");
+    }
+
     public override Task ToUnixTimeMilliseconds()
         => AssertTranslationFailed(() => base.ToUnixTimeMilliseconds());
 
