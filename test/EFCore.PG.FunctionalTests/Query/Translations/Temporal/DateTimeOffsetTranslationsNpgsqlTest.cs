@@ -116,17 +116,33 @@ WHERE date_part('second', b."DateTimeOffset" AT TIME ZONE 'UTC')::int = 10
 """);
     }
 
-    // SQL translation not implemented, too annoying
-    public override Task Millisecond()
-        => AssertTranslationFailed(() => base.Millisecond());
+    public override async Task Millisecond()
+    {
+        await base.Millisecond();
 
-    // TODO: #3406
-    public override Task Microsecond()
-        => AssertTranslationFailed(() => base.Microsecond());
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE floor(date_part('milliseconds', b."DateTimeOffset" AT TIME ZONE 'UTC'))::int % 1000 = 123
+""");
+    }
 
-    // TODO: #3406
+    public override async Task Microsecond()
+    {
+        await base.Microsecond();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE date_part('microseconds', b."DateTimeOffset" AT TIME ZONE 'UTC')::int % 1000 = 456
+""");
+    }
+
+    // Nanosecond translation throws because PostgreSQL only supports microsecond precision.
     public override Task Nanosecond()
-        => AssertTranslationFailed(() => base.Nanosecond());
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Nanosecond());
 
     public override async Task TimeOfDay()
     {

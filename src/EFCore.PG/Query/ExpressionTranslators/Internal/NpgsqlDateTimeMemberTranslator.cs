@@ -131,7 +131,14 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             nameof(DateTime.Minute) => DatePart(instance!, "minute"),
             nameof(DateTime.Second) => DatePart(instance!, "second"),
 
-            nameof(DateTime.Millisecond) => null, // Too annoying
+            nameof(DateTime.Millisecond) when DatePart(instance!, "milliseconds", floor: true) is { } milliseconds
+                => _sqlExpressionFactory.Modulo(milliseconds, _sqlExpressionFactory.Constant(1000)),
+
+            nameof(DateTime.Microsecond) when DatePart(instance!, "microseconds") is { } microseconds
+                => _sqlExpressionFactory.Modulo(microseconds, _sqlExpressionFactory.Constant(1000)),
+
+            nameof(DateTime.Nanosecond) => throw new NotSupportedException(
+                "Cannot translate the Nanosecond member because PostgreSQL only supports microsecond precision."),
 
             // .NET's DayOfWeek is an enum, but its int values happen to correspond to PostgreSQL
             nameof(DateTime.DayOfWeek) => DatePart(instance!, "dow", floor: true),

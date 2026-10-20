@@ -173,9 +173,70 @@ WHERE date_part('second', b."DateTime")::int = 10
 """);
     }
 
-    // SQL translation not implemented, too annoying
-    public override Task Millisecond()
-        => AssertTranslationFailed(() => base.Millisecond());
+    public override async Task Millisecond()
+    {
+        await base.Millisecond();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE floor(date_part('milliseconds', b."DateTime"))::int % 1000 = 123
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Microsecond()
+    {
+        await AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(b => b.DateTime.Microsecond == 496));
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE date_part('microseconds', b."DateTime")::int % 1000 = 496
+""");
+    }
+
+    // Nanosecond translation throws because PostgreSQL only supports microsecond precision.
+    [ConditionalFact]
+    public virtual Task Nanosecond()
+        => Assert.ThrowsAsync<NotSupportedException>(
+            () => AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(b => b.DateTime.Nanosecond == 0)));
+
+    [ConditionalFact]
+    public virtual async Task Microsecond_nullable()
+    {
+        await AssertQueryScalar(
+            async: true,
+            ss => ss.Set<NullableBasicTypesEntity>().Where(b => b.Id < 3).Select(b => (int?)b.DateTime!.Value.Microsecond),
+            ss => ss.Set<NullableBasicTypesEntity>().Where(b => b.Id < 3)
+                .Select(b => b.DateTime.HasValue ? b.DateTime.Value.Microsecond : (int?)null));
+
+        AssertSql(
+            """
+SELECT date_part('microseconds', n."DateTime")::int % 1000
+FROM "NullableBasicTypesEntities" AS n
+WHERE n."Id" < 3
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Millisecond_nullable()
+    {
+        await AssertQueryScalar(
+            async: true,
+            ss => ss.Set<NullableBasicTypesEntity>().Where(b => b.Id < 3).Select(b => (int?)b.DateTime!.Value.Millisecond),
+            ss => ss.Set<NullableBasicTypesEntity>().Where(b => b.Id < 3)
+                .Select(b => b.DateTime.HasValue ? b.DateTime.Value.Millisecond : (int?)null));
+
+        AssertSql(
+            """
+SELECT floor(date_part('milliseconds', n."DateTime"))::int % 1000
+FROM "NullableBasicTypesEntities" AS n
+WHERE n."Id" < 3
+""");
+    }
 
     public override async Task TimeOfDay()
     {
