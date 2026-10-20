@@ -122,6 +122,22 @@ public class NpgsqlTypeMappingSourceTest
     }
 
     [Theory]
+    [InlineData(typeof(NpgsqlTsQuery))]
+    [InlineData(typeof(NpgsqlTsQueryLexeme))]
+    [InlineData(typeof(NpgsqlTsQueryNot))]
+    [InlineData(typeof(NpgsqlTsQueryBinOp))]
+    [InlineData(typeof(NpgsqlTsQueryAnd))]
+    [InlineData(typeof(NpgsqlTsQueryOr))]
+    [InlineData(typeof(NpgsqlTsQueryFollowedBy))]
+    [InlineData(typeof(NpgsqlTsQueryEmpty))]
+    public void TsQuery(Type clrType)
+    {
+        var mapping = Assert.IsType<NpgsqlTsQueryTypeMapping>(CreateTypeMappingSource().FindMapping(clrType));
+        Assert.Equal("tsquery", mapping.StoreType);
+        Assert.Same(typeof(NpgsqlTsQuery), mapping.ClrType);
+    }
+
+    [Theory]
     [InlineData(typeof(decimal), "numeric(5)")]
     [InlineData(typeof(DateTime), "timestamp(5) with time zone")]
     [InlineData(typeof(TimeSpan), "interval(5)")]
