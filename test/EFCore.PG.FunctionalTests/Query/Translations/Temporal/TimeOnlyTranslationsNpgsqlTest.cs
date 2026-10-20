@@ -47,17 +47,33 @@ WHERE date_part('second', b."TimeOnly")::int = 10
 """);
     }
 
-    // Translation not yet implemented
-    public override Task Millisecond()
-        => AssertTranslationFailed(() => base.Millisecond());
+    public override async Task Millisecond()
+    {
+        await base.Millisecond();
 
-    // Translation not yet implemented
-    public override Task Microsecond()
-        => AssertTranslationFailed(() => base.Millisecond());
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE floor(date_part('milliseconds', b."TimeOnly"))::int % 1000 = 123
+""");
+    }
 
-    // Probably not relevant for PostgreSQL, which supports microsecond precision only
+    public override async Task Microsecond()
+    {
+        await base.Microsecond();
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE date_part('microseconds', b."TimeOnly")::int % 1000 = 456
+""");
+    }
+
+    // Nanosecond translation throws because PostgreSQL only supports microsecond precision.
     public override Task Nanosecond()
-        => AssertTranslationFailed(() => base.Millisecond());
+        => Assert.ThrowsAsync<NotSupportedException>(() => base.Nanosecond());
 
     public override async Task AddHours()
     {
