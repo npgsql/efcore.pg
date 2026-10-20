@@ -865,7 +865,14 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
         EnumDefinition? enumDefinition;
         if (storeType is null)
         {
-            enumDefinition = _enumDefinitions.SingleOrDefault(m => m.ClrType == clrType);
+            var matches = _enumDefinitions.Where(m => m.ClrType == clrType).ToList();
+            if (matches.Count > 1)
+            {
+                throw new InvalidOperationException(
+                    $"Multiple enum definitions registered for CLR type '{clrType?.FullName}'.");
+            }
+
+            enumDefinition = matches.FirstOrDefault();
 
             if (enumDefinition is null)
             {
@@ -883,9 +890,16 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             // names here, by parsing the name and stripping the quotes.
             ParseStoreTypeName(storeType, out name, out schema, out var size, out var precision, out var scale);
 
-            enumDefinition = schema is null
-                ? _enumDefinitions.SingleOrDefault(m => m.StoreTypeName == name)
-                : _enumDefinitions.SingleOrDefault(m => m.StoreTypeName == name && m.StoreTypeSchema == schema);
+            var matches = _enumDefinitions
+                .Where(m => m.StoreTypeName == name && (schema is null || m.StoreTypeSchema == schema))
+                .ToList();
+            if (matches.Count > 1)
+            {
+                throw new InvalidOperationException(
+                    $"Multiple enum definitions registered for store type '{storeType}'.");
+            }
+
+            enumDefinition = matches.FirstOrDefault();
 
             if (enumDefinition is null)
             {
