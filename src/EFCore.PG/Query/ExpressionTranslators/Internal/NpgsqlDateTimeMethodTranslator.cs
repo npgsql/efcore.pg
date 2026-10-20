@@ -108,6 +108,8 @@ public class NpgsqlDateTimeMethodTranslator(
             nameof(DateTime.AddHours) => "hours",
             nameof(DateTime.AddMinutes) => "mins",
             nameof(DateTime.AddSeconds) => "secs",
+            nameof(DateTime.AddMilliseconds) => "milliseconds",
+            nameof(DateTime.AddMicroseconds) => "microseconds",
             _ => null
         };
 
@@ -356,6 +358,17 @@ public class NpgsqlDateTimeMethodTranslator(
 
     private SqlExpression? CreateIntervalExpression(SqlExpression intervalNum, string datePart)
     {
+        if (datePart is "milliseconds" or "microseconds")
+        {
+            // Interval text does not support floating-point values formatted in scientific notation.
+            return new SqlBinaryExpression(
+                ExpressionType.Multiply,
+                _sqlExpressionFactory.ApplyDefaultTypeMapping(intervalNum),
+                _sqlExpressionFactory.Fragment($"INTERVAL '1 {datePart}'"),
+                typeof(TimeSpan),
+                _intervalMapping);
+        }
+
         // Note: ideally we'd simply generate a PostgreSQL interval expression, but the .NET mapping of that is TimeSpan,
         // which does not work for months, years, etc. So we generate special fragments instead.
         if (intervalNum is SqlConstantExpression constantExpression)

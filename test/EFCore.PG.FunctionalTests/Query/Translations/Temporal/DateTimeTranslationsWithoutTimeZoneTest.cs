@@ -89,6 +89,49 @@ WHERE date_part('year', b."DateTime" + INTERVAL '1 years')::int = 1999
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Add_subsecond_constants()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().OrderBy(b => b.Id).Select(b => new
+            {
+                Milliseconds = b.DateTime.AddMilliseconds(1.5),
+                NegativeMilliseconds = b.DateTime.AddMilliseconds(-0.125),
+                Microseconds = b.DateTime.AddMicroseconds(1500),
+                NegativeMicroseconds = b.DateTime.AddMicroseconds(-1)
+            }),
+            assertOrder: true);
+
+        AssertSql(
+            """
+SELECT b."DateTime" + 1.5 * INTERVAL '1 milliseconds' AS "Milliseconds", b."DateTime" + -0.125 * INTERVAL '1 milliseconds' AS "NegativeMilliseconds", b."DateTime" + 1500.0 * INTERVAL '1 microseconds' AS "Microseconds", b."DateTime" + -1.0 * INTERVAL '1 microseconds' AS "NegativeMicroseconds"
+FROM "BasicTypesEntities" AS b
+ORDER BY b."Id" NULLS FIRST
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(-1.5)]
+    [InlineData(0)]
+    [InlineData(1.5)]
+    public virtual async Task Add_subsecond_parameters(double value)
+    {
+        var microseconds = value * 1000;
+
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(b => b.DateTime.AddMilliseconds(value) == b.DateTime.AddMicroseconds(microseconds)));
+
+        AssertSql(
+            $"""
+@value='{value}'
+@microseconds='{microseconds}'
+
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."DateTime" + @value * INTERVAL '1 milliseconds' = b."DateTime" + @microseconds * INTERVAL '1 microseconds'
+""");
+    }
+
     public override async Task Year()
     {
         await base.Year();
