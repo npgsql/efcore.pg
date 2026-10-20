@@ -202,8 +202,9 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
             Multiplexing = false
         }.ToString();
 
+        // Cloned connections must be owned so disposing the wrapper also closes and disposes them.
         var adminNpgsqlOptions = DataSource is not null
-            ? npgsqlOptions.WithConnection(((NpgsqlConnection)CreateDbConnection()).CloneWith(adminConnectionString))
+            ? npgsqlOptions.WithConnection(((NpgsqlConnection)CreateDbConnection()).CloneWith(adminConnectionString), owned: true)
             : npgsqlOptions.Connection is not null
                 ? npgsqlOptions.WithConnection(DbConnection.CloneWith(adminConnectionString), owned: true)
                 : npgsqlOptions.WithConnectionString(adminConnectionString);

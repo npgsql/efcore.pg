@@ -213,6 +213,7 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         var clone = (NpgsqlOptionsExtension)base.WithConnection(connection, owned);
 
+        // A previously configured data source would otherwise take precedence over the supplied connection.
         clone.DataSource = null;
 
         return clone;
