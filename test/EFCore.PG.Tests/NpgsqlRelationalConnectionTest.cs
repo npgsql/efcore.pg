@@ -51,6 +51,26 @@ public class NpgsqlRelationalConnectionTest
         Assert.Equal("Host=FakeHost", connection2.ConnectionString);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Supplied_connection_replaces_data_source(bool contextOwnsConnection)
+    {
+        using var dataSource = NpgsqlDataSource.Create("Host=FakeHost1");
+        using var connection = new NpgsqlConnection("Host=FakeHost2");
+        var options = new DbContextOptionsBuilder()
+            .UseNpgsql(dataSource)
+            .UseNpgsql(connection, contextOwnsConnection)
+            .Options;
+
+        using var context = new DbContext(options);
+        var relationalConnection = (NpgsqlRelationalConnection)context.GetService<IRelationalConnection>();
+
+        Assert.Null(relationalConnection.DbDataSource);
+        Assert.Same(connection, relationalConnection.DbConnection);
+        Assert.Equal("Host=FakeHost2", relationalConnection.ConnectionString);
+    }
+
     [Fact(Skip = "Passes in isolation, but fails when the entire test suite is run because of #2891")]
     public void Uses_DbDataSource_from_application_service_provider()
     {
@@ -130,6 +150,36 @@ public class NpgsqlRelationalConnectionTest
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Admin_connection_is_owned(bool async, bool useDataSource)
+    {
+        using var dataSource = NpgsqlDataSource.Create("Host=FakeHost");
+        using var dbConnection = new NpgsqlConnection("Host=FakeHost");
+        var optionsBuilder = new DbContextOptionsBuilder();
+        var options = (useDataSource ? optionsBuilder.UseNpgsql(dataSource) : optionsBuilder.UseNpgsql(dbConnection)).Options;
+        using var context = new DbContext(options);
+        var connection = context.GetService<INpgsqlRelationalConnection>();
+        using var admin = connection.CreateAdminConnection();
+        using var adminDbConnection = admin.DbConnection;
+
+        if (async)
+        {
+            await admin.DisposeAsync();
+        }
+        else
+        {
+            admin.Dispose();
+        }
+
+        Assert.Throws<ObjectDisposedException>(() => adminDbConnection.ConnectionString = "Host=FakeHost");
+        using var originalClone = ((NpgsqlConnection)connection.DbConnection).CloneWith("Host=FakeHost");
+        using var dataSourceConnection = dataSource.CreateConnection();
+    }
+
+    [Theory]
     [InlineData("false")]
     [InlineData("False")]
     [InlineData("FALSE")]
@@ -167,19 +217,34 @@ public class NpgsqlRelationalConnectionTest
         Transaction.Current = null;
     }
 
-    [ConditionalFact]
-    public void CloneWith_with_connection_and_connection_string()
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CloneWith_with_connection_and_connection_string(bool async)
     {
         var services = NpgsqlTestHelpers.Instance.CreateContextServices(
             new DbContextOptionsBuilder()
                 .UseNpgsql("Host=localhost;Database=DummyDatabase")
                 .Options);
 
-        var relationalConnection = (NpgsqlRelationalConnection)services.GetRequiredService<IRelationalConnection>();
+        using var relationalConnection = (NpgsqlRelationalConnection)services.GetRequiredService<IRelationalConnection>();
 
-        var clone = relationalConnection.CloneWith("Host=localhost;Database=DummyDatabase;Application Name=foo");
+        using var clone = relationalConnection.CloneWith("Host=localhost;Database=DummyDatabase;Application Name=foo");
+        using var clonedDbConnection = clone.DbConnection;
 
         Assert.Equal("Host=localhost;Database=DummyDatabase;Application Name=foo", clone.ConnectionString);
+
+        if (async)
+        {
+            await clone.DisposeAsync();
+        }
+        else
+        {
+            clone.Dispose();
+        }
+
+        Assert.Throws<ObjectDisposedException>(() => clonedDbConnection.ConnectionString = "Host=localhost");
+        using var originalClone = relationalConnection.DbConnection.CloneWith("Host=localhost");
     }
 
     public static NpgsqlRelationalConnection CreateConnection(DbContextOptions options = null, DbDataSource dataSource = null)
