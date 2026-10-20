@@ -342,6 +342,13 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
             { typeof(NpgsqlRange<DateTimeOffset>), _tstzrange },
             { typeof(NpgsqlRange<DateOnly>), _dateOnlyDaterange },
             { typeof(NpgsqlTsQuery), _tsquery },
+            { typeof(NpgsqlTsQueryLexeme), _tsquery },
+            { typeof(NpgsqlTsQueryNot), _tsquery },
+            { typeof(NpgsqlTsQueryBinOp), _tsquery },
+            { typeof(NpgsqlTsQueryAnd), _tsquery },
+            { typeof(NpgsqlTsQueryOr), _tsquery },
+            { typeof(NpgsqlTsQueryFollowedBy), _tsquery },
+            { typeof(NpgsqlTsQueryEmpty), _tsquery },
             { typeof(NpgsqlTsVector), _tsvector },
             { typeof(NpgsqlTsRankingNormalization), _rankingNormalization },
             { typeof(LTree), _ltree }
