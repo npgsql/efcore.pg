@@ -65,6 +65,11 @@ public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
             return null;
         }
 
+        if (instance.TypeMapping?.ClrType == typeof(string))
+        {
+            return instance;
+        }
+
         if (instance.Type == typeof(bool))
         {
             return instance is ColumnExpression { IsNullable: true }
