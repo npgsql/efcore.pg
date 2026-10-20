@@ -15,6 +15,17 @@ public class TPTGearsOfWarQueryNpgsqlTest : TPTGearsOfWarQueryRelationalTestBase
     // TODO: #1232
     // protected override bool CanExecuteQueryString => true;
 
+    public override async Task ToString_string_property_projection(bool async)
+    {
+        await base.ToString_string_property_projection(async);
+
+        AssertSql(
+            """
+SELECT w."Name"
+FROM "Weapons" AS w
+""");
+    }
+
     // Base implementation uses DateTimeOffset.Now, which we don't translate by design. Use DateTimeOffset.UtcNow instead.
     public override async Task Select_datetimeoffset_comparison_in_projection(bool async)
     {
