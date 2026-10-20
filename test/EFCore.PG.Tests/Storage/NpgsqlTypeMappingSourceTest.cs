@@ -313,6 +313,89 @@ public class NpgsqlTypeMappingSourceTest
 
     #endregion Array
 
+    #region Enum
+
+    [Fact]
+    public void Enum_mapping()
+    {
+        var source = CreateTypeMappingSource(configure: b => b.MapEnum<DummyEnum>("dummy_enum"));
+
+        var mapping = source.FindMapping(typeof(DummyEnum));
+
+        Assert.IsType<NpgsqlEnumTypeMapping>(mapping);
+        Assert.Equal("dummy_enum", mapping.StoreType);
+        Assert.Same(typeof(DummyEnum), mapping.ClrType);
+        Assert.Same(typeof(DummyEnum), source.FindMapping("dummy_enum").ClrType);
+        Assert.Same(typeof(DummyEnum), source.FindMapping(typeof(DummyEnum), "dummy_enum").ClrType);
+        Assert.Null(source.FindMapping("unknown_enum"));
+        Assert.Equal("integer", CreateTypeMappingSource().FindMapping(typeof(DummyEnum)).StoreType);
+    }
+
+    [Theory]
+    [InlineData("dummy_enum", null)]
+    [InlineData("other_enum", null)]
+    [InlineData("dummy_enum", "other")]
+    public void Enum_with_multiple_definitions_for_clr_type(string secondName, string secondSchema)
+    {
+        var source = CreateTypeMappingSource(
+            configure: b => b.MapEnum<DummyEnum>("dummy_enum").MapEnum<DummyEnum>(secondName, secondSchema));
+
+        Assert.Equal(
+            $"Multiple enum definitions registered for CLR type '{typeof(DummyEnum).FullName}'.",
+            Assert.Throws<InvalidOperationException>(() => source.FindMapping(typeof(DummyEnum))).Message);
+    }
+
+    [Theory]
+    [InlineData(null, null, "dummy_enum", typeof(DummyEnum))]
+    [InlineData(null, null, "dummy_enum", typeof(OtherDummyEnum))]
+    [InlineData("test", "test", "test.dummy_enum", typeof(DummyEnum))]
+    [InlineData("test", "test", "\"test\".\"dummy_enum\"", typeof(OtherDummyEnum))]
+    [InlineData("one", "two", "dummy_enum", typeof(OtherDummyEnum))]
+    public void Enum_with_multiple_definitions_for_store_type(
+        string firstSchema, string secondSchema, string storeType, Type secondClrType)
+    {
+        var source = CreateTypeMappingSource(
+            configure: b => b.MapEnum<DummyEnum>("dummy_enum", firstSchema)
+                .MapEnum(secondClrType, "dummy_enum", secondSchema));
+        var expectedMessage = $"Multiple enum definitions registered for store type '{storeType}'.";
+
+        Assert.Equal(
+            expectedMessage,
+            Assert.Throws<InvalidOperationException>(() => source.FindMapping(storeType)).Message);
+        Assert.Equal(
+            expectedMessage,
+            Assert.Throws<InvalidOperationException>(() => source.FindMapping(typeof(DummyEnum), storeType)).Message);
+    }
+
+    [Theory]
+    [InlineData("one.dummy_enum", typeof(DummyEnum))]
+    [InlineData("two.dummy_enum", typeof(OtherDummyEnum))]
+    [InlineData("\"one\".\"dummy_enum\"", typeof(DummyEnum))]
+    public void Enum_mapping_disambiguated_by_schema(string storeType, Type clrType)
+    {
+        var source = CreateTypeMappingSource(
+            configure: b => b.MapEnum<DummyEnum>("dummy_enum", "one").MapEnum<OtherDummyEnum>("dummy_enum", "two"));
+
+        Assert.Same(clrType, source.FindMapping(storeType).ClrType);
+        Assert.Same(clrType, source.FindMapping(clrType, storeType).ClrType);
+    }
+
+    [Theory]
+    [InlineData("first_enum")]
+    [InlineData("second_enum")]
+    public void Enum_mapping_disambiguated_by_store_type(string storeType)
+    {
+        var source = CreateTypeMappingSource(
+            configure: b => b.MapEnum<DummyEnum>("first_enum").MapEnum<DummyEnum>("second_enum"));
+
+        var mapping = source.FindMapping(typeof(DummyEnum), storeType);
+
+        Assert.Same(typeof(DummyEnum), mapping.ClrType);
+        Assert.Equal(storeType, mapping.StoreType);
+    }
+
+    #endregion Enum
+
     #region JSON
 
     [Fact]
@@ -453,7 +536,8 @@ public class NpgsqlTypeMappingSourceTest
 
     #region Support
 
-    private NpgsqlTypeMappingSource CreateTypeMappingSource(Version postgresVersion = null)
+    private NpgsqlTypeMappingSource CreateTypeMappingSource(
+        Version postgresVersion = null, Action<NpgsqlDbContextOptionsBuilder> configure = null)
     {
         var builder = new DbContextOptionsBuilder();
         var npgsqlBuilder = new NpgsqlDbContextOptionsBuilder(builder);
@@ -461,6 +545,7 @@ public class NpgsqlTypeMappingSourceTest
         npgsqlBuilder.MapRange<float>("floatrange");
         npgsqlBuilder.MapRange<DummyType>("dummyrange", subtypeName: "dummy");
         npgsqlBuilder.SetPostgresVersion(postgresVersion);
+        configure?.Invoke(npgsqlBuilder);
 
         var options = new NpgsqlSingletonOptions();
         options.Initialize(builder.Options);
@@ -516,6 +601,16 @@ public class NpgsqlTypeMappingSourceTest
     private class DummyType;
 
     private class UnknownType;
+
+    private enum DummyEnum
+    {
+        Value
+    }
+
+    private enum OtherDummyEnum
+    {
+        Value
+    }
 
     private class ByteArrayEntity
     {
