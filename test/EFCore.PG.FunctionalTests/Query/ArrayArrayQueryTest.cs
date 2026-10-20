@@ -909,6 +909,16 @@ WHERE ARRAY[5,6]::integer[] <@ s."IntArray"
     #region Other translations
 
     [ConditionalFact]
+    public virtual async Task Concat_bytea_with_smallint_array()
+    {
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => AssertQuery(
+            ss => ss.Set<ArrayEntity>().Where(e => e.Bytea.Concat(e.ByteArray).ToArray().Length == 6)));
+
+        Assert.Equal("Concatenating bytea values is only supported for byte[] operands mapped to bytea.", exception.Message);
+        AssertSql();
+    }
+
+    [ConditionalFact]
     public virtual async Task Append()
         // TODO: https://github.com/dotnet/efcore/issues/30669
         => await AssertTranslationFailed(() => AssertQuery(

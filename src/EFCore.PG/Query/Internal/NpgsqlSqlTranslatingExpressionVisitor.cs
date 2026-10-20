@@ -325,6 +325,18 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     {
         var method = methodCallExpression.Method;
 
+        // EF turns inline Concat operands into query roots, but bytea concatenation needs a scalar byte[] constant.
+        if (method is { IsGenericMethod: true, Name: nameof(Enumerable.Concat) }
+            && method.DeclaringType == typeof(Enumerable)
+            && methodCallExpression.Arguments is [var source, InlineQueryRootExpression inlineArray]
+            && inlineArray.ElementType == typeof(byte)
+            && inlineArray.Values.All(v => v is ConstantExpression)
+            && Visit(source) is SqlExpression { TypeMapping: NpgsqlByteArrayTypeMapping })
+        {
+            return base.VisitMethodCall(
+                methodCallExpression.Update(null, [source, Expression.NewArrayInit(typeof(byte), inlineArray.Values)]));
+        }
+
         // Pattern-match: cube.LowerLeft[index] or cube.UpperRight[index]
         // This appears as: get_Item method call on a MemberExpression of LowerLeft/UpperRight.
         // We match this before calling base.VisitMethodCall, because we throw an informative InvalidOperationException when

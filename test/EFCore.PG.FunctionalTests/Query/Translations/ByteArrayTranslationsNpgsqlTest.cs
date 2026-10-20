@@ -130,6 +130,74 @@ WHERE length(b."ByteArray" || @suffix) = 6
     }
 
     [ConditionalFact]
+    public virtual async Task Concat_with_constant()
+    {
+        await AssertQuery(ss => ss.Set<BasicTypesEntity>()
+            .Where(e => e.ByteArray.Concat(new byte[] { 1, 2 }).ToArray().Length == 6));
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE length(b."ByteArray" || BYTEA E'\\x0102') = 6
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Concat_with_constant_in_projection()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().OrderBy(e => e.Id).Select(e => e.ByteArray.Concat(new byte[] { 1, 2 }).ToArray()),
+            assertOrder: true);
+
+        AssertSql(
+            """
+SELECT b."ByteArray" || BYTEA E'\\x0102'
+FROM "BasicTypesEntities" AS b
+ORDER BY b."Id" NULLS FIRST
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Concat_with_empty_array()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().OrderBy(e => e.Id).Select(e => e.ByteArray.Concat(Array.Empty<byte>()).ToArray()),
+            assertOrder: true);
+
+        AssertSql(
+            """
+SELECT b."ByteArray" || BYTEA E'\\x'
+FROM "BasicTypesEntities" AS b
+ORDER BY b."Id" NULLS FIRST
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Concat_with_list_parameter()
+    {
+        List<byte> suffix = [1, 2];
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(e => e.ByteArray.Concat(suffix).ToArray().Length == 6)));
+
+        Assert.Equal("Concatenating bytea values is only supported for byte[] operands mapped to bytea.", exception.Message);
+        AssertSql();
+    }
+
+    [ConditionalFact]
+    public virtual async Task Concat_with_list_parameter_in_projection()
+    {
+        List<byte> suffix = [1, 2];
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Select(e => e.ByteArray.Concat(suffix).ToArray())));
+
+        Assert.Equal("Concatenating bytea values is only supported for byte[] operands mapped to bytea.", exception.Message);
+        AssertSql();
+    }
+
+    [ConditionalFact]
     public virtual async Task Concat_with_column()
     {
         await AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(e => e.ByteArray.Concat(e.ByteArray).ToArray().Length == 8));

@@ -48,6 +48,15 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
             && arguments is [var first, var second]
             && (first.TypeMapping ?? second.TypeMapping) is NpgsqlByteArrayTypeMapping concatTypeMapping)
         {
+            if (first.Type != typeof(byte[])
+                || second.Type != typeof(byte[])
+                || first.TypeMapping is not (null or NpgsqlByteArrayTypeMapping)
+                || second.TypeMapping is not (null or NpgsqlByteArrayTypeMapping))
+            {
+                throw new InvalidOperationException(
+                    "Concatenating bytea values is only supported for byte[] operands mapped to bytea.");
+            }
+
             return _sqlExpressionFactory.Add(
                 _sqlExpressionFactory.ApplyTypeMapping(first, concatTypeMapping),
                 _sqlExpressionFactory.ApplyTypeMapping(second, concatTypeMapping),
