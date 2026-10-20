@@ -623,6 +623,29 @@ LIMIT 1
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Matches_with_derived_tsquery_parameter(bool async)
+    {
+        using var context = CreateContext();
+        var tsQuery = new NpgsqlTsQueryLexeme("firs", NpgsqlTsQueryLexeme.Weight.None, true);
+        var query = context.Customers
+            .Select(c => EF.Functions.ToTsVector("simple", "first").Matches(tsQuery));
+
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.NotEmpty(results);
+        Assert.All(results, Assert.True);
+        AssertSql(
+            """
+@__tsQuery_1=''firs':*' (DbType = Object)
+
+SELECT to_tsvector('simple', 'first') @@ @__tsQuery_1
+FROM "Customers" AS c
+""");
+    }
+
     [Fact]
     public void TsVector_Concat()
     {
