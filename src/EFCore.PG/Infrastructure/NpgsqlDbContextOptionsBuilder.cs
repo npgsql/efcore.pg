@@ -117,7 +117,10 @@ public class NpgsqlDbContextOptionsBuilder
     /// <summary>
     ///     Maps a PostgreSQL enum type for use.
     /// </summary>
-    /// <param name="enumName">The name of the PostgreSQL enum type to be mapped.</param>
+    /// <param name="enumName">
+    ///     The name of the PostgreSQL enum type to be mapped. If omitted, the name is taken from <see cref="PgNameAttribute" />
+    ///     on the CLR enum type, or inferred using the name translator.
+    /// </param>
     /// <param name="schemaName">The name of the PostgreSQL schema in which the enum is defined.</param>
     /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
     public virtual NpgsqlDbContextOptionsBuilder MapEnum<T>(
@@ -131,7 +134,10 @@ public class NpgsqlDbContextOptionsBuilder
     ///     Maps a PostgreSQL enum type for use.
     /// </summary>
     /// <param name="clrType">The CLR type of the enum.</param>
-    /// <param name="enumName">The name of the PostgreSQL enum type to be mapped.</param>
+    /// <param name="enumName">
+    ///     The name of the PostgreSQL enum type to be mapped. If omitted, the name is taken from <see cref="PgNameAttribute" />
+    ///     on the CLR enum type, or inferred using the name translator.
+    /// </param>
     /// <param name="schemaName">The name of the PostgreSQL schema in which the enum is defined.</param>
     /// <param name="nameTranslator">The name translator used to map enum value names to PostgreSQL enum values.</param>
     public virtual NpgsqlDbContextOptionsBuilder MapEnum(

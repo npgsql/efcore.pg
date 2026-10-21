@@ -80,7 +80,7 @@ public sealed class EnumDefinition : IEquatable<EnumDefinition>
             throw new ArgumentException($"Enum type mappings require a CLR enum. {clrType.FullName} is not an enum.");
         }
 
-        StoreTypeName = name ?? nameTranslator.TranslateTypeName(clrType.Name);
+        StoreTypeName = name ?? clrType.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateTypeName(clrType.Name);
         StoreTypeSchema = schema;
         ClrType = clrType;
 
