@@ -44,6 +44,7 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
         AddTranslators(
         [
             new NpgsqlArrayMethodTranslator(sqlExpressionFactory, jsonTranslator),
+                new NpgsqlBitArrayMethodTranslator(sqlExpressionFactory),
                 new NpgsqlByteArrayMethodTranslator(sqlExpressionFactory),
                 new NpgsqlConvertTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, sqlExpressionFactory),
