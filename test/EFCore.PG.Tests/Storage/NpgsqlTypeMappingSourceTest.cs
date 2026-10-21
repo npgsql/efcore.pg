@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using NetTopologySuite.Geometries;
@@ -114,6 +115,8 @@ public class NpgsqlTypeMappingSourceTest
     [Theory]
     [InlineData(typeof(int), "integer")]
     [InlineData(typeof(int[]), "integer[]")]
+    [InlineData(typeof(decimal), "numeric")]
+    [InlineData(typeof(BigInteger), "numeric")]
     [InlineData(typeof(byte[]), "bytea")]
     [InlineData(typeof(DateTime), "timestamp with time zone")]
     [InlineData(typeof(DateOnly), "date")]
@@ -157,7 +160,7 @@ public class NpgsqlTypeMappingSourceTest
     }
 
     [Theory]
-    [InlineData(typeof(decimal), "numeric(5)")]
+    [InlineData(typeof(decimal), "numeric(5,0)")]
     [InlineData(typeof(DateTime), "timestamp(5) with time zone")]
     [InlineData(typeof(TimeSpan), "interval(5)")]
     [InlineData(typeof(int), "integer")]
@@ -169,7 +172,34 @@ public class NpgsqlTypeMappingSourceTest
     }
 
     [Theory]
-    [InlineData(typeof(decimal[]), "numeric(5)[]")]
+    [InlineData(typeof(decimal), null, "numeric(9,0)")]
+    [InlineData(typeof(decimal), 0, "numeric(9,0)")]
+    [InlineData(typeof(decimal), 2, "numeric(9,2)")]
+    [InlineData(typeof(float), null, "numeric(9,0)")]
+    [InlineData(typeof(double), null, "numeric(9,0)")]
+    [InlineData(typeof(BigInteger), null, "numeric(9,0)")]
+    public void Numeric_precision_scale_round_trips(Type clrType, int? scale, string expectedStoreType)
+    {
+        var source = CreateTypeMappingSource();
+        var mapping = source.FindMapping(clrType, "numeric", precision: 9, scale: scale);
+
+        Assert.Equal(expectedStoreType, mapping.StoreType);
+        Assert.Equal(
+            mapping.StoreType,
+            source.FindMapping(clrType, mapping.StoreType, precision: 9, scale: scale).StoreType);
+    }
+
+    [Theory]
+    [InlineData("numeric(9)", "numeric(9,0)")]
+    [InlineData("numeric(9,0)", "numeric(9,0)")]
+    [InlineData("numeric(9,2)", "numeric(9,2)")]
+    public void Numeric_store_type_overrides_precision_and_scale(string storeType, string expectedStoreType)
+        => Assert.Equal(
+            expectedStoreType,
+            CreateTypeMappingSource().FindMapping(typeof(decimal), storeType, precision: 10, scale: 3).StoreType);
+
+    [Theory]
+    [InlineData(typeof(decimal[]), "numeric(5,0)[]")]
     [InlineData(typeof(DateTime[]), "timestamp(5) with time zone[]")]
     [InlineData(typeof(TimeSpan[]), "interval(5)[]")]
     [InlineData(typeof(int[]), "integer[]")]
