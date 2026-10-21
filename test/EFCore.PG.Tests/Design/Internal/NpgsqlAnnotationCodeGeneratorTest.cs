@@ -9,6 +9,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
 
 public class NpgsqlAnnotationCodeGeneratorTest
 {
+    [Theory]
+    [InlineData(null, false, "numeric(9)", null)]
+    [InlineData(0, false, "numeric(9,0)", "numeric(9,0)")]
+    [InlineData(2, false, "numeric(9,2)", "numeric(9,2)")]
+    [InlineData(null, true, "numeric", "numeric")]
+    [InlineData(null, true, "numeric(9)", "numeric(9)")]
+    [InlineData(null, true, "numeric(9,2)", "numeric(9,2)")]
+    public void GenerateFluentApi_numeric_precision(int? scale, bool explicitlyConfigured, string storeType, string expectedStoreType)
+    {
+        var generator = CreateGenerator();
+        var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+        var propertyBuilder = modelBuilder.Entity("Parameter").Property<decimal?>("ScalingFactor").HasPrecision(9);
+        if (scale is { } s)
+        {
+            propertyBuilder.HasPrecision(9, s);
+        }
+
+        if (explicitlyConfigured)
+        {
+            propertyBuilder.HasColumnType(storeType);
+        }
+
+        var property = (IProperty)propertyBuilder.Metadata;
+        var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+        annotations.TryAdd(RelationalAnnotationNames.ColumnType, new Annotation(RelationalAnnotationNames.ColumnType, storeType));
+
+        var result = generator.GenerateFluentApiCalls(property, annotations)
+            .SingleOrDefault(c => c.Method == nameof(RelationalPropertyBuilderExtensions.HasColumnType));
+
+        Assert.Equal(expectedStoreType, result?.Arguments.Single());
+    }
+
     #region Identity / sequence / HiLo
 
     [Fact]
