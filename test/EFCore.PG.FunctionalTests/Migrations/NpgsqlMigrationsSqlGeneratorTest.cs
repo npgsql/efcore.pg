@@ -476,12 +476,28 @@ WHERE "First Name" = 'Daenerys';
 
     public override void DefaultValue_with_line_breaks(bool isUnicode)
     {
-        // https://github.com/npgsql/efcore.pg/issues/1478
+        base.DefaultValue_with_line_breaks(isUnicode);
+
+        AssertSql(
+            """
+CREATE TABLE dbo."TestLineBreaks" (
+    "TestDefaultValue" text NOT NULL DEFAULT E'\r\nVarious Line\rBreaks\n'
+);
+
+""");
     }
 
     public override void DefaultValue_with_line_breaks_2(bool isUnicode)
     {
-        // https://github.com/npgsql/efcore.pg/issues/1478
+        base.DefaultValue_with_line_breaks_2(isUnicode);
+
+        AssertSql(
+            $"""
+CREATE TABLE dbo."TestLineBreaks" (
+    "TestDefaultValue" text NOT NULL DEFAULT E'{string.Concat(Enumerable.Range(0, 300).Select(i => i + @"\r\n"))}'
+);
+
+""");
     }
 
     public override void Sequence_restart_operation(long? startsAt)

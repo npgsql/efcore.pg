@@ -102,14 +102,8 @@ CREATE TABLE "People" (
     "Name" text,
     CONSTRAINT "PK_People" PRIMARY KEY ("Id")
 );
-COMMENT ON TABLE "People" IS 'This is a multi-line
-table comment.
-More information can
-be found in the docs.';
-COMMENT ON COLUMN "People"."Name" IS 'This is a multi-line
-column comment.
-More information can
-be found in the docs.';
+COMMENT ON TABLE "People" IS E'This is a multi-line\r\ntable comment.\r\nMore information can\r\nbe found in the docs.';
+COMMENT ON COLUMN "People"."Name" IS E'This is a multi-line\ncolumn comment.\nMore information can\nbe found in the docs.';
 """);
     }
 
