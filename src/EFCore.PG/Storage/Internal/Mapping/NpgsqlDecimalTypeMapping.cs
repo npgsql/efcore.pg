@@ -72,7 +72,9 @@ public class NpgsqlDecimalTypeMapping : NpgsqlTypeMapping
     protected override string ProcessStoreType(RelationalTypeMappingParameters parameters, string storeType, string _)
         => parameters.Precision is null
             ? storeType
-            : $"numeric({parameters.Precision},{parameters.Scale ?? 0})";
+            : parameters.Scale is null
+                ? $"numeric({parameters.Precision})"
+                : $"numeric({parameters.Precision},{parameters.Scale})";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to

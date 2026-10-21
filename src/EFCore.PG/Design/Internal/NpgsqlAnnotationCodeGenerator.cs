@@ -332,6 +332,16 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         IProperty property,
         IDictionary<string, IAnnotation> annotations)
     {
+        // An inferred numeric(p) store type would introduce scale 0 when reloading the snapshot.
+        if (property.GetPrecision() is { } precision
+            && property.GetScale() is null
+            && property.FindAnnotation(RelationalAnnotationNames.ColumnType) is null
+            && annotations.TryGetValue(RelationalAnnotationNames.ColumnType, out var columnType)
+            && (string?)columnType.Value == $"numeric({precision})")
+        {
+            annotations.Remove(RelationalAnnotationNames.ColumnType);
+        }
+
         var fragments = new List<MethodCallCodeFragment>(base.GenerateFluentApiCalls(property, annotations));
 
         if (GenerateValueGenerationStrategy(annotations, property.DeclaringType.Model, onModel: false) is { } valueGenerationStrategy)

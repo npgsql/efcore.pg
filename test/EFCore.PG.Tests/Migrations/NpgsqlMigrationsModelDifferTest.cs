@@ -1,16 +1,55 @@
+using Microsoft.EntityFrameworkCore.Migrations.Design;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 
 public class NpgsqlMigrationsModelDifferTest
 {
     [Theory]
-    [InlineData(null, "numeric(9)")]
-    [InlineData(0, "numeric(9,0)")]
-    [InlineData(2, "numeric(9,2)")]
-    public void Decimal_precision_snapshot_round_trips(int? scale, string storeType)
+    [InlineData(null, null, "numeric(9)")]
+    [InlineData(0, null, "numeric(9,0)")]
+    [InlineData(2, null, "numeric(9,2)")]
+    [InlineData(null, "numeric", "numeric(9)")]
+    [InlineData(null, "numeric(9)", "numeric(9,0)")]
+    [InlineData(null, "numeric(9,2)", "numeric(9,2)")]
+    public void Decimal_precision_snapshot_round_trips(int? scale, string storeType, string expectedStoreType)
     {
-        using var context = new PrecisionContext(scale);
+        using var context = new PrecisionContext(scale, storeType);
         var model = context.GetService<IDesignTimeModel>().Model;
-        var snapshot = new PrecisionModelSnapshot(scale, storeType);
+        var property = model.FindEntityType(typeof(PrecisionEntity)).FindProperty(nameof(PrecisionEntity.ScalingFactor));
+        Assert.Equal(expectedStoreType, property.GetRelationalTypeMapping().StoreType);
+
+        var services = new ServiceCollection();
+        services.AddDbContextDesignTimeServices(context);
+        new NpgsqlDesignTimeServices().ConfigureDesignTimeServices(services);
+        services.AddEntityFrameworkDesignTimeServices();
+        using var serviceProvider = services.BuildServiceProvider();
+        var source = serviceProvider.GetRequiredService<IMigrationsCodeGenerator>()
+            .GenerateSnapshot("PrecisionSnapshot", typeof(PrecisionContext), "Snapshot", model);
+
+        if (scale is null && storeType is null)
+        {
+            Assert.Contains(".HasPrecision(9)", source);
+            Assert.DoesNotContain(".HasColumnType(\"numeric(9)\")", source);
+        }
+        else
+        {
+            Assert.Contains($".HasColumnType(\"{storeType ?? expectedStoreType}\")", source);
+        }
+
+        var build = new BuildSource
+        {
+            Sources = { ["Snapshot.cs"] = source },
+            References =
+            {
+                BuildReference.ByName("Microsoft.EntityFrameworkCore"),
+                BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
+                BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
+                BuildReference.ByName("Npgsql"),
+                BuildReference.ByName(typeof(NpgsqlMigrationsModelDifferTest).Assembly.GetName().Name)
+            }
+        };
+        var snapshot = (ModelSnapshot)Activator.CreateInstance(build.BuildInMemory().GetType("PrecisionSnapshot.Snapshot"));
         var snapshotModel = context.GetService<IModelRuntimeInitializer>().Initialize(snapshot.Model, designTime: true);
 
         Assert.Empty(
@@ -18,7 +57,7 @@ public class NpgsqlMigrationsModelDifferTest
                 .GetDifferences(snapshotModel.GetRelationalModel(), model.GetRelationalModel()));
     }
 
-    private class PrecisionContext(int? scale) : DbContext
+    public class PrecisionContext(int? scale, string storeType) : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql().EnableServiceProviderCaching(false);
@@ -32,6 +71,11 @@ public class NpgsqlMigrationsModelDifferTest
             {
                 entity.Property(e => e.ScalingFactor).HasPrecision(9, s);
             }
+
+            if (storeType is not null)
+            {
+                entity.Property(e => e.ScalingFactor).HasColumnType(storeType);
+            }
         }
     }
 
@@ -41,32 +85,6 @@ public class NpgsqlMigrationsModelDifferTest
 
         [Precision(9)]
         public decimal? ScalingFactor { get; set; }
-    }
-
-    private class PrecisionModelSnapshot(int? scale, string storeType) : ModelSnapshot
-    {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
-            modelBuilder.HasAnnotation("Relational:MaxIdentifierLength", 63);
-            modelBuilder.UseIdentityByDefaultColumns();
-            modelBuilder.Entity(
-                typeof(PrecisionEntity).FullName!, b =>
-                {
-                    b.Property<int>("Id").HasColumnType("integer");
-                    var property = b.Property<decimal?>("ScalingFactor").HasColumnType(storeType);
-                    if (scale is { } s)
-                    {
-                        property.HasPrecision(9, s);
-                    }
-                    else
-                    {
-                        property.HasPrecision(9);
-                    }
-
-                    b.HasKey("Id");
-                    b.ToTable("Parameter");
-                });
-        }
     }
 
     [Theory]
