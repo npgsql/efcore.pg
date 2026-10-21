@@ -5,6 +5,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 public class EnumDefinitionTest
 {
+    [ConditionalTheory]
+    [InlineData(typeof(EnumWithDuplicateValues), null, "enum_with_duplicate_values")]
+    [InlineData(typeof(EnumWithDuplicateValues), "explicit_enum", "explicit_enum")]
+    [InlineData(typeof(EnumWithPgName), null, "CustomEnum")]
+    [InlineData(typeof(EnumWithPgName), "explicit_enum", "explicit_enum")]
+    public void Enum_type_name(Type enumType, string name, string expectedName)
+    {
+        var definition = new EnumDefinition(enumType, name, schema: null, new NpgsqlSnakeCaseNameTranslator());
+
+        Assert.Equal(expectedName, definition.StoreTypeName);
+    }
+
     [ConditionalFact]
     public void Enum_with_duplicate_values_uses_first_label()
     {
@@ -59,6 +71,13 @@ public class EnumDefinitionTest
 
         Assert.Contains("different", exception.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("[PgName]", exception.Message);
+    }
+
+    [PgName("CustomEnum")]
+    private enum EnumWithPgName
+    {
+        Happy,
+        Sad
     }
 
     private enum EnumWithDuplicateValues
