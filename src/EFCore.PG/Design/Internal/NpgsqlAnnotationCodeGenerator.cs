@@ -332,6 +332,19 @@ public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
         IProperty property,
         IDictionary<string, IAnnotation> annotations)
     {
+        // For precision-only numeric properties, the snapshot's inferred numeric(p) store type is parsed with scale 0,
+        // producing numeric(p,0) rather than the original numeric(p) and triggering false pending model changes.
+        // Omit the inferred column type so HasPrecision(p) reconstructs the original mapping, while preserving
+        // explicitly configured column types. See https://github.com/npgsql/efcore.pg/issues/3521.
+        if (property.GetPrecision() is { } precision
+            && property.GetScale() is null
+            && property.FindAnnotation(RelationalAnnotationNames.ColumnType) is null
+            && annotations.TryGetValue(RelationalAnnotationNames.ColumnType, out var columnType)
+            && (string?)columnType.Value == $"numeric({precision})")
+        {
+            annotations.Remove(RelationalAnnotationNames.ColumnType);
+        }
+
         var fragments = new List<MethodCallCodeFragment>(base.GenerateFluentApiCalls(property, annotations));
 
         if (GenerateValueGenerationStrategy(annotations, property.DeclaringType.Model, onModel: false) is { } valueGenerationStrategy)
