@@ -32,6 +32,8 @@ public class NpgsqlQueryTranslationPostprocessor : RelationalQueryTranslationPos
     {
         var result = base.Process(query);
 
+        // Structural projections require column expressions, so apply decoding after projection application.
+        result = new NpgsqlJsonPostprocessor(RelationalDependencies.SqlExpressionFactory).Visit(result);
         result = new NpgsqlUnnestPostprocessor().Visit(result);
         result = new NpgsqlSetOperationTypeResolutionCompensatingExpressionVisitor().Visit(result);
 
