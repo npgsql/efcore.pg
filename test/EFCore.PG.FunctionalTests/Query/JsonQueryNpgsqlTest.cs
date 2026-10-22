@@ -3023,6 +3023,104 @@ FROM "JsonEntitiesBasic" AS j
 """);
     }
 
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
+    public virtual async Task Byte_array_in_json_collection(bool async)
+    {
+        await using var context = Fixture.CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                List<ByteArrayJsonElement> elements =
+                [
+                    new() { Name = "A", Content = [0, 1, 127, 128, 255] },
+                    new() { Name = "B", Content = [] },
+                    new() { Name = "C", Content = null }
+                ];
+                context.Add(
+                    new JsonByteArrayEntity
+                    {
+                        Id = 1,
+                        Json = elements
+                    });
+                await context.SaveChangesAsync();
+                context.ChangeTracker.Clear();
+
+                var entity = async
+                    ? await context.Set<JsonByteArrayEntity>().AsNoTracking().SingleAsync()
+                    : context.Set<JsonByteArrayEntity>().AsNoTracking().Single();
+                Assert.Equal(elements.Select(e => e.Content), entity.Json.Select(e => e.Content));
+
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var collectionQuery = context.Set<JsonByteArrayEntity>()
+                    .SelectMany(e => e.Json);
+                var projectionQuery = collectionQuery.OrderBy(e => e.Name).Select(e => e.Content);
+                var projected = async ? await projectionQuery.ToListAsync() : projectionQuery.ToList();
+                Assert.Equal(elements.Select(e => e.Content), projected);
+
+                var predicateQuery = collectionQuery.Where(e => e.Content == new byte[] { 0, 1, 127, 128, 255 }).Select(e => e.Name);
+                var matchingName = async ? await predicateQuery.SingleAsync() : predicateQuery.Single();
+                Assert.Equal("A", matchingName);
+
+                var correlatedQuery = collectionQuery
+                    .Where(e => context.Set<JsonByteArrayEntity>()
+                        .Any(owner => owner.Id == 1 && e.Content == new byte[] { 0, 1, 127, 128, 255 }))
+                    .Select(e => e.Name);
+                var correlatedName = async ? await correlatedQuery.SingleAsync() : correlatedQuery.Single();
+                Assert.Equal("A", correlatedName);
+
+                AssertSql(
+                    """
+SELECT decode(j0."Content", 'base64') AS "Content"
+FROM "JsonByteArrayEntity" AS j
+JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."Json") AS (
+    "Content" text,
+    "Name" text
+)) WITH ORDINALITY AS j0 ON TRUE
+ORDER BY j0."Name" NULLS FIRST
+""",
+                    //
+                    """
+SELECT j0."Name"
+FROM "JsonByteArrayEntity" AS j
+JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."Json") AS (
+    "Content" text,
+    "Name" text
+)) WITH ORDINALITY AS j0 ON TRUE
+WHERE decode(j0."Content", 'base64') = BYTEA E'\\x00017F80FF'
+LIMIT 2
+""",
+                    //
+                    """
+SELECT j0."Name"
+FROM "JsonByteArrayEntity" AS j
+JOIN LATERAL ROWS FROM (jsonb_to_recordset(j."Json") AS (
+    "Content" text,
+    "Name" text
+)) WITH ORDINALITY AS j0 ON TRUE
+WHERE EXISTS (
+    SELECT 1
+    FROM "JsonByteArrayEntity" AS j1
+    WHERE j1."Id" = 1 AND decode(j0."Content", 'base64') = BYTEA E'\\x00017F80FF')
+LIMIT 2
+""");
+            });
+    }
+
+    public class JsonByteArrayEntity
+    {
+        public int Id { get; set; }
+        public List<ByteArrayJsonElement> Json { get; set; } = [];
+    }
+
+    public class ByteArrayJsonElement
+    {
+        public string Name { get; set; }
+        public byte[] Content { get; set; }
+    }
+
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
         => TestHelpers.AssertAllMethodsOverridden(GetType());
@@ -3050,6 +3148,12 @@ FROM "JsonEntitiesBasic" AS j
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
             base.OnModelCreating(modelBuilder, context);
+
+            modelBuilder.Entity<JsonByteArrayEntity>(b =>
+            {
+                b.Property(e => e.Id).ValueGeneratedNever();
+                b.OwnsMany(e => e.Json).ToJson();
+            });
 
             // The following are ignored since we do not support mapping IList<T> (as opposed to array/List) on regular properties
             // (since that's not supported at the ADO.NET layer). However, we do support IList<T> inside JSON documents, since that doesn't
