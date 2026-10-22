@@ -177,12 +177,14 @@ public class NpgsqlHistoryRepository : HistoryRepository
                     builder.AppendLine("EXCEPTION WHEN duplicate_schema OR duplicate_table OR duplicate_object OR unique_violation THEN");
                     using (builder.Indent())
                     {
-                        // Refresh catalog caches after waiting for a concurrent creator; otherwise table creation can still see
-                        // a cached missing schema.
-                        builder.AppendLine("PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;");
+                        builder.AppendLine("NULL;");
                     }
 
                     builder.AppendLine("END;");
+
+                    // Refresh catalog caches even when schema creation was skipped: the catalog query can see a concurrent
+                    // schema while a missing-schema lookup is still cached.
+                    builder.AppendLine("PERFORM 1 FROM pg_catalog.pg_class LIMIT 1;");
                 }
             }
 
