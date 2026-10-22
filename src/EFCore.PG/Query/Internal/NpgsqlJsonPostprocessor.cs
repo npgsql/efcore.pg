@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 /// <summary>
-///     Applies base64 decoding to binary properties extracted by json_to_recordset/jsonb_to_recordset.
+///     Applies JSON-related post-processing transformations.
 /// </summary>
 /// <remarks>
 ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -27,6 +27,8 @@ public class NpgsqlJsonPostprocessor(ISqlExpressionFactory sqlExpressionFactory)
                     Visit(shapedQueryExpression.ShaperExpression));
 
             case SelectExpression selectExpression:
+                // Binary values are stored as base64 strings in JSON, but json_to_recordset/jsonb_to_recordset do not decode
+                // them when extracting bytea columns. Find affected recordsets before visiting their column references.
                 foreach (var table in selectExpression.Tables)
                 {
                     if (table.UnwrapJoin() is PgTableValuedFunctionExpression
@@ -40,10 +42,13 @@ public class NpgsqlJsonPostprocessor(ISqlExpressionFactory sqlExpressionFactory)
                     }
                 }
 
+                // EF assigns query-wide unique aliases, so keep these registered for correlated references and update setters.
                 return base.VisitExtension(node);
 
             case ColumnExpression { TypeMapping: NpgsqlByteArrayTypeMapping } column
                 when _jsonRecordsetAliases.Contains(column.TableAlias):
+                // Extract the base64 string as text and decode it, preserving the original binary result mapping.
+                // Rewrite every reference, not just projections, so predicates and other server-side operations use decoded bytes.
                 return sqlExpressionFactory.Function(
                     "decode",
                     [
@@ -58,6 +63,7 @@ public class NpgsqlJsonPostprocessor(ISqlExpressionFactory sqlExpressionFactory)
 
             case PgTableValuedFunctionExpression { ColumnInfos: { } columnInfos } tvf
                 when _jsonRecordsetAliases.Contains(tvf.Alias):
+                // Change the recordset's column declarations to match the text inputs used by decode above.
                 return tvf.Update(this.Visit(tvf.Arguments)).WithColumnInfos(
                     columnInfos.Select(
                         c => c.TypeMapping is NpgsqlByteArrayTypeMapping
