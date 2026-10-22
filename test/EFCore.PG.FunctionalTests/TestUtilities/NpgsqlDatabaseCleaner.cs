@@ -156,7 +156,8 @@ FROM pg_collation coll
 
         if (userDefinedTypes.Any())
         {
-            var dropTypes = string.Concat(userDefinedTypes.Select(t => $"""DROP COLLATION "{t.Schema}"."{t.Name}" CASCADE;"""));
+            var dropTypes = string.Concat(userDefinedTypes.Select(
+                t => $"""DROP COLLATION "{t.Schema.Replace("\"", "\"\"")}"."{t.Name.Replace("\"", "\"\"")}" CASCADE;"""));
             using var cmd = new NpgsqlCommand(dropTypes, conn);
             cmd.ExecuteNonQuery();
         }
