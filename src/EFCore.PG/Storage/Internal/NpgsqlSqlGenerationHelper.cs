@@ -63,6 +63,85 @@ public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
         }
     }
 
+    // Annotation keys only need quoting to distinguish literal dots and quotes from schema separators.
+    internal static string QuoteIfNeeded(string name)
+        => name.Contains('.') || name.Contains('"') ? Quote(name) : name;
+
+    private static string Quote(string name)
+        => $"\"{name.Replace("\"", "\"\"")}\"";
+
+    internal static string GetSchemaQualifiedName(string? schema, string name)
+        => schema is null ? QuoteIfNeeded(name) : $"{Quote(schema)}.{Quote(name)}";
+
+    internal static (string? Schema, string Name) ParseSchemaQualifiedName(string name)
+    {
+        var separator = -1;
+        var inQuotes = false;
+        for (var i = 0; i < name.Length; i++)
+        {
+            switch (name[i])
+            {
+                case '"':
+                    inQuotes = !inQuotes;
+                    break;
+                case '.' when !inQuotes:
+                    if (separator != -1)
+                    {
+                        throw new ArgumentException($"Cannot parse identifier: {name}");
+                    }
+
+                    separator = i;
+                    break;
+            }
+        }
+
+        if (inQuotes)
+        {
+            throw new ArgumentException($"Cannot parse identifier: {name}");
+        }
+
+        return separator == -1
+            ? (null, Unquote(name))
+            : (Unquote(name[..separator]), Unquote(name[(separator + 1)..]));
+
+        string Unquote(string identifier)
+        {
+            var unquoted = identifier.Length >= 2 && identifier.StartsWith('"') && identifier.EndsWith('"')
+                ? identifier[1..^1].Replace("\"\"", "\"")
+                : identifier;
+
+            if (identifier.Length == 0 || (identifier.Contains('"') && Quote(unquoted) != identifier))
+            {
+                throw new ArgumentException($"Cannot parse identifier: {name}");
+            }
+
+            return unquoted;
+        }
+    }
+
+    internal string DelimitCollation(string collation, IModel? model = null)
+    {
+        var (schema, name) = ResolveCollation(collation, model);
+        return DelimitIdentifier(name, schema);
+    }
+
+    internal static (string? Schema, string Name) ResolveCollation(string collation, IModel? model)
+    {
+        var (schema, name) = collation.StartsWith('"')
+            ? ParseSchemaQualifiedName(collation)
+            : (null, collation);
+
+        // Only model-defined collations follow the model's default schema; built-in collations remain on the search path.
+        if (schema is null
+            && model?.GetDefaultSchema() is { } defaultSchema
+            && model.GetCollations().Any(c => c.Name == name && (c.Schema is null || c.Schema == defaultSchema)))
+        {
+            schema = defaultSchema;
+        }
+
+        return (schema, name);
+    }
+
     /// <summary>
     ///     Returns whether the given string can be used as an unquoted identifier in PostgreSQL, without quotes.
     /// </summary>

@@ -4,6 +4,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 public class NpgsqlMetadataExtensionsTest
 {
+    [Theory]
+    [InlineData(null, "en_US.utf8_ci")]
+    [InlineData("app.schema", "case.insensitive")]
+    [InlineData("app\"schema", "case\"insensitive")]
+    public void Collation_names_round_trip(string schema, string name)
+    {
+        var model = GetModelBuilder().Model;
+        model.GetOrAddCollation(schema, name, "POSIX", "POSIX", "libc", deterministic: false);
+
+        var collation = Assert.Single(model.GetCollations());
+        Assert.Equal(schema, collation.Schema);
+        Assert.Equal(name, collation.Name);
+        Assert.Equal("POSIX", collation.LcCollate);
+        Assert.Equal("POSIX", collation.LcCtype);
+        Assert.Equal("libc", collation.Provider);
+        Assert.False(collation.IsDeterministic);
+        Assert.NotNull(PostgresCollation.FindCollation(model, schema, name));
+    }
+
+    [Fact]
+    public void Dotted_collation_name_does_not_conflict_with_schema_qualified_name()
+    {
+        var model = GetModelBuilder().Model;
+        model.GetOrAddCollation(null, "app.collation", "POSIX", "POSIX");
+        model.GetOrAddCollation("app", "collation", "C", "C");
+
+        Assert.Equal(2, model.GetCollations().Count);
+        Assert.Equal("POSIX", PostgresCollation.FindCollation(model, null, "app.collation")!.LcCollate);
+        Assert.Equal("C", PostgresCollation.FindCollation(model, "app", "collation")!.LcCollate);
+    }
+
     [ConditionalFact]
     public void Can_get_and_set_database_encoding()
     {

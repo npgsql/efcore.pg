@@ -206,6 +206,17 @@ public static class NpgsqlAnnotationNames
     public const string CollationDefinitionPrefix = Prefix + "CollationDefinition:";
 
     /// <summary>
+    ///     Marks migration-facing collation definitions whose schemas have already been resolved against their model's default schema.
+    ///     A remaining null schema means PostgreSQL's search path, not a fallback to the model supplied during SQL generation.
+    /// </summary>
+    /// <remarks>
+    ///     Older scaffolded migrations lack this marker and rely on that fallback, so treating all null schemas as resolved would
+    ///     change where their collations are created or dropped. This marker is emitted on relational metadata and migration
+    ///     operations, not model snapshots; it also limits schema transfers to newly scaffolded operations.
+    /// </remarks>
+    internal const string CollationSchemasResolved = Prefix + "CollationSchemasResolved";
+
+    /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
     ///     any release. You should only use it directly in your code with extreme caution and knowing that

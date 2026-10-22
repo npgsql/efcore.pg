@@ -1746,6 +1746,48 @@ CREATE TABLE columns_with_collation (
             },
             @"DROP TABLE columns_with_collation");
 
+    [Theory]
+    [InlineData("simple", "simple")]
+    [InlineData("case.insensitive", "\"case.insensitive\"")]
+    [InlineData("embedded\"quote", "\"embedded\"\"quote\"")]
+    [InlineData("\"leading", "\"\"\"leading\"")]
+    [InlineData("\"quoted\"", "\"\"\"quoted\"\"\"")]
+    [InlineData("\"app\".\"name\"", "\"\"\"app\"\".\"\"name\"\"\"")]
+    public void Column_and_index_collations_round_trip(string name, string reference)
+    {
+        var sqlName = $"\"{name.Replace("\"", "\"\"")}\"";
+
+        Test(
+            $"""
+CREATE COLLATION public.{sqlName} (LOCALE = 'POSIX', PROVIDER = libc);
+CREATE TABLE collations_round_trip (name text COLLATE public.{sqlName});
+CREATE INDEX collations_round_trip_index ON collations_round_trip (name COLLATE public.{sqlName});
+""",
+            [],
+            [],
+            dbModel =>
+            {
+                var table = Assert.Single(dbModel.Tables);
+                var columnCollation = Assert.Single(table.Columns).Collation;
+                var indexCollation = Assert.Single(
+                    Assert.IsType<string[]>(Assert.Single(table.Indexes)[RelationalAnnotationNames.Collation]));
+                Assert.Equal(reference, columnCollation);
+                Assert.Equal(reference, indexCollation);
+
+                var helper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
+                Fixture.TestStore.ExecuteNonQuery(
+                    $"""
+DROP TABLE collations_round_trip;
+CREATE TABLE collations_round_trip (name text COLLATE {helper.DelimitCollation(columnCollation!)});
+CREATE INDEX collations_round_trip_index ON collations_round_trip (name COLLATE {helper.DelimitCollation(indexCollation)});
+""");
+            },
+            $"""
+DROP TABLE collations_round_trip;
+DROP COLLATION public.{sqlName};
+""");
+    }
+
     [ConditionalFact]
     public void Default_database_collation_is_not_scaffolded()
         => Test(

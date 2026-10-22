@@ -280,6 +280,6 @@ public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
             return [];
         }
 
-        return model.Model.GetAnnotations().Where(NpgsqlAnnotationHelper.IsRelationalModelAnnotation);
+        return NpgsqlAnnotationHelper.GetRelationalModelAnnotations(model.Model);
     }
 }

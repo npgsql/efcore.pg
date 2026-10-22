@@ -711,6 +711,11 @@ public static class NpgsqlModelBuilderExtensions
     ///     Creates a new collation in the database.
     /// </summary>
     /// <remarks>
+    ///     Dots in <paramref name="name" /> are part of the collation name, not schema separators.
+    ///     Unqualified column, index and query references to collations declared in the model's default schema use that schema.
+    ///     Migrations move these collations when the default schema changes.
+    ///     To reference a collation in a specific schema via <c>UseCollation</c> or <c>EF.Functions.Collate</c>,
+    ///     quote both identifiers, for example <c>"app"."case_insensitive"</c>.
     ///     See https://www.postgresql.org/docs/current/sql-createcollation.html.
     /// </remarks>
     /// <param name="modelBuilder">The model builder on which to create the collation.</param>

@@ -1,4 +1,5 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -74,10 +75,10 @@ public class PostgresCollation
         return annotatable[annotationName] is null ? null : new PostgresCollation(annotatable, annotationName);
     }
 
-    private static string BuildAnnotationName(string? schema, string name)
+    internal static string BuildAnnotationName(string? schema, string name)
         => schema is not null
-            ? $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{schema}.{name}"
-            : $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{name}";
+            ? $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{NpgsqlSqlGenerationHelper.QuoteIfNeeded(schema)}.{NpgsqlSqlGenerationHelper.QuoteIfNeeded(name)}"
+            : $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{NpgsqlSqlGenerationHelper.QuoteIfNeeded(name)}";
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -167,7 +168,7 @@ public class PostgresCollation
     }
 
     private (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic) GetData()
-        => Deserialize(Annotatable.FindAnnotation(_annotationName));
+        => Deserialize(_annotatable.FindAnnotation(_annotationName));
 
     private void SetData(string? lcCollate = null, string? lcCtype = null, string? provider = null, bool? deterministic = null)
         => Annotatable[_annotationName] =
@@ -199,17 +200,7 @@ public class PostgresCollation
             ? bool.Parse(isDeterminsticString)
             : (bool?)null;
 
-        // TODO: This would be a safer operation if we stored schema and name in the annotation value (see Sequence.cs).
-        // Yes, this doesn't support dots in the schema/collation name, let somebody complain first.
-        var schemaAndName = annotation.Name.Substring(NpgsqlAnnotationNames.CollationDefinitionPrefix.Length).Split('.');
-        switch (schemaAndName.Length)
-        {
-            case 1:
-                return (null, schemaAndName[0], elements[0], elements[1], elements[2], isDeterministic);
-            case 2:
-                return (schemaAndName[0], schemaAndName[1], elements[0], elements[1], elements[2], isDeterministic);
-            default:
-                throw new ArgumentException($"Cannot parse collation name from annotation: {annotation.Name}");
-        }
+        var (schema, name) = NpgsqlSqlGenerationHelper.ParseSchemaQualifiedName(annotation.Name[NpgsqlAnnotationNames.CollationDefinitionPrefix.Length..]);
+        return (schema, name, elements[0], elements[1], elements[2], isDeterministic);
     }
 }

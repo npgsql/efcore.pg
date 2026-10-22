@@ -9,6 +9,121 @@ public class AdHocMiscellaneousQueryNpgsqlTest(NonSharedFixture fixture) : AdHoc
     protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
+    [ConditionalTheory]
+    [MinimumPostgresVersion(12, 0)]
+    [InlineData(null, "en_US.utf8_ci", "en_US.utf8_ci")]
+    [InlineData("app.schema", "case.insensitive", "\"app.schema\".\"case.insensitive\"")]
+    [InlineData("app\"schema", "case\"insensitive", "\"app\"\"schema\".\"case\"\"insensitive\"")]
+    public virtual async Task Collate_with_dotted_name_or_schema(string? schema, string name, string reference)
+    {
+        var contextFactory = await InitializeNonSharedTest<CollationContext>(
+            onModelCreating: builder =>
+            {
+                builder.HasCollation(schema, name, locale: "en-u-ks-primary", provider: "icu", deterministic: false);
+                if (schema is not null)
+                {
+                    builder.Entity<CollationContext.Entity>().Property(e => e.Name).UseCollation(reference);
+                }
+            },
+            seed: async context =>
+            {
+                context.Entities.Add(new CollationContext.Entity { Name = "ABC" });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        Assert.Equal(1, await context.Entities.CountAsync(e => e.Name == "abc"));
+        Assert.Equal("ABC", await context.Entities
+            .Where(e => EF.Functions.Collate(e.Name, reference) == "abc")
+            .Select(e => e.Name)
+            .SingleAsync());
+
+        var sqlCollation = schema is null ? $"\"{name}\"" : reference;
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Entities" AS e
+WHERE e."Name" = 'abc'
+""",
+            //
+            $"""
+SELECT e."Name"
+FROM "Entities" AS e
+WHERE e."Name" COLLATE {sqlCollation} = 'abc'
+LIMIT 2
+""");
+    }
+
+    protected class CollationContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities => Set<Entity>();
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+            => configurationBuilder.Properties<string>().UseCollation("en_US.utf8_ci");
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = null!;
+        }
+    }
+
+    [ConditionalTheory]
+    [MinimumPostgresVersion(12, 0)]
+    [InlineData("app", "case_insensitive", "case_insensitive", false, "app.case_insensitive")]
+    [InlineData("app", "case_insensitive", "case_insensitive", true, "app.case_insensitive")]
+    [InlineData("app", "case_insensitive", "\"case_insensitive\"", false, "app.case_insensitive")]
+    [InlineData("app.schema", "case.insensitive", "case.insensitive", false, "\"app.schema\".\"case.insensitive\"")]
+    [InlineData("app\"schema", "case\"insensitive", "case\"insensitive", false, "\"app\"\"schema\".\"case\"\"insensitive\"")]
+    [InlineData("app", "case_insensitive", "\"public\".\"case_insensitive\"", false, "public.case_insensitive")]
+    [InlineData("app", "case_insensitive", "POSIX", false, "\"POSIX\"")]
+    [InlineData("app", "case_insensitive", "external_collation", false, "external_collation")]
+    public virtual async Task Collate_with_default_schema(
+        string schema, string name, string reference, bool explicitDeclarationSchema, string sqlCollation)
+    {
+        var contextFactory = await InitializeNonSharedTest<CollationContext>(
+            onModelCreating: builder =>
+            {
+                builder.HasDefaultSchema(schema);
+                builder.HasCollation(
+                    explicitDeclarationSchema ? schema : null, name,
+                    locale: "en-u-ks-primary", provider: "icu", deterministic: false);
+                builder.Entity<CollationContext.Entity>().Property(e => e.Name).UseCollation(name);
+            },
+            seed: async context =>
+            {
+                await context.Database.ExecuteSqlRawAsync(
+                    """
+CREATE COLLATION public.case_insensitive (LOCALE = 'POSIX', PROVIDER = libc);
+CREATE COLLATION public.external_collation (LOCALE = 'POSIX', PROVIDER = libc);
+""");
+                context.Entities.Add(new CollationContext.Entity { Name = "ABC" });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+        var query = context.Entities.Where(e => EF.Functions.Collate(e.Name, reference) == "abc").Select(e => e.Name);
+        var results = await query.ToListAsync();
+
+        if (sqlCollation is "public.case_insensitive" or "\"POSIX\"" or "external_collation")
+        {
+            Assert.Empty(results);
+        }
+        else
+        {
+            Assert.Equal("ABC", Assert.Single(results));
+        }
+
+        var sqlSchema = schema == "app" ? schema : $"\"{schema.Replace("\"", "\"\"")}\"";
+        AssertSql(
+            $"""
+SELECT e."Name"
+FROM {sqlSchema}."Entities" AS e
+WHERE e."Name" COLLATE {sqlCollation} = 'abc'
+""");
+    }
+
     protected override DbContextOptionsBuilder SetParameterizedCollectionMode(DbContextOptionsBuilder optionsBuilder, ParameterTranslationMode parameterizedCollectionMode)
     {
         new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseParameterizedCollectionMode(parameterizedCollectionMode);

@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
@@ -284,6 +285,7 @@ SELECT
   attname,
   description,
   {(connection.PostgreSqlVersion >= new Version(9, 1) ? "collname" : "NULL::text as collname")},
+  {(connection.PostgreSqlVersion >= new Version(9, 1) ? "(SELECT nspname FROM pg_namespace WHERE oid = coll.collnamespace)" : "NULL::text")} AS collschema,
   attisdropped,
   {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity::text" : "' '::text as attidentity")},
   {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated::text" : "' '::text as attgenerated")},
@@ -480,7 +482,9 @@ ORDER BY attnum
 
                 if (record.GetValueOrDefault<string>("collname") is { } collation && collation != "default")
                 {
-                    column.Collation = collation;
+                    var collationSchema = record.GetValueOrDefault<string>("collschema");
+                    column.Collation = NpgsqlSqlGenerationHelper.GetSchemaQualifiedName(
+                        collationSchema is "pg_catalog" or "public" ? null : collationSchema, collation);
                 }
 
                 if (record.GetValueOrDefault<string>("attcompression") is { } compressionMethodChar)
@@ -579,12 +583,16 @@ ORDER BY attnum
 
         if (connection.PostgreSqlVersion >= new Version(9, 1))
         {
-            using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
+            using (var command = new NpgsqlCommand(
+                       "SELECT coll.oid, collname, nspname FROM pg_collation coll JOIN pg_namespace ns ON ns.oid = coll.collnamespace",
+                       connection))
             using (var reader = command.ExecuteReader())
             {
                 foreach (var collation in reader.Cast<DbDataRecord>())
                 {
-                    collations[collation.GetFieldValue<uint>("oid")] = collation.GetFieldValue<string>("collname");
+                    var schema = collation.GetFieldValue<string>("nspname");
+                    collations[collation.GetFieldValue<uint>("oid")] = NpgsqlSqlGenerationHelper.GetSchemaQualifiedName(
+                        schema is "pg_catalog" or "public" ? null : schema, collation.GetFieldValue<string>("collname"));
                 }
             }
         }

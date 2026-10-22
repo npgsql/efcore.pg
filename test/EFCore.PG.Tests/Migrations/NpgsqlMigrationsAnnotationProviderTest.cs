@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 
@@ -30,7 +31,7 @@ public class NpgsqlMigrationsAnnotationProviderTest
         var annotations = _migrationsAnnotationProvider.ForRemove(model).ToList();
 
         Assert.Equal(9, allAnnotations.Count);
-        Assert.Equal(8, annotations.Count);
+        Assert.Equal(9, annotations.Count);
         Assert.Contains(annotations, a => a.Name == $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}test_extension");
         Assert.Contains(annotations, a => a.Name == $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}test_schema2.test_extension2");
         Assert.Contains(annotations, a => a.Name == $"{NpgsqlAnnotationNames.EnumPrefix}test_enum");
@@ -39,6 +40,34 @@ public class NpgsqlMigrationsAnnotationProviderTest
         Assert.Contains(annotations, a => a.Name == $"{NpgsqlAnnotationNames.RangePrefix}test_schema2.test_range2");
         Assert.Contains(annotations, a => a.Name == $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}test_collation");
         Assert.Contains(annotations, a => a.Name == $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}test_schema2.test_collation2");
+        Assert.Contains(annotations, a => a.Name == NpgsqlAnnotationNames.CollationSchemasResolved && a.Value is true);
+    }
+
+    [Theory]
+    [InlineData(null, null, null)]
+    [InlineData("app", null, "app")]
+    [InlineData("app.schema", null, "app.schema")]
+    [InlineData("app", "other", "other")]
+    public virtual void Collation_schemas_are_resolved_only_in_relational_metadata(
+        string defaultSchema, string configuredSchema, string expectedSchema)
+    {
+        var model = new ModelBuilder()
+            .HasCollation(configuredSchema, "case.insensitive", locale: "POSIX", provider: "libc")
+            .HasDefaultSchema(defaultSchema)
+            .FinalizeModel();
+        var relationalModel = new RelationalModel(model);
+        var annotationProvider = new NpgsqlAnnotationProvider(new RelationalAnnotationProviderDependencies());
+        var annotations = annotationProvider.For(relationalModel, designTime: true).ToList();
+        relationalModel.AddAnnotations(annotations);
+
+        Assert.Equal(configuredSchema, Assert.Single(model.GetCollations()).Schema);
+        Assert.Null(model.FindAnnotation(NpgsqlAnnotationNames.CollationSchemasResolved));
+        Assert.Equal(expectedSchema, Assert.Single(PostgresCollation.GetCollations(relationalModel)).Schema);
+        Assert.Contains(annotations, a => a.Name == NpgsqlAnnotationNames.CollationSchemasResolved && a.Value is true);
+        Assert.Equal(
+            annotations.Select(a => (a.Name, a.Value)),
+            _migrationsAnnotationProvider.ForRemove(relationalModel).Select(a => (a.Name, a.Value)));
+        Assert.Empty(annotationProvider.For(relationalModel, designTime: false));
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Migrations.Design;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -3077,6 +3078,66 @@ CREATE TYPE some_schema."Mood" AS ENUM ('Happy', 'Sad');
 
     #region PostgreSQL collation management
 
+    [Theory]
+    [InlineData(null, "en_US.utf8_ci", "en_US.utf8_ci")]
+    [InlineData("app", "case_insensitive", "case_insensitive")]
+    [InlineData("app.schema", "case.insensitive", "\"app.schema\".\"case.insensitive\"")]
+    [InlineData("app\"schema", "case\"insensitive", "\"app\"\"schema\".\"case\"\"insensitive\"")]
+    public virtual async Task Create_table_with_custom_collation(string? schema, string name, string reference)
+        => await Test(
+            _ => { },
+            builder =>
+            {
+                builder.HasDefaultSchema(schema);
+                builder.HasCollation(name, locale: "POSIX", provider: "libc");
+                builder.Entity("People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<string>("Name").UseCollation(reference);
+                    e.Property<string>("ComputedName").HasComputedColumnSql("\"Name\"", stored: true).UseCollation(reference);
+                    e.HasIndex("Name").UseCollation(reference);
+                });
+            },
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                Assert.Equal(schema, table.Schema == "public" ? null : table.Schema);
+                var expected = schema is null
+                    ? $"\"{name}\""
+                    : $"\"{schema.Replace("\"", "\"\"")}\".\"{name.Replace("\"", "\"\"")}\"";
+                Assert.Equal(expected, table.Columns.Single(c => c.Name == "Name").Collation);
+                Assert.Equal(expected, table.Columns.Single(c => c.Name == "ComputedName").Collation);
+                Assert.Equal(new[] { expected }, Assert.Single(table.Indexes)[RelationalAnnotationNames.Collation]);
+            });
+
+    [Theory]
+    [InlineData("case_insensitive", "case_insensitive")]
+    [InlineData("case.insensitive", "case.insensitive")]
+    [InlineData("case.insensitive", "\"case.insensitive\"")]
+    [InlineData("case.insensitive", "\"app\".\"case.insensitive\"")]
+    public virtual async Task Alter_column_set_collation_in_default_schema(string name, string reference)
+    {
+        await Test(
+            builder =>
+            {
+                builder.HasDefaultSchema("app");
+                builder.HasCollation(name, locale: "POSIX", provider: "libc");
+                builder.Entity("People", e =>
+                {
+                    e.Property<int>("Id");
+                    e.Property<string>("Name");
+                });
+            },
+            _ => { },
+            builder => builder.Entity("People").Property<string>("Name").UseCollation(reference),
+            model => Assert.Equal(
+                $"\"app\".\"{name}\"",
+                Assert.Single(model.Tables).Columns.Single(c => c.Name == "Name").Collation));
+
+        var delimitedName = name.Contains('.') ? $"\"{name}\"" : name;
+        AssertSql($"""ALTER TABLE app."People" ALTER COLUMN "Name" TYPE text COLLATE app.{delimitedName};""");
+    }
+
     [Fact]
     public virtual async Task Create_collation()
     {
@@ -3128,15 +3189,18 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
 """);
     }
 
-    [Fact]
-    public virtual async Task Drop_collation()
+    [Theory]
+    [InlineData(null, "dummy", "dummy")]
+    [InlineData(null, "en_US.utf8_ci", "\"en_US.utf8_ci\"")]
+    [InlineData("app.schema", "case.insensitive", "\"app.schema\".\"case.insensitive\"")]
+    public virtual async Task Drop_collation(string? schema, string name, string sqlName)
     {
         await Test(
-            builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+            builder => builder.HasCollation(schema, name, locale: "POSIX", provider: "libc"),
             _ => { },
             model => Assert.Empty(PostgresCollation.GetCollations(model)));
 
-        AssertSql("""DROP COLLATION dummy;""");
+        AssertSql($"DROP COLLATION {sqlName};");
     }
 
     [Fact]
@@ -3144,6 +3208,114 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
         => TestThrows<NotSupportedException>(
             builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
             builder => builder.HasCollation("dummy", locale: "C", provider: "libc"));
+
+    [Theory]
+    [InlineData("8.0.10", "app", false)]
+    [InlineData("8.0.10", "other", false)]
+    [InlineData("10.0.3", "app", false)]
+    [InlineData("10.0.3", "other", false)]
+    [InlineData("8.0.10", "app", true)]
+    [InlineData("10.0.3", "other", true)]
+    public virtual void Collation_from_older_snapshot(string version, string targetSchema, bool explicitSchema)
+    {
+        var sourceModel = BuildModelFromSnapshotSource(
+            $$"""
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+
+public class MigrationsTestSnapshot : ModelSnapshot
+{
+    protected override void BuildModel(ModelBuilder modelBuilder)
+    {
+        modelBuilder
+            .HasAnnotation("ProductVersion", "{{version}}")
+            .HasDefaultSchema("app")
+            .HasAnnotation("Npgsql:CollationDefinition:dummy", "POSIX,POSIX,libc,");
+    }
+}
+""");
+        var services = Fixture.TestHelpers.CreateContextServices();
+        var targetBuilder = Fixture.TestHelpers.CreateConventionBuilder(services)
+            .HasDefaultSchema(targetSchema)
+            .HasCollation(explicitSchema ? "app" : null, "dummy", locale: "POSIX", provider: "libc");
+        var targetModel = services.GetRequiredService<IModelRuntimeInitializer>()
+            .Initialize((IModel)targetBuilder.Model, designTime: true, validationLogger: null);
+        var operations = services.GetRequiredService<IMigrationsModelDiffer>()
+            .GetDifferences(sourceModel.GetRelationalModel(), targetModel.GetRelationalModel());
+
+        Assert.Null(Assert.Single(sourceModel.GetCollations()).Schema);
+        Assert.Equal("POSIX,POSIX,libc,", sourceModel["Npgsql:CollationDefinition:dummy"]);
+
+        if (targetSchema == "app" || explicitSchema)
+        {
+            Assert.Empty(operations);
+        }
+        else
+        {
+            var operation = Assert.IsType<AlterDatabaseOperation>(Assert.Single(operations));
+            Assert.Equal("app", Assert.Single(operation.GetOldPostgresCollations()).Schema);
+            Assert.Equal("other", Assert.Single(operation.GetPostgresCollations()).Schema);
+
+            var downOperations = services.GetRequiredService<IMigrationsModelDiffer>()
+                .GetDifferences(targetModel.GetRelationalModel(), sourceModel.GetRelationalModel());
+            var codeGenerator = Fixture.TestHelpers.CreateDesignServiceProvider().GetRequiredService<IMigrationsCodeGenerator>();
+            var migrationCode = codeGenerator.GenerateMigration("Migrations", "CollationSchemaMove", operations, downOperations);
+            var build = new BuildSource { Sources = { { "Migration.cs", migrationCode } } };
+            build.References.Add(BuildReference.ByName("Microsoft.EntityFrameworkCore"));
+            build.References.Add(BuildReference.ByName("Microsoft.EntityFrameworkCore.Abstractions"));
+            build.References.Add(BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"));
+            var migration = (Migration)Activator.CreateInstance(build.BuildInMemory().GetType("Migrations.CollationSchemaMove")!)!;
+
+            var sql = string.Concat(services.GetRequiredService<IMigrationsSqlGenerator>()
+                .Generate(migration.UpOperations).Select(c => c.CommandText));
+            Assert.Contains("ALTER COLLATION app.dummy SET SCHEMA other;", sql);
+            Assert.DoesNotContain("CREATE COLLATION", sql);
+            Assert.DoesNotContain("DROP COLLATION", sql);
+            var downSql = string.Concat(services.GetRequiredService<IMigrationsSqlGenerator>()
+                .Generate(migration.DownOperations).Select(c => c.CommandText));
+            Assert.Contains("ALTER COLLATION other.dummy SET SCHEMA app;", downSql);
+        }
+    }
+
+    [Fact]
+    public virtual async Task Collation_moves_with_table_when_default_schema_changes()
+    {
+        await Test(
+            builder =>
+            {
+                builder.HasCollation("dummy", locale: "POSIX", provider: "libc");
+                builder.Entity("People", b =>
+                {
+                    b.Property<int>("Id");
+                    b.Property<string>("Name").UseCollation("dummy");
+                    b.HasIndex("Name").UseCollation("dummy");
+                });
+            },
+            builder => builder.HasDefaultSchema("app"),
+            builder => builder.HasDefaultSchema("other"),
+            model =>
+            {
+                Assert.Equal("other", Assert.Single(PostgresCollation.GetCollations(model)).Schema);
+                var table = Assert.Single(model.Tables);
+                Assert.Equal("other", table.Schema);
+                Assert.Equal("\"other\".\"dummy\"", table.Columns.Single(c => c.Name == "Name").Collation);
+                Assert.Equal(new[] { "\"other\".\"dummy\"" }, Assert.Single(table.Indexes)[RelationalAnnotationNames.Collation]);
+            });
+
+        const string ensureSchema = """
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'other') THEN
+        CREATE SCHEMA other;
+    END IF;
+END $EF$;
+""";
+        AssertSql(
+            ensureSchema,
+            """ALTER TABLE app."People" SET SCHEMA other;""",
+            ensureSchema,
+            "ALTER COLLATION app.dummy SET SCHEMA other;");
+    }
 
     #endregion PostgreSQL collation management
 

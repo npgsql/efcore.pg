@@ -4,6 +4,7 @@ using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
@@ -13,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 /// </summary>
 public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 {
-    private readonly ISqlGenerationHelper _sqlGenerationHelper;
+    private readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
     private readonly IRelationalTypeMappingSource _typeMappingSource;
     private RelationalTypeMapping? _textTypeMapping;
 
@@ -36,7 +37,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         Version postgresVersion)
         : base(dependencies)
     {
-        _sqlGenerationHelper = dependencies.SqlGenerationHelper;
+        _sqlGenerationHelper = (NpgsqlSqlGenerationHelper)dependencies.SqlGenerationHelper;
         _typeMappingSource = typeMappingSource;
         _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
         _postgresVersion = postgresVersion;
@@ -704,7 +705,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         // In PG, collation names are regular identifiers which need to be quoted for case-sensitivity.
         Sql
             .Append(" COLLATE ")
-            .Append(_sqlGenerationHelper.DelimitIdentifier(collateExpression.Collation));
+            .Append(_sqlGenerationHelper.DelimitCollation(collateExpression.Collation));
 
         return collateExpression;
     }

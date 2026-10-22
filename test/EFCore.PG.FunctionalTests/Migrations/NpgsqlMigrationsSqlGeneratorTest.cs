@@ -87,6 +87,220 @@ TABLESPACE "MyTablespace";
 
     #endregion
 
+    [ConditionalTheory, MinimumPostgresVersion(12, 0)]
+    [InlineData("app", "other", false, null, false)]
+    [InlineData(null, "app", false, null, false)]
+    [InlineData("app", null, false, null, false)]
+    [InlineData("app.schema", "other\"schema", false, null, false)]
+    [InlineData("app", "other", true, null, false)]
+    [InlineData("app", null, false, "search_path_schema,public", false)]
+    [InlineData("app", null, false, "search_path_schema,public", true)]
+    public async Task Collation_schema_changes_preserve_dependencies(
+        string? sourceSchema, string? targetSchema, bool explicitSchema, string? searchPath, bool idempotent)
+    {
+        await using var store = await NpgsqlTestStore.CreateInitializedAsync("CollationSchemaChanges");
+        var connectionString = new NpgsqlConnectionStringBuilder(store.ConnectionString) { SearchPath = searchPath }.ConnectionString;
+        await using var source = new CollationContext(sourceSchema, explicitSchema, connectionString);
+        await using var target = new CollationContext(targetSchema, explicitSchema, connectionString);
+        if (searchPath is not null)
+        {
+            await source.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS search_path_schema");
+        }
+
+        await source.Database.EnsureCreatedAsync();
+        await source.Database.ExecuteSqlRawAsync("""INSERT INTO public."People" ("Name") VALUES ('ABC')""");
+        var oid = await source.Database.SqlQueryRaw<long>(
+            """SELECT oid::bigint AS "Value" FROM pg_collation WHERE collname = 'case.insensitive'""").SingleAsync();
+
+        (CollationContext Source, CollationContext Target)[] steps = [(source, target), (target, source)];
+        foreach (var (from, to) in steps)
+        {
+            var model = to.GetService<IDesignTimeModel>().Model;
+            var operations = to.GetService<IMigrationsModelDiffer>().GetDifferences(
+                from.GetService<IDesignTimeModel>().Model.GetRelationalModel(), model.GetRelationalModel());
+            Assert.Single(operations.OfType<AlterDatabaseOperation>());
+            var sql = string.Concat(to.GetService<IMigrationsSqlGenerator>().Generate(
+                operations, model, idempotent ? MigrationsSqlGenerationOptions.Idempotent : MigrationsSqlGenerationOptions.Default)
+                .Select(c => c.CommandText));
+            Assert.DoesNotContain("CREATE COLLATION", sql);
+            Assert.DoesNotContain("DROP COLLATION", sql);
+            if (idempotent)
+            {
+                sql = $"DO $EF$\nBEGIN\n{sql}\nEND $EF$;";
+            }
+
+            await to.Database.ExecuteSqlRawAsync(sql);
+
+            Assert.Equal(oid, await to.Database.SqlQueryRaw<long>(
+                """SELECT oid::bigint AS "Value" FROM pg_collation WHERE collname = 'case.insensitive'""").SingleAsync());
+            var expectedSchema = to.Schema
+                ?? await to.Database.SqlQueryRaw<string>("""SELECT current_schema() AS "Value" """).SingleAsync();
+            Assert.Equal(expectedSchema, await to.Database.SqlQueryRaw<string>(
+                """
+SELECT n.nspname AS "Value"
+FROM pg_collation AS c
+JOIN pg_namespace AS n ON n.oid = c.collnamespace
+WHERE c.collname = 'case.insensitive'
+""").SingleAsync());
+            Assert.Equal(1, await to.Database.SqlQueryRaw<string>("""SELECT "Name" AS "Value" FROM public."People" """)
+                .Where(name => EF.Functions.Collate(name, to.CollationReference) == "abc").CountAsync());
+        }
+    }
+
+    private class CollationContext(string? schema, bool explicitSchema, string connectionString) : DbContext
+    {
+        public string? Schema => schema;
+
+        public string CollationReference
+            => explicitSchema && schema is not null
+                ? $"\"{schema.Replace("\"", "\"\"")}\".\"case.insensitive\""
+                : "case.insensitive";
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql(connectionString).EnableServiceProviderCaching(false);
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.HasDefaultSchema(explicitSchema ? null : schema);
+            modelBuilder.HasCollation(
+                explicitSchema ? schema : null, "case.insensitive", locale: "en-u-ks-primary", provider: "icu", deterministic: false);
+            modelBuilder.Entity("People", b =>
+            {
+                b.ToTable("People", "public");
+                b.Property<int>("Id");
+                b.Property<string>("Name").UseCollation(CollationReference);
+                b.HasIndex("Name").UseCollation(CollationReference);
+            });
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Collation_legacy_migration_uses_target_model_default_schema(bool drop)
+    {
+        Generate(
+            b => b.HasDefaultSchema("app"),
+            m =>
+            {
+                var operation = m.AlterDatabase();
+                if (drop)
+                {
+                    operation.OldAnnotation("Npgsql:CollationDefinition:dummy", "POSIX,POSIX,libc,");
+                }
+                else
+                {
+                    operation.Annotation("Npgsql:CollationDefinition:dummy", "POSIX,POSIX,libc,");
+                }
+            });
+
+        AssertSql(
+            drop
+                ? "DROP COLLATION app.dummy;"
+                : """
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'app') THEN
+        CREATE SCHEMA app;
+    END IF;
+END $EF$;
+GO
+
+CREATE COLLATION app.dummy (LOCALE = 'POSIX',
+    PROVIDER = libc
+);
+""");
+    }
+
+    [Fact]
+    public void Collation_legacy_schema_change_keeps_create_drop_semantics()
+    {
+        Generate(
+            null,
+            m => m.AlterDatabase()
+                .Annotation("Npgsql:CollationDefinition:other.dummy", "POSIX,POSIX,libc,")
+                .OldAnnotation("Npgsql:CollationDefinition:app.dummy", "POSIX,POSIX,libc,"));
+
+        AssertSql(
+            """
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'other') THEN
+        CREATE SCHEMA other;
+    END IF;
+END $EF$;
+GO
+
+CREATE COLLATION other.dummy (LOCALE = 'POSIX',
+    PROVIDER = libc
+);
+DROP COLLATION app.dummy;
+""");
+    }
+
+    [Fact]
+    public void Collation_drop_uses_resolved_source_schema_not_target_default()
+    {
+        var operation = new AlterDatabaseOperation();
+        operation.OldDatabase.AddAnnotation(NpgsqlAnnotationNames.CollationSchemasResolved, true);
+        PostgresCollation.GetOrAddCollation(operation.OldDatabase, null, "dummy", "POSIX", "POSIX", "libc");
+
+        Generate(b => b.HasDefaultSchema("app"), operation);
+
+        AssertSql("DROP COLLATION dummy;");
+    }
+
+    [Fact]
+    public void Collation_move_matches_existing_schemas_before_names()
+    {
+        var operation = new AlterDatabaseOperation();
+        operation.AddAnnotation(NpgsqlAnnotationNames.CollationSchemasResolved, true);
+        operation.OldDatabase.AddAnnotation(NpgsqlAnnotationNames.CollationSchemasResolved, true);
+        PostgresCollation.GetOrAddCollation(operation, "other", "dummy", "POSIX", "POSIX", "libc");
+        PostgresCollation.GetOrAddCollation(operation, "fixed", "dummy", "POSIX", "POSIX", "libc");
+        PostgresCollation.GetOrAddCollation(operation.OldDatabase, "fixed", "dummy", "POSIX", "POSIX", "libc");
+        PostgresCollation.GetOrAddCollation(operation.OldDatabase, "app", "dummy", "POSIX", "POSIX", "libc");
+
+        Generate(operation);
+
+        AssertSql(
+            """
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'other') THEN
+        CREATE SCHEMA other;
+    END IF;
+END $EF$;
+GO
+
+ALTER COLLATION app.dummy SET SCHEMA other;
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Collation_move_to_search_path_schema(bool idempotent)
+    {
+        var operation = new AlterDatabaseOperation();
+        operation.AddAnnotation(NpgsqlAnnotationNames.CollationSchemasResolved, true);
+        operation.OldDatabase.AddAnnotation(NpgsqlAnnotationNames.CollationSchemasResolved, true);
+        PostgresCollation.GetOrAddCollation(operation, null, "dummy", "POSIX", "POSIX", "libc");
+        PostgresCollation.GetOrAddCollation(operation.OldDatabase, "app", "dummy", "POSIX", "POSIX", "libc");
+
+        Generate(operation, idempotent ? MigrationsSqlGenerationOptions.Idempotent : MigrationsSqlGenerationOptions.Default);
+
+        AssertSql(
+            idempotent
+                ? "    EXECUTE format('ALTER COLLATION %s SET SCHEMA %I', 'app.dummy', current_schema());"
+                : """
+DO $EF$
+BEGIN
+    EXECUTE format('ALTER COLLATION %s SET SCHEMA %I', 'app.dummy', current_schema());
+END $EF$;
+""");
+    }
+
     public override void AddColumnOperation_without_column_type()
     {
         base.AddColumnOperation_without_column_type();

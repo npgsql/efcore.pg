@@ -69,4 +69,28 @@ public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslator
                 new NpgsqlCubeTranslator(sqlExpressionFactory, typeMappingSource),
         ]);
     }
+
+    /// <inheritdoc />
+    public override SqlExpression? Translate(
+        IModel model,
+        SqlExpression? instance,
+        MethodInfo method,
+        IReadOnlyList<SqlExpression> arguments,
+        IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+    {
+        var translation = base.Translate(model, instance, method, arguments, logger);
+
+        if (translation is CollateExpression collateExpression)
+        {
+            var (schema, name) = NpgsqlSqlGenerationHelper.ResolveCollation(collateExpression.Collation, model);
+            if (schema is not null)
+            {
+                return new CollateExpression(
+                    collateExpression.Operand,
+                    NpgsqlSqlGenerationHelper.GetSchemaQualifiedName(schema, name));
+            }
+        }
+
+        return translation;
+    }
 }
