@@ -387,6 +387,86 @@ LIMIT 2
         }
     }
 
+    [ConditionalTheory]
+    [InlineData(false, "json")]
+    [InlineData(true, "json")]
+    [InlineData(false, "jsonb")]
+    [InlineData(true, "jsonb")]
+    public virtual async Task Byte_array_in_json_collection(bool async, string columnType)
+    {
+        List<Context3566.Element> elements =
+        [
+            new() { Name = "A", Content = [0, 1, 127, 128, 255] },
+            new() { Name = "B", Content = [] },
+            new() { Name = "C", Content = null }
+        ];
+        var contextFactory = await InitializeAsync<Context3566>(
+            onModelCreating: modelBuilder => modelBuilder.Entity<Context3566.Entity>()
+                .OwnsMany(e => e.Collection, b => b.ToJson().HasColumnType(columnType)),
+            seed: async context =>
+            {
+                context.Entities.Add(new Context3566.Entity { Collection = elements });
+                await context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateContext();
+        var entity = async
+            ? await context.Entities.AsNoTracking().SingleAsync()
+            : context.Entities.AsNoTracking().Single();
+        Assert.Equal(elements.Select(e => e.Content), entity.Collection.Select(e => e.Content));
+
+        TestSqlLoggerFactory.Clear();
+
+        var collectionQuery = context.Entities.SelectMany(e => e.Collection);
+        var projectionQuery = collectionQuery.OrderBy(e => e.Name).Select(e => e.Content);
+        var projected = async ? await projectionQuery.ToListAsync() : projectionQuery.ToList();
+        Assert.Equal(elements.Select(e => e.Content), projected);
+
+        var predicateQuery = collectionQuery.Where(e => e.Content == new byte[] { 0, 1, 127, 128, 255 }).Select(e => e.Name);
+        var matchingName = async ? await predicateQuery.SingleAsync() : predicateQuery.Single();
+        Assert.Equal("A", matchingName);
+
+        var functionName = columnType == "json" ? "json_to_recordset" : "jsonb_to_recordset";
+        AssertSql(
+            $"""
+SELECT decode(c."Content", 'base64') AS "Content"
+FROM "Entities" AS e
+JOIN LATERAL ROWS FROM ({functionName}(e."Collection") AS (
+    "Content" text,
+    "Name" text
+)) WITH ORDINALITY AS c ON TRUE
+ORDER BY c."Name" NULLS FIRST
+""",
+            //
+            $"""
+SELECT c."Name"
+FROM "Entities" AS e
+JOIN LATERAL ROWS FROM ({functionName}(e."Collection") AS (
+    "Content" text,
+    "Name" text
+)) WITH ORDINALITY AS c ON TRUE
+WHERE decode(c."Content", 'base64') = BYTEA E'\\x00017F80FF'
+LIMIT 2
+""");
+    }
+
+    protected class Context3566(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<Entity> Entities { get; set; }
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public List<Element> Collection { get; set; }
+        }
+
+        public class Element
+        {
+            public string Name { get; set; }
+            public byte[] Content { get; set; }
+        }
+    }
+
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_interval(bool async)
     {
