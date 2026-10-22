@@ -1,5 +1,3 @@
-#pragma warning disable EF8001 // ToJson on owned entities is obsolete
-
 using System.Text.Json;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
@@ -236,10 +234,6 @@ LIMIT 2
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
 
-        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-            => base.AddOptions(builder)
-                .ConfigureWarnings(w => w.Ignore(RelationalEventId.OwnedEntityMappedToJsonCollectionWarning));
-
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
             base.OnModelCreating(modelBuilder, context);
@@ -257,8 +251,8 @@ LIMIT 2
             modelBuilder.Entity<JsonByteArrayEntity>(b =>
             {
                 b.Property(e => e.Id).ValueGeneratedNever();
-                b.OwnsMany(e => e.Json).ToJson().HasColumnType("json");
-                b.OwnsMany(e => e.Jsonb).ToJson().HasColumnType("jsonb");
+                b.ComplexCollection(e => e.Json).ToJson().HasColumnType("json");
+                b.ComplexCollection(e => e.Jsonb).ToJson().HasColumnType("jsonb");
             });
         }
 
