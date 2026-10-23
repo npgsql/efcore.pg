@@ -136,6 +136,10 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 TranslateGeometryMethod(arguments[1], method, [arguments[2], arguments[3]]),
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) =>
                 TranslateGeometryMethod(arguments[1], method, [arguments[2], arguments[3], arguments[4]]),
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.LineInterpolatePoint) =>
+                TranslateGeometryMethod(arguments[1], method, [arguments[2]]),
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.LineMerge) =>
+                TranslateGeometryMethod(arguments[1], method, []),
 
             _ => null
         };
@@ -146,9 +150,10 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         IReadOnlyList<SqlExpression> arguments)
     {
         var typeMapping = ExpressionExtensions.InferTypeMapping(
-            arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());
+                arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray())
+            ?? _typeMappingSource.FindMapping(instance.Type);
 
-        Debug.Assert(typeMapping is not null, "At least one argument must have typeMapping.");
+        Debug.Assert(typeMapping is not null, "A geometry type mapping must be available.");
         var storeType = typeMapping.StoreType;
 
         instance = _sqlExpressionFactory.ApplyTypeMapping(instance, _typeMappingSource.FindMapping(instance.Type, storeType));
@@ -206,6 +211,10 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 => Function("ST_Intersects", [instance, arguments[0]], typeof(bool)),
             nameof(Geometry.IsWithinDistance)
                 => Function("ST_DWithin", new[] { instance }.Concat(arguments).ToArray(), typeof(bool)),
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.LineInterpolatePoint)
+                => Function("ST_LineInterpolatePoint", [instance, arguments[0]], typeof(Point), ResultGeometryMapping()),
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.LineMerge)
+                => Function("ST_LineMerge", [instance], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Normalized)
                 => Function("ST_Normalize", [instance], typeof(Geometry), ResultGeometryMapping()),
             nameof(Geometry.Overlaps)

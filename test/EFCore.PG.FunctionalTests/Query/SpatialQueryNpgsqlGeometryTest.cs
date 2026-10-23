@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.LinearReferencing;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Microsoft.EntityFrameworkCore.Query;
@@ -786,6 +787,120 @@ WHERE @__lineString_0 IN (
     SELECT m0.geom
     FROM ST_Dump(m."MultiLineString") AS m0
 )
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task LineInterpolatePoint(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<LineStringEntity>().Select(e => new { e.Id, Point = EF.Functions.LineInterpolatePoint(e.LineString, 0.5) }),
+            ss => ss.Set<LineStringEntity>().Select(
+                e => new
+                {
+                    e.Id,
+                    Point = e.LineString == null
+                        ? null
+                        : e.LineString.Factory.CreatePoint(new LengthIndexedLine(e.LineString).ExtractPoint(e.LineString.Length * 0.5))
+                }),
+            e => e.Id);
+
+        AssertSql(
+            """
+SELECT l."Id", ST_LineInterpolatePoint(l."LineString", 0.5) AS "Point"
+FROM "LineStringEntity" AS l
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false, 0.0)]
+    [InlineData(true, 0.0)]
+    [InlineData(false, 0.25)]
+    [InlineData(true, 0.25)]
+    [InlineData(false, 1.0)]
+    [InlineData(true, 1.0)]
+    public async Task LineInterpolatePoint_parameter(bool async, double fraction)
+    {
+        var lineString = Fixture.GeometryFactory.CreateLineString([new Coordinate(0, 0), new Coordinate(0, 4), new Coordinate(3, 4)]);
+        var expected = lineString.Factory.CreatePoint(new LengthIndexedLine(lineString).ExtractPoint(lineString.Length * fraction));
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<LineStringEntity>().Select(e => new { e.Id, Point = EF.Functions.LineInterpolatePoint(lineString, fraction) }),
+            ss => ss.Set<LineStringEntity>().Select(e => new { e.Id, Point = expected }),
+            e => e.Id);
+
+        AssertSql(
+            $"""
+@lineString='LINESTRING (0 0, 0 4, 3 4)' (DbType = Object)
+@fraction='{fraction}'
+
+SELECT l."Id", ST_LineInterpolatePoint(@lineString, @fraction) AS "Point"
+FROM "LineStringEntity" AS l
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task LineMerge(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<MultiLineStringEntity>().Select(e => new { e.Id, LineMerge = EF.Functions.LineMerge(e.MultiLineString) }),
+            ss => ss.Set<MultiLineStringEntity>().Select(e => new { e.Id, LineMerge = (Geometry)e.MultiLineString }),
+            e => e.Id);
+
+        AssertSql(
+            """
+SELECT m."Id", ST_LineMerge(m."MultiLineString") AS "LineMerge"
+FROM "MultiLineStringEntity" AS m
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task LineMerge_connected_parameter(bool async)
+    {
+        var geometry = Fixture.GeometryFactory.CreateMultiLineString(
+        [
+            Fixture.GeometryFactory.CreateLineString([new Coordinate(0, 0), new Coordinate(0, 1)]),
+            Fixture.GeometryFactory.CreateLineString([new Coordinate(0, 1), new Coordinate(0, 2)])
+        ]);
+        var expected = Fixture.GeometryFactory.CreateLineString([new Coordinate(0, 0), new Coordinate(0, 1), new Coordinate(0, 2)]);
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<MultiLineStringEntity>().Select(e => new { e.Id, LineMerge = EF.Functions.LineMerge(geometry) }),
+            ss => ss.Set<MultiLineStringEntity>().Select(e => new { e.Id, LineMerge = (Geometry)expected }),
+            e => e.Id);
+
+        AssertSql(
+            """
+@geometry='MULTILINESTRING ((0 0, 0 1)
+(0 1, 0 2))' (DbType = Object)
+
+SELECT m."Id", ST_LineMerge(@geometry) AS "LineMerge"
+FROM "MultiLineStringEntity" AS m
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task LineMerge_non_line(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PointEntity>().Select(e => new { e.Id, LineMerge = EF.Functions.LineMerge(e.Point) }),
+            ss => ss.Set<PointEntity>().Select(
+                e => new { e.Id, LineMerge = e.Point == null ? null : (Geometry)e.Point.Factory.CreateGeometryCollection() }),
+            e => e.Id);
+
+        AssertSql(
+            """
+SELECT p."Id", ST_LineMerge(p."Point") AS "LineMerge"
+FROM "PointEntity" AS p
 """);
     }
 
