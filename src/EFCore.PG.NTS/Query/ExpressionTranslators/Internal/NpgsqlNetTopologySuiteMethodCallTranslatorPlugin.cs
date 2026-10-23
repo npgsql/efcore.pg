@@ -114,7 +114,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 method.ReturnType,
                 arguments[1].TypeMapping),
 
-            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.SetSRID) => _sqlExpressionFactory.Function(
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.SetSrid) => _sqlExpressionFactory.Function(
                 "ST_SetSRID",
                 [arguments[1], arguments[2]],
                 nullable: true,

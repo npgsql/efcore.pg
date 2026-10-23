@@ -609,11 +609,11 @@ FROM "PolygonEntity" AS p
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
-    public async Task SetSRID(bool async)
+    public async Task SetSrid(bool async)
     {
         await AssertQuery(
             async,
-            ss => ss.Set<PointEntity>().Select(e => new { e.Id, Point = EF.Functions.SetSRID(e.Point, 4326) }),
+            ss => ss.Set<PointEntity>().Select(e => new { e.Id, Point = EF.Functions.SetSrid(e.Point, 4326) }),
             ss => ss.Set<PointEntity>().Select(e => new { e.Id, Point = e.Point == null ? null : new Point(e.Point.Coordinate) { SRID = 4326 } }),
             elementSorter: e => e.Id,
             elementAsserter: (e, a) =>
@@ -632,13 +632,13 @@ FROM "PointEntity" AS p
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
-    public async Task SetSRID_parameter(bool async)
+    public async Task SetSrid_parameter(bool async)
     {
         var srid = 3857;
 
         await AssertQuery(
             async,
-            ss => ss.Set<PointEntity>().Select(e => new { e.Id, Point = EF.Functions.SetSRID(e.PointZ, srid) }),
+            ss => ss.Set<PointEntity>().Select(e => new { e.Id, Point = EF.Functions.SetSrid(e.PointZ, srid) }),
             ss => ss.Set<PointEntity>().Select(e => new { e.Id, Point = e.PointZ == null ? null : new Point(e.PointZ.Coordinate) { SRID = srid } }),
             elementSorter: e => e.Id,
             elementAsserter: (e, a) =>

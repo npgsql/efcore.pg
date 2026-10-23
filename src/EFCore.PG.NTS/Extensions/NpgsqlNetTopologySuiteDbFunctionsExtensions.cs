@@ -33,9 +33,9 @@ public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
     ///     See https://postgis.net/docs/ST_SetSRID.html.
     ///     To transform coordinates to a different spatial reference system, use <see cref="Transform{TGeometry}" /> instead.
     /// </remarks>
-    public static TGeometry SetSRID<TGeometry>(this DbFunctions _, TGeometry geometry, int srid)
+    public static TGeometry SetSrid<TGeometry>(this DbFunctions _, TGeometry geometry, int srid)
         where TGeometry : Geometry
-        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SetSRID)));
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SetSrid)));
 
     /// <summary>
     ///     Forces the geometries into a "2-dimensional mode" so that all output representations will only have the X and Y coordinates.
