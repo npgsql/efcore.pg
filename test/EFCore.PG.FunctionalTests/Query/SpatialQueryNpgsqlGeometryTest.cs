@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries.Utilities;
 using NetTopologySuite.LinearReferencing;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
@@ -901,6 +902,128 @@ FROM "MultiLineStringEntity" AS m
             """
 SELECT p."Id", ST_LineMerge(p."Point") AS "LineMerge"
 FROM "PointEntity" AS p
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Scale(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PointEntity>().Select(e => new { e.Id, Scaled = EF.Functions.Scale(e.Point, 2.0, -0.5) }),
+            ss => ss.Set<PointEntity>().Select(
+                e => new
+                {
+                    e.Id,
+                    Scaled = e.Point == null ? null : (Point)AffineTransformation.ScaleInstance(2.0, -0.5).Transform(e.Point)
+                }),
+            e => e.Id);
+
+        AssertSql(
+            """
+SELECT p."Id", ST_Scale(p."Point", 2.0, -0.5) AS "Scaled"
+FROM "PointEntity" AS p
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Scale_preserves_Z_and_M(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PointEntity>().Select(e => new { e.Id, Scaled = EF.Functions.Scale(e.PointZM, 2.0, -0.5) }),
+            ss => ss.Set<PointEntity>().Select(
+                e => new
+                {
+                    e.Id,
+                    Scaled = e.PointZM == null
+                        ? null
+                        : e.PointZM.Factory.CreatePoint(
+                            new CoordinateZM(e.PointZM.X * 2, e.PointZM.Y * -0.5, e.PointZM.Z, e.PointZM.M))
+                }),
+            e => e.Id,
+            elementAsserter: (e, a) =>
+            {
+                Assert.Equal(e.Id, a.Id);
+                Assert.Equal(e.Scaled, a.Scaled, GeometryComparer.Instance);
+                Assert.Equal(e.Scaled?.Z, a.Scaled?.Z);
+                Assert.Equal(e.Scaled?.M, a.Scaled?.M);
+            });
+
+        AssertSql(
+            """
+SELECT p."Id", ST_Scale(p."PointZM", 2.0, -0.5) AS "Scaled"
+FROM "PointEntity" AS p
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Scale_3D(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PointEntity>().Select(e => new { e.Id, Scaled = EF.Functions.Scale(e.PointZM, 0.5, 2.0, -4.0) }),
+            ss => ss.Set<PointEntity>().Select(
+                e => new
+                {
+                    e.Id,
+                    Scaled = e.PointZM == null
+                        ? null
+                        : e.PointZM.Factory.CreatePoint(
+                            new CoordinateZM(e.PointZM.X * 0.5, e.PointZM.Y * 2, e.PointZM.Z * -4, e.PointZM.M))
+                }),
+            e => e.Id,
+            elementAsserter: (e, a) =>
+            {
+                Assert.Equal(e.Id, a.Id);
+                Assert.Equal(e.Scaled, a.Scaled, GeometryComparer.Instance);
+                Assert.Equal(e.Scaled?.Z, a.Scaled?.Z);
+                Assert.Equal(e.Scaled?.M, a.Scaled?.M);
+            });
+
+        AssertSql(
+            """
+SELECT p."Id", ST_Scale(p."PointZM", 0.5, 2.0, -4.0) AS "Scaled"
+FROM "PointEntity" AS p
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData(false, 0.0)]
+    [InlineData(true, 0.0)]
+    [InlineData(false, 0.5)]
+    [InlineData(true, 0.5)]
+    public async Task Scale_parameters(bool async, double xFactor)
+    {
+        var geometry = Fixture.GeometryFactory.CreateLineString([new Coordinate(1, 2), new Coordinate(3, 4)]);
+        geometry.SRID = 4326;
+        var yFactor = -2.0;
+        var expected = (LineString)AffineTransformation.ScaleInstance(xFactor, yFactor).Transform(geometry);
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<LineStringEntity>().Select(e => new { e.Id, Scaled = EF.Functions.Scale(geometry, xFactor, yFactor) }),
+            ss => ss.Set<LineStringEntity>().Select(e => new { e.Id, Scaled = expected }),
+            e => e.Id,
+            elementAsserter: (e, a) =>
+            {
+                Assert.Equal(e.Id, a.Id);
+                Assert.Equal(e.Scaled, a.Scaled, GeometryComparer.Instance);
+                Assert.Equal(e.Scaled.SRID, a.Scaled.SRID);
+                Assert.IsType<LineString>(a.Scaled);
+            });
+
+        AssertSql(
+            $"""
+@geometry='LINESTRING (1 2, 3 4)' (DbType = Object)
+@xFactor='{xFactor}'
+@yFactor='-2'
+
+SELECT l."Id", ST_Scale(@geometry, @xFactor, @yFactor) AS "Scaled"
+FROM "LineStringEntity" AS l
 """);
     }
 

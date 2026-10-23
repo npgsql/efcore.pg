@@ -37,6 +37,30 @@ public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Force2D)));
 
     /// <summary>
+    ///     Scales the X and Y coordinates of a geometry relative to the coordinate origin.
+    ///     Translates to <c>ST_Scale(geometry, xFactor, yFactor)</c>.
+    /// </summary>
+    /// <remarks>
+    ///     The SRID and any Z and M coordinates are preserved. Intended for PostGIS geometry values.
+    ///     See https://postgis.net/docs/ST_Scale.html.
+    /// </remarks>
+    public static TGeometry Scale<TGeometry>(this DbFunctions _, TGeometry geometry, double xFactor, double yFactor)
+        where TGeometry : Geometry
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Scale)));
+
+    /// <summary>
+    ///     Scales the X, Y and Z coordinates of a geometry relative to the coordinate origin.
+    ///     Translates to <c>ST_Scale(geometry, xFactor, yFactor, zFactor)</c>.
+    /// </summary>
+    /// <remarks>
+    ///     The SRID and any M coordinates are preserved. Intended for PostGIS geometry values.
+    ///     See https://postgis.net/docs/ST_Scale.html.
+    /// </remarks>
+    public static TGeometry Scale<TGeometry>(this DbFunctions _, TGeometry geometry, double xFactor, double yFactor, double zFactor)
+        where TGeometry : Geometry
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Scale)));
+
+    /// <summary>
     ///     Returns a point interpolated along a line at a fraction of its 2D length.
     ///     Translates to <c>ST_LineInterpolatePoint(lineString, fraction)</c>.
     /// </summary>
