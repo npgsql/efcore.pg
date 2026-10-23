@@ -247,4 +247,7 @@
   <data name="StoredProcedureReturnValueNotSupported" xml:space="preserve">
     <value>The entity type '{entityType}' is mapped to the stored procedure '{sproc}', which is configured with result columns. PostgreSQL stored procedures do not support return values; use output parameters instead.</value>
   </data>
+  <data name="TsVectorIncludedPropertyNotFound" xml:space="preserve">
+    <value>Included member '{property}' on '{entityType}' could not be resolved to a column for the generated tsvector.</value>
+  </data>
 </root>
