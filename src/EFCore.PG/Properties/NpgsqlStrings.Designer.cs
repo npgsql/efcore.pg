@@ -230,7 +230,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 keyOrIndexName, entityType, property, propertyType);
 
         /// <summary>
-        ///     Could not find property, navigation or complex property '{property}' on entity type '{entityType}' for generated tsvector column
+        ///     Included member '{property}' on '{entityType}' could not be resolved to a column for the generated tsvector.
         /// </summary>
         public static string TsVectorIncludedPropertyNotFound(object? entityType, object? property)
             => string.Format(
@@ -658,4 +658,3 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
     }
 }
-

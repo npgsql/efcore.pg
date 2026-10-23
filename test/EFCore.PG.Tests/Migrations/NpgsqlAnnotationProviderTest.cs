@@ -116,7 +116,7 @@ public class NpgsqlAnnotationProviderTest
             model.GetRelationalModel();
         });
         Assert.Equal(
-            "Could not find property, navigation or complex property 'Owned' on entity type 'Blogs (Dictionary<string, object>)' for generated tsvector column",
+            "Included member 'Owned' on 'Blogs (Dictionary<string, object>)' could not be resolved to a column for the generated tsvector.",
             exception.Message);
     }
 
@@ -140,7 +140,7 @@ public class NpgsqlAnnotationProviderTest
             model.GetRelationalModel();
         });
         Assert.Equal(
-            "Could not find property, navigation or complex property 'Owne' on entity type 'Blogs (Dictionary<string, object>)' for generated tsvector column",
+            "Included member 'Owne' on 'Blogs (Dictionary<string, object>)' could not be resolved to a column for the generated tsvector.",
             exception.Message);
     }
 

@@ -3216,6 +3216,26 @@ CREATE COLLATION some_collation (LOCALE = 'en-u-ks-level1',
     }
 
     [Fact]
+    public virtual async Task Add_column_generated_tsvector_over_renamed_json_complex_property()
+    {
+        await Test(
+            builder => builder.Entity("People").ComplexProperty<MyNestedComplex>("JsonComplex")
+                .ToJson("complex_renamed").IsRequired(),
+            _ => { },
+            builder => builder.Entity("People").Property<NpgsqlTsVector>("SearchColumn")
+                .IsGeneratedTsVectorColumn("english", "JsonComplex"),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "SearchColumn");
+                Assert.Equal("tsvector", column.StoreType);
+            });
+
+        AssertSql(
+            """ALTER TABLE "People" ADD "SearchColumn" tsvector GENERATED ALWAYS AS (jsonb_to_tsvector('english', complex_renamed, '"all"')) STORED;""");
+    }
+
+    [Fact]
     public virtual async Task Alter_column_generated_tsvector_change_config()
     {
         await Test(
