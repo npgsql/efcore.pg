@@ -151,6 +151,8 @@ public class PgBinaryExpression : SqlExpression
 
                     PgExpressionType.Distance => "<->",
 
+                    PgExpressionType.HstoreGetValue => "->",
+
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })
             .Append(" ");

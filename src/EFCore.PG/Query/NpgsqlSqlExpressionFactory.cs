@@ -313,6 +313,10 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.Distance:
                 returnType = typeof(double);
                 break;
+
+            case PgExpressionType.HstoreGetValue:
+                returnType = typeof(string);
+                break;
         }
 
         return (PgBinaryExpression)ApplyTypeMapping(
@@ -750,6 +754,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         var operatorType = pgBinaryExpression.OperatorType;
         switch (operatorType)
         {
+            case PgExpressionType.HstoreGetValue:
+                return new PgBinaryExpression(
+                    operatorType,
+                    ApplyDefaultTypeMapping(left),
+                    ApplyDefaultTypeMapping(right),
+                    typeof(string),
+                    typeMapping ?? _typeMappingSource.FindMapping(typeof(string), Dependencies.Model));
+
             case PgExpressionType.Overlaps:
             case PgExpressionType.Contains:
             case PgExpressionType.ContainedBy:
