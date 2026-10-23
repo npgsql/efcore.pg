@@ -755,6 +755,22 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         var operatorType = pgBinaryExpression.OperatorType;
         switch (operatorType)
         {
+            case PgExpressionType.HstoreRemove:
+                left = ApplyDefaultTypeMapping(left);
+                right = ApplyDefaultTypeMapping(right);
+                if (right is SqlConstantExpression && right.Type == typeof(string))
+                {
+                    // Otherwise PostgreSQL resolves an untyped string literal as hstore - hstore.
+                    right = Convert(right, typeof(string), right.TypeMapping);
+                }
+
+                return new PgBinaryExpression(
+                    operatorType,
+                    left,
+                    right,
+                    left.Type,
+                    typeMapping ?? left.TypeMapping);
+
             case PgExpressionType.HstoreGetValue:
                 return new PgBinaryExpression(
                     operatorType,

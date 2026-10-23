@@ -548,6 +548,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                     PgExpressionType.HstoreGetValue => "->",
                     PgExpressionType.HstoreContainsKey => "?",
+                    PgExpressionType.HstoreRemove => "-",
 
                     PgExpressionType.CubeNthCoordinate => "->",
                     PgExpressionType.CubeNthCoordinateKnn => "~>",
@@ -1614,6 +1615,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                 _ => default,
             },
+
+            PgBinaryExpression { OperatorType: PgExpressionType.HstoreRemove } => (1100, false),
 
             // There's an "any other operator" category in the PG operator precedence table, we assign that a numeric value of 1000.
             // TODO: Some operators here may be associative

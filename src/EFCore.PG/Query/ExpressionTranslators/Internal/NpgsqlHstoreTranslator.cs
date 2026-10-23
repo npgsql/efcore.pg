@@ -32,6 +32,9 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
                     "get_Item" => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, instance, arguments[0]),
                     nameof(Dictionary<string, string>.ContainsKey)
                         => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsKey, instance, arguments[0]),
+                    nameof(ImmutableDictionary<string, string>.Remove) or nameof(ImmutableDictionary<string, string>.RemoveRange)
+                        when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
+                        => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreRemove, instance, arguments[0]),
                     _ => null
                 }
                 : null;

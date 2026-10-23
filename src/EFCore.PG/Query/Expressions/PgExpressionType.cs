@@ -196,5 +196,10 @@ public enum PgExpressionType
     /// </summary>
     HstoreContainsKey, // ?
 
+    /// <summary>
+    ///     Represents a PostgreSQL operator for removing one or more keys from an hstore.
+    /// </summary>
+    HstoreRemove, // -
+
     #endregion Hstore
 }

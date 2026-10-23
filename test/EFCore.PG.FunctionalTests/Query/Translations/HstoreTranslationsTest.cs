@@ -595,6 +595,280 @@ WHERE cardinality(akeys(e."NullableImmutableTags")) = 0
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id)
+            .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Variant") });
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([2, 2, 0, 1], results.Select(e => e.Original.Count));
+        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Removed.Count));
+        Assert.All(results, e => Assert.False(e.Removed.ContainsKey("Variant")));
+        Assert.Equal(["value", "other"], results.Take(2).Select(e => e.Removed["VariantSuffix"]));
+        Assert.True(results[3].Original.ContainsKey("Variant"));
+        Assert.Null(results[3].Original["Variant"]);
+        AssertSql(
+            """
+SELECT e."ImmutableTags" AS "Original", e."ImmutableTags" - 'Variant'::text AS "Removed"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove_parameter_key(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var key = "Variant";
+        var query = context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.Remove(EF.Parameter(key)));
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
+        Assert.All(results, e => Assert.False(e.ContainsKey("Variant")));
+        AssertSql(
+            """
+@key='Variant'
+
+SELECT e."ImmutableTags" - @key
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove_column_key(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.Remove(e.Key).Count);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 1, 0, 0], results);
+        AssertSql(
+            """
+SELECT cardinality(akeys(e."ImmutableTags" - e."Key"))
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove_computed_key(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.Remove(e.Key + "Suffix").Count);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 1, 0, 1], results);
+        AssertSql(
+            """
+SELECT cardinality(akeys(e."ImmutableTags" - (e."Key" || 'Suffix')))
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove_composition(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => e.ImmutableTags.Remove("VariantSuffix").Count == 1).OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.Remove("VariantSuffix")["Variant"]);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal(new string?[] { "SD", "HD", null }, results);
+        AssertSql(
+            """
+SELECT e."ImmutableTags" - 'VariantSuffix'::text -> 'Variant'
+FROM "Entities" AS e
+WHERE cardinality(akeys(e."ImmutableTags" - 'VariantSuffix'::text)) = 1
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove_missing_key(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id)
+            .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Missing") });
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        foreach (var result in results)
+        {
+            Assert.Equal(result.Original.OrderBy(e => e.Key), result.Removed.OrderBy(e => e.Key));
+        }
+
+        AssertSql(
+            """
+SELECT e."ImmutableTags" AS "Original", e."ImmutableTags" - 'Missing'::text AS "Removed"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove_nullable_hstore(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id)
+            .Select(e => new
+            {
+                Single = e.NullableImmutableTags!.Remove("Variant"),
+                Multiple = e.NullableImmutableTags!.RemoveRange(new[] { "Variant" })
+            });
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal(new int?[] { 0, null, 0, 0 }, results.Select(e => e.Single?.Count));
+        Assert.Equal(new int?[] { 0, null, 0, 0 }, results.Select(e => e.Multiple?.Count));
+        AssertSql(
+            """
+SELECT e."NullableImmutableTags" - 'Variant'::text AS "Single", e."NullableImmutableTags" - ARRAY['Variant']::text[] AS "Multiple"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Remove_chained(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities
+            .Where(e => e.ImmutableTags.Remove("Variant").RemoveRange(new[] { "VariantSuffix" }).IsEmpty)
+            .OrderBy(e => e.Id).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 2, 3, 4], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE cardinality(akeys((e."ImmutableTags" - 'Variant'::text) - ARRAY['VariantSuffix']::text[])) = 0
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RemoveRange(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.RemoveRange(new[] { "Variant", "Missing" }));
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
+        Assert.All(results, e => Assert.False(e.ContainsKey("Variant")));
+        Assert.Equal(["value", "other"], results.Take(2).Select(e => e["VariantSuffix"]));
+        AssertSql(
+            """
+SELECT e."ImmutableTags" - ARRAY['Variant','Missing']::text[]
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RemoveRange_parameter_keys(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        string[] keys = ["Variant", "Missing"];
+        var query = context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.RemoveRange(EF.Parameter(keys)));
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
+        Assert.All(results, e => Assert.False(e.ContainsKey("Variant")));
+        AssertSql(
+            """
+@keys={ 'Variant'
+'Missing' } (DbType = Object)
+
+SELECT e."ImmutableTags" - @keys
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RemoveRange_column_keys(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.RemoveRange(e.Keys));
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal(4, results.Length);
+        Assert.All(results, e => Assert.Empty(e));
+        AssertSql(
+            """
+SELECT e."ImmutableTags" - e."Keys"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RemoveRange_computed_keys(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.RemoveRange(new[] { e.Key, e.Key + "Suffix" }).IsEmpty);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([true, true, true, true], results);
+        AssertSql(
+            """
+SELECT cardinality(akeys(e."ImmutableTags" - ARRAY[e."Key",e."Key" || 'Suffix']::text[])) = 0
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RemoveRange_empty_keys(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id)
+            .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.RemoveRange(Array.Empty<string>()) });
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        foreach (var result in results)
+        {
+            Assert.Equal(result.Original.OrderBy(e => e.Key), result.Removed.OrderBy(e => e.Key));
+        }
+
+        AssertSql(
+            """
+SELECT e."ImmutableTags" AS "Original", e."ImmutableTags" - ARRAY[]::text[] AS "Removed"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
@@ -607,6 +881,7 @@ WHERE cardinality(akeys(e."NullableImmutableTags")) = 0
     {
         public int Id { get; set; }
         public string Key { get; set; } = "Variant";
+        public string[] Keys { get; set; } = ["Variant", "VariantSuffix"];
         public Dictionary<string, string?> Tags { get; set; } = new();
         public Dictionary<string, string?>? NullableTags { get; set; }
         public ImmutableDictionary<string, string?> ImmutableTags { get; set; } = ImmutableDictionary<string, string?>.Empty;
