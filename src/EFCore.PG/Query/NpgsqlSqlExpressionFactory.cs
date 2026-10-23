@@ -307,6 +307,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExists:
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
+            case PgExpressionType.HstoreContainsKey:
                 returnType = typeof(bool);
                 break;
 
@@ -808,6 +809,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExists:
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
+            case PgExpressionType.HstoreContainsKey:
             {
                 // TODO: For networking, this probably needs to be cleaned up, i.e. we know where the CIDR and INET are
                 // based on operator type?

@@ -152,6 +152,7 @@ public class PgBinaryExpression : SqlExpression
                     PgExpressionType.Distance => "<->",
 
                     PgExpressionType.HstoreGetValue => "->",
+                    PgExpressionType.HstoreContainsKey => "?",
 
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })

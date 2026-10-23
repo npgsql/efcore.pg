@@ -191,5 +191,10 @@ public enum PgExpressionType
     /// </summary>
     HstoreGetValue, // ->
 
+    /// <summary>
+    ///     Represents a PostgreSQL operator for checking whether a key exists in an hstore.
+    /// </summary>
+    HstoreContainsKey, // ?
+
     #endregion Hstore
 }
