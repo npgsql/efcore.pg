@@ -42,22 +42,33 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
         MemberInfo member,
         Type returnType,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => instance?.TypeMapping is NpgsqlHstoreTypeMapping
-            && member.Name == nameof(Dictionary<string, string>.Count)
-            && (member.DeclaringType == typeof(Dictionary<string, string>)
-                || member.DeclaringType == typeof(ImmutableDictionary<string, string>))
-                ? sqlExpressionFactory.Function(
-                    "cardinality",
-                    [
-                        sqlExpressionFactory.Function(
-                            "akeys",
-                            [instance],
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[1],
-                            typeof(string[]))
-                    ],
+    {
+        if (instance?.TypeMapping is not NpgsqlHstoreTypeMapping
+            || member.Name is not (nameof(Dictionary<string, string>.Count) or nameof(ImmutableDictionary<string, string>.IsEmpty))
+            || (member.DeclaringType != typeof(Dictionary<string, string>)
+                && member.DeclaringType != typeof(ImmutableDictionary<string, string>)))
+        {
+            return null;
+        }
+
+        var count = sqlExpressionFactory.Function(
+            "cardinality",
+            [
+                sqlExpressionFactory.Function(
+                    "akeys",
+                    [instance],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
-                    typeof(int))
-                : null;
+                    typeof(string[]))
+            ],
+            nullable: true,
+            argumentsPropagateNullability: TrueArrays[1],
+            typeof(int));
+
+        return member.Name switch
+        {
+            nameof(ImmutableDictionary<string, string>.IsEmpty) => sqlExpressionFactory.Equal(count, sqlExpressionFactory.Constant(0)),
+            _ => count
+        };
+    }
 }

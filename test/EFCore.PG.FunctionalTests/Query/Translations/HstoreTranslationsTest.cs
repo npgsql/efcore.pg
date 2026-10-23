@@ -522,6 +522,79 @@ ORDER BY e."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task IsEmpty(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => e.ImmutableTags.IsEmpty).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([3], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE cardinality(akeys(e."ImmutableTags")) = 0
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task IsEmpty_negated(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => !e.ImmutableTags.IsEmpty).OrderBy(e => e.Id).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 2, 4], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE cardinality(akeys(e."ImmutableTags")) <> 0
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task IsEmpty_projection(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.IsEmpty);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([false, false, true, false], results);
+        AssertSql(
+            """
+SELECT cardinality(akeys(e."ImmutableTags")) = 0
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task IsEmpty_nullable_hstore(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => e.NullableImmutableTags!.IsEmpty).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([3], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE cardinality(akeys(e."NullableImmutableTags")) = 0
+""");
+    }
+
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
