@@ -26,6 +26,18 @@ public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Transform)));
 
     /// <summary>
+    ///     Returns a new geometry with the specified SRID, without changing its coordinates.
+    ///     Translates to <c>ST_SetSRID(geometry, srid)</c>.
+    /// </summary>
+    /// <remarks>
+    ///     See https://postgis.net/docs/ST_SetSRID.html.
+    ///     To transform coordinates to a different spatial reference system, use <see cref="Transform{TGeometry}" /> instead.
+    /// </remarks>
+    public static TGeometry SetSRID<TGeometry>(this DbFunctions _, TGeometry geometry, int srid)
+        where TGeometry : Geometry
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SetSRID)));
+
+    /// <summary>
     ///     Forces the geometries into a "2-dimensional mode" so that all output representations will only have the X and Y coordinates.
     ///     Translates to <c>ST_Force2D(geometry)</c>
     /// </summary>
