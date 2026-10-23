@@ -183,4 +183,13 @@ public enum PgExpressionType
     CubeDistanceChebyshev, // <=>
 
     #endregion Cube
+
+    #region Hstore
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for retrieving an hstore value by key.
+    /// </summary>
+    HstoreGetValue, // ->
+
+    #endregion Hstore
 }
