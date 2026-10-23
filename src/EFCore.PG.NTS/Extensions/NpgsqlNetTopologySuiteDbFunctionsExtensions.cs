@@ -37,6 +37,29 @@ public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
         => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Force2D)));
 
     /// <summary>
+    ///     Returns a point interpolated along a line at a fraction of its 2D length.
+    ///     Translates to <c>ST_LineInterpolatePoint(lineString, fraction)</c>.
+    /// </summary>
+    /// <remarks>
+    ///     The fraction must be between 0 and 1. Z and M values are interpolated if present.
+    ///     See https://postgis.net/docs/ST_LineInterpolatePoint.html.
+    /// </remarks>
+    public static Point LineInterpolatePoint(this DbFunctions _, LineString lineString, double fraction)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LineInterpolatePoint)));
+
+    /// <summary>
+    ///     Joins the line elements of a geometry at their endpoints, returning a LineString or MultiLineString.
+    ///     Translates to <c>ST_LineMerge(geometry)</c>.
+    /// </summary>
+    /// <remarks>
+    ///     Intended for PostGIS geometry values of type LineString or MultiLineString.
+    ///     Lines are not joined across intersections of degree 3 or greater. The M dimension is removed.
+    ///     See https://postgis.net/docs/ST_LineMerge.html.
+    /// </remarks>
+    public static Geometry LineMerge(this DbFunctions _, Geometry geometry)
+        => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LineMerge)));
+
+    /// <summary>
     ///     Tests whether the distance from the origin geometry to another is less than or equal to a specified value.
     ///     Translates to <c>ST_DWithin</c>.
     /// </summary>
