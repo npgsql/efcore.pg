@@ -201,5 +201,20 @@ public enum PgExpressionType
     /// </summary>
     HstoreRemove, // -
 
+    /// <summary>
+    ///     Represents a PostgreSQL operator for concatenating hstores, overwriting duplicate keys with values from the right operand.
+    /// </summary>
+    HstoreConcat, // ||
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for checking whether any of the specified keys exists in an hstore.
+    /// </summary>
+    HstoreContainsAnyKey, // ?|
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for checking whether all the specified keys exist in an hstore.
+    /// </summary>
+    HstoreContainsAllKeys, // ?&
+
     #endregion Hstore
 }

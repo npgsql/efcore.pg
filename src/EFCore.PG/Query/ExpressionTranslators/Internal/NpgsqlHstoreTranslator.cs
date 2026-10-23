@@ -24,7 +24,24 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
         MethodInfo method,
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-        => instance?.TypeMapping is NpgsqlHstoreTypeMapping
+    {
+        if (method.Name == nameof(CollectionExtensions.GetValueOrDefault)
+            && (method.DeclaringType == typeof(CollectionExtensions) || method.DeclaringType == typeof(ImmutableDictionary))
+            && method.ReturnType == typeof(string)
+            && sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) is { TypeMapping: NpgsqlHstoreTypeMapping } hstore
+            && arguments[1].Type == typeof(string))
+        {
+            var value = sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, hstore, arguments[1]);
+            return arguments.Count == 2
+                ? value
+                : sqlExpressionFactory.Case(
+                    [new CaseWhenClause(
+                        sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsKey, hstore, arguments[1]),
+                        value)],
+                    arguments[2]);
+        }
+
+        return instance?.TypeMapping is NpgsqlHstoreTypeMapping
             && (method.DeclaringType == typeof(Dictionary<string, string>)
                 || method.DeclaringType == typeof(ImmutableDictionary<string, string>))
                 ? method.Name switch
@@ -35,9 +52,14 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
                     nameof(ImmutableDictionary<string, string>.Remove) or nameof(ImmutableDictionary<string, string>.RemoveRange)
                         when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
                         => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreRemove, instance, arguments[0]),
+                    nameof(ImmutableDictionary<string, string>.SetItems)
+                        when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
+                        && sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) is { TypeMapping: NpgsqlHstoreTypeMapping } items
+                        => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreConcat, instance, items),
                     _ => null
                 }
                 : null;
+    }
 
     /// <inheritdoc />
     public virtual SqlExpression? Translate(

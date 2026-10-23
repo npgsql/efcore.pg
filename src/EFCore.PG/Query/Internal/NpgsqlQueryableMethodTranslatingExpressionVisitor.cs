@@ -355,6 +355,18 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         {
             switch (translatedPredicate)
             {
+                case PgBinaryExpression
+                    {
+                        OperatorType: PgExpressionType.HstoreContainsKey,
+                        Left: var hstore,
+                        Right: ColumnExpression key
+                    }
+                    when key.TableAlias == tableAlias
+                        && !new OuterReferenceFindingExpressionVisitor(tableAlias).ContainsReferenceToMainTable(hstore):
+                    return BuildSimplifiedShapedQuery(
+                        source,
+                        _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsAllKeys, hstore, array));
+
                 // Pattern match for: new[] { "a", "b", "c" }.All(p => EF.Functions.Like(e.SomeText, p)),
                 // which we translate to WHERE s.""SomeText"" LIKE ALL (ARRAY['a','b','c'])
                 case LikeExpression
@@ -499,6 +511,18 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         return BuildSimplifiedShapedQuery(
                             source, _sqlExpressionFactory.Any(match, array, PgAnyOperatorType.ILike));
                     }
+
+                    case PgBinaryExpression
+                    {
+                        OperatorType: PgExpressionType.HstoreContainsKey,
+                        Left: var hstore,
+                        Right: ColumnExpression key
+                    }
+                        when key.TableAlias == tableAlias
+                            && !new OuterReferenceFindingExpressionVisitor(tableAlias).ContainsReferenceToMainTable(hstore):
+                        return BuildSimplifiedShapedQuery(
+                            source,
+                            _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsAnyKey, hstore, array));
 
                     // Array overlap over non-column
                     // Pattern match: e.SomeArray.Any(p => ints.Contains(p))
@@ -1254,7 +1278,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 continue;
             }
 
-            visitor ??= new OuterReferenceFindingExpressionVisitor(tableExpression);
+            visitor ??= new OuterReferenceFindingExpressionVisitor(tableExpression.Alias);
 
             // For inner joins, if the predicate contains a reference to the main table, NpgsqlQuerySqlGenerator will lift the predicate
             // to the WHERE clause; so we only need to check the inner join's table (i.e. subquery) for such a reference.
@@ -1554,15 +1578,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 new ProjectionBindingExpression(translation, new ProjectionMember(), typeof(bool?)), typeof(bool)));
 #pragma warning restore EF1001
 
-    private sealed class OuterReferenceFindingExpressionVisitor(TableExpression mainTable) : ExpressionVisitor
+    private sealed class OuterReferenceFindingExpressionVisitor(string mainTableAlias) : ExpressionVisitor
     {
         private bool _containsReference;
 
-        public bool ContainsReferenceToMainTable(TableExpressionBase tableExpression)
+        public bool ContainsReferenceToMainTable(Expression expression)
         {
             _containsReference = false;
 
-            Visit(tableExpression);
+            Visit(expression);
 
             return _containsReference;
         }
@@ -1575,7 +1599,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 return expression;
             }
 
-            if (expression is ColumnExpression { TableAlias: var tableAlias} && tableAlias == mainTable.Alias)
+            if (expression is ColumnExpression { TableAlias: var tableAlias } && tableAlias == mainTableAlias)
             {
                 _containsReference = true;
 

@@ -154,6 +154,9 @@ public class PgBinaryExpression : SqlExpression
                     PgExpressionType.HstoreGetValue => "->",
                     PgExpressionType.HstoreContainsKey => "?",
                     PgExpressionType.HstoreRemove => "-",
+                    PgExpressionType.HstoreConcat => "||",
+                    PgExpressionType.HstoreContainsAnyKey => "?|",
+                    PgExpressionType.HstoreContainsAllKeys => "?&",
 
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })

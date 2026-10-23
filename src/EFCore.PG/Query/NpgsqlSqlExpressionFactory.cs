@@ -308,6 +308,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
             case PgExpressionType.HstoreContainsKey:
+            case PgExpressionType.HstoreContainsAnyKey:
+            case PgExpressionType.HstoreContainsAllKeys:
                 returnType = typeof(bool);
                 break;
 
@@ -755,10 +757,11 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         var operatorType = pgBinaryExpression.OperatorType;
         switch (operatorType)
         {
+            case PgExpressionType.HstoreConcat:
             case PgExpressionType.HstoreRemove:
                 left = ApplyDefaultTypeMapping(left);
                 right = ApplyDefaultTypeMapping(right);
-                if (right is SqlConstantExpression && right.Type == typeof(string))
+                if (operatorType == PgExpressionType.HstoreRemove && right is SqlConstantExpression && right.Type == typeof(string))
                 {
                     // Otherwise PostgreSQL resolves an untyped string literal as hstore - hstore.
                     right = Convert(right, typeof(string), right.TypeMapping);
@@ -826,6 +829,8 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.JsonExistsAny:
             case PgExpressionType.JsonExistsAll:
             case PgExpressionType.HstoreContainsKey:
+            case PgExpressionType.HstoreContainsAnyKey:
+            case PgExpressionType.HstoreContainsAllKeys:
             {
                 // TODO: For networking, this probably needs to be cleaned up, i.e. we know where the CIDR and INET are
                 // based on operator type?
