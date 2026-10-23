@@ -130,6 +130,14 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                 method.ReturnType,
                 arguments[1].TypeMapping),
 
+            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Scale) => _sqlExpressionFactory.Function(
+                "ST_Scale",
+                arguments.Skip(1).ToArray(),
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[arguments.Count - 1],
+                method.ReturnType,
+                arguments[1].TypeMapping),
+
             nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IntersectsBbox) => _sqlExpressionFactory.MakePostgresBinary(
                 PgExpressionType.Overlaps,
                 arguments[1],
