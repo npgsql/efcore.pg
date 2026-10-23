@@ -257,6 +257,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 GetString("WithoutOverlapsRequiresRangeType", nameof(keyOrIndexName), nameof(entityType), nameof(property), nameof(propertyType)),
                 keyOrIndexName, entityType, property, propertyType);
 
+        /// <summary>
+        ///     Included member '{property}' on '{entityType}' could not be resolved to a column for the generated tsvector.
+        /// </summary>
+        public static string TsVectorIncludedPropertyNotFound(object? entityType, object? property)
+            => string.Format(
+                GetString("TsVectorIncludedPropertyNotFound", nameof(entityType), nameof(property)),
+                entityType, property);
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name)!;
@@ -678,4 +686,3 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
     }
 }
-
