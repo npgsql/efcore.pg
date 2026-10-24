@@ -1,3 +1,5 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
 /// <summary>
@@ -28,6 +30,7 @@ public class NpgsqlConvertTranslator(ISqlExpressionFactory sqlExpressionFactory)
 
         if (!isSupported
             || arguments is not [var convertArg]
+            || sqlExpressionFactory.ApplyDefaultTypeMapping(convertArg)?.TypeMapping is NpgsqlJsonTypeMapping
             || !IsSupportedType(convertArg.Type))
         {
             return null;

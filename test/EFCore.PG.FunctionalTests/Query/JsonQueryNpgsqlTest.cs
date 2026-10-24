@@ -2862,7 +2862,7 @@ VALUES(
             """
 SELECT p."Id", p."Name", p."Visits"
 FROM "Pub" AS p
-WHERE (p."Visits" -> 'DaysVisited') @> to_jsonb(DATE '2023-01-01')
+WHERE (p."Visits" -> 'DaysVisited') @> to_jsonb(DATE '2023-01-01'::date)
 LIMIT 1
 """);
     }

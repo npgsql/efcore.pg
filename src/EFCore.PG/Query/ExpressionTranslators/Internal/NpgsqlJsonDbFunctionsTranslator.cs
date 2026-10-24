@@ -121,7 +121,15 @@ public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
                 e = unary.Operand;
             }
 
-            return e;
+            // Binary projections decode base64, but JSON functions need the original fragment.
+            return e is SqlFunctionExpression
+            {
+                Name: "decode",
+                IsBuiltIn: true,
+                Arguments: [PgJsonTraversalExpression traversal, SqlConstantExpression { Value: "base64" }]
+            }
+                ? traversal
+                : e;
         }
 
         PgJsonTraversalExpression WithReturnsText(PgJsonTraversalExpression traversal, bool returnsText)

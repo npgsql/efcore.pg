@@ -62,7 +62,8 @@ public class NpgsqlDateTimeMethodTranslator(
     {
         var type = Nullable.GetUnderlyingType(returnType) ?? returnType;
 
-        if (type != typeof(DateTime) && type != typeof(DateTimeOffset) && type != typeof(TimeSpan))
+        if (value.TypeMapping is NpgsqlJsonTypeMapping
+            || type != typeof(DateTime) && type != typeof(DateTimeOffset) && type != typeof(TimeSpan))
         {
             return null;
         }
@@ -285,7 +286,8 @@ public class NpgsqlDateTimeMethodTranslator(
                 _typeMappingSource.FindMapping(typeof(TimeOnly)));
         }
 
-        if (method.DeclaringType == typeof(TimeOnly) && method.Name == nameof(TimeOnly.FromTimeSpan))
+        if (method.DeclaringType == typeof(TimeOnly) && method.Name == nameof(TimeOnly.FromTimeSpan)
+            && arguments[0].TypeMapping is not NpgsqlJsonTypeMapping)
         {
             return _sqlExpressionFactory.Convert(arguments[0], typeof(TimeOnly), _typeMappingSource.FindMapping(typeof(TimeOnly)));
         }
@@ -306,7 +308,8 @@ public class NpgsqlDateTimeMethodTranslator(
 
             if (method.DeclaringType == typeof(TimeOnly) && method.Name == nameof(TimeOnly.Add)
                 && arguments is [var timeSpan]
-                && timeSpan.Type == typeof(TimeSpan))
+                && timeSpan.Type == typeof(TimeSpan)
+                && timeSpan.TypeMapping is not NpgsqlJsonTypeMapping)
             {
                 return _sqlExpressionFactory.Add(instance, timeSpan);
             }
