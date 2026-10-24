@@ -195,6 +195,10 @@ public static class NpgsqlIndexBuilderExtensions
     /// <summary>
     ///     Configures this index to be a full-text tsvector expression index.
     /// </summary>
+    /// <remarks>
+    ///     Properties mapped to PostgreSQL integer types or <c>numeric</c>/<c>decimal</c> are cast to text.
+    ///     No other types are automatically cast to text.
+    /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="config">
     ///     <para>
@@ -220,6 +224,10 @@ public static class NpgsqlIndexBuilderExtensions
     /// <summary>
     ///     Configures this index to be a full-text tsvector expression index.
     /// </summary>
+    /// <remarks>
+    ///     Properties mapped to PostgreSQL integer types or <c>numeric</c>/<c>decimal</c> are cast to text.
+    ///     No other types are automatically cast to text.
+    /// </remarks>
     /// <param name="indexBuilder">The builder for the index being configured.</param>
     /// <param name="config">
     ///     <para>

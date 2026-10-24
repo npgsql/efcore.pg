@@ -2474,7 +2474,16 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
         return builder.ToString();
 
         string TextColumn(IColumn column)
-            => column.IsNullable ? $"coalesce({DelimitIdentifier(column.Name)}, '')" : DelimitIdentifier(column.Name);
+        {
+            var expression = DelimitIdentifier(column.Name);
+            if (column.StoreTypeMapping?.StoreTypeNameBase.ToLowerInvariant() is
+                "smallint" or "int2" or "integer" or "int" or "int4" or "bigint" or "int8" or "numeric" or "decimal")
+            {
+                expression += "::text";
+            }
+
+            return column.IsNullable ? $"coalesce({expression}, '')" : expression;
+        }
 
         string JsonColumn(IColumn column)
             => column.IsNullable ? $"coalesce({DelimitIdentifier(column.Name)}, '{{}}')" : DelimitIdentifier(column.Name);
