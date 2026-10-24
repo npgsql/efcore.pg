@@ -204,6 +204,52 @@ GROUP BY n."Id"
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Sum_over_Duration_with_null_check_in_filter(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => EF.Functions.Sum(g.Where(o => o.TimeZoneId != null).Select(o => o.Duration))),
+            expectedQuery: ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => (Duration?)Duration.FromTicks(g.Where(o => o.TimeZoneId != null).Sum(o => o.Duration.TotalTicks))));
+
+        AssertSql(
+            """
+SELECT sum(n."Duration") FILTER (WHERE TRUE)
+FROM "NodaTimeTypes" AS n
+GROUP BY n."Id"
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Sum_over_Duration_compared_to_null(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => new { g.Key, Sum = EF.Functions.Sum(g.Where(o => o.Long > 1).Select(o => o.Duration)) })
+                .Where(x => x.Sum == null)
+                .Select(x => x.Key),
+            expectedQuery: ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Where(g => !g.Any(o => o.Long > 1))
+                .Select(g => g.Key));
+
+        AssertSql(
+            """
+SELECT n."Id"
+FROM "NodaTimeTypes" AS n
+GROUP BY n."Id"
+HAVING sum(n."Duration") FILTER (WHERE n."Long" > 1) IS NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task GroupBy_Property_Select_Average_over_Duration(bool async)
     {
         await AssertQueryScalar(
