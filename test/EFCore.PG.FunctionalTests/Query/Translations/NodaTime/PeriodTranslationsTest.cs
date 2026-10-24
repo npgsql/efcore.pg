@@ -383,6 +383,53 @@ GROUP BY n."Id"
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Sum_over_Period_with_null_check_in_filter(bool async)
+    {
+        // Each group holds a single row, so its sum is that row's Period.
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => EF.Functions.Sum(g.Where(o => o.Period != null).Select(o => o.Period))),
+            ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => g.Single().Period));
+
+        AssertSql(
+            """
+SELECT sum(n."Period") FILTER (WHERE TRUE)
+FROM "NodaTimeTypes" AS n
+GROUP BY n."Id"
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task GroupBy_Property_Select_Sum_over_Period_compared_to_null(bool async)
+    {
+        await AssertQueryScalar(
+            async,
+            ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Select(g => new { g.Key, Sum = EF.Functions.Sum(g.Where(o => o.Long > 1).Select(o => o.Period)) })
+                .Where(x => x.Sum == null)
+                .Select(x => x.Key),
+            expectedQuery: ss => ss.Set<NodaTimeTypes>()
+                .GroupBy(o => o.Id)
+                .Where(g => !g.Any(o => o.Long > 1))
+                .Select(g => g.Key));
+
+        AssertSql(
+            """
+SELECT n."Id"
+FROM "NodaTimeTypes" AS n
+GROUP BY n."Id"
+HAVING sum(n."Period") FILTER (WHERE n."Long" > 1) IS NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task GroupBy_Property_Select_Average_over_Period(bool async)
     {
         await using var ctx = CreateContext();
