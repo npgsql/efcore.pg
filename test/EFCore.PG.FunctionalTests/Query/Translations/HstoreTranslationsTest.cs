@@ -14,6 +14,7 @@ public class HstoreTranslationsTest : QueryTestBase<HstoreTranslationsTest.Hstor
     [Fact]
     public async Task Indexer()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags["Variant"] == "SD")
@@ -32,6 +33,7 @@ WHERE e."Tags" -> 'Variant' = 'SD'
     [Fact]
     public async Task Indexer_parameter_key()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var key = "Variant";
         var results = await context.Entities
@@ -53,6 +55,7 @@ WHERE e."Tags" -> @key = 'SD'
     [Fact]
     public async Task Indexer_column_key()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags[e.Key] == "SD")
@@ -71,6 +74,7 @@ WHERE e."Tags" -> e."Key" = 'SD'
     [Fact]
     public async Task Indexer_computed_key()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags[e.Key + "Suffix"] == "value")
@@ -89,6 +93,7 @@ WHERE e."Tags" -> (e."Key" || 'Suffix') = 'value'
     [Fact]
     public async Task Indexer_projection()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -107,6 +112,8 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Indexer_nullable_hstore()
     {
+        // -> returns SQL NULL for NULL hstores and missing keys, rather than throwing
+        // NullReferenceException or KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -125,6 +132,8 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Indexer_string_length()
     {
+        // Missing keys yield SQL NULL; length() also propagates stored NULL values.
+        // CLR evaluation would throw KeyNotFoundException or NullReferenceException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags["Variant"]!.Length == 2)
@@ -143,6 +152,8 @@ WHERE length(e."Tags" -> 'Variant')::int = 2
     [Fact]
     public async Task Indexer_string_methods()
     {
+        // SQL lookup and string operations propagate NULL instead of throwing for missing keys
+        // or dereferencing stored NULL values.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags["Variant"]!.StartsWith("S"))
@@ -161,6 +172,7 @@ WHERE e."Tags" -> 'Variant' LIKE 'S%'
     [Fact]
     public async Task Indexer_null()
     {
+        // -> returns NULL for missing keys just as for stored NULL values, instead of throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags["Variant"] == null)
@@ -181,6 +193,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Indexer_inequality()
     {
+        // -> returns NULL for missing keys instead of throwing; null compensation includes those rows.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags["Variant"] != "SD")
@@ -201,6 +214,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Indexer_immutable()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.ImmutableTags[e.Key] == "SD")
@@ -219,6 +233,7 @@ WHERE e."ImmutableTags" -> e."Key" = 'SD'
     [Fact]
     public async Task Indexer_immutable_parameter_key()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var key = "Variant";
         var results = await context.Entities
@@ -240,6 +255,7 @@ WHERE e."ImmutableTags" -> @key = 'SD'
     [Fact]
     public async Task Indexer_immutable_computed_key()
     {
+        // SQL lookup and string functions propagate NULL for missing keys instead of throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.ImmutableTags[e.Key + "Suffix"]!.StartsWith("val"))
@@ -258,6 +274,7 @@ WHERE e."ImmutableTags" -> (e."Key" || 'Suffix') LIKE 'val%'
     [Fact]
     public async Task Indexer_immutable_projection()
     {
+        // PostgreSQL -> returns NULL for missing keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -276,6 +293,8 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Indexer_immutable_nullable_hstore()
     {
+        // -> returns SQL NULL for NULL hstores and missing keys, rather than throwing
+        // NullReferenceException or KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -294,6 +313,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Indexer_immutable_inequality()
     {
+        // -> returns NULL for missing keys instead of throwing; null compensation includes those rows.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.ImmutableTags["Variant"] != "SD")
@@ -314,6 +334,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Indexer_ordering()
     {
+        // Missing keys yield NULL sort keys rather than throwing KeyNotFoundException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Tags["Variant"])
@@ -431,6 +452,7 @@ WHERE NOT (e."Tags" ? 'Variant') AND NOT (e."ImmutableTags" ? 'Variant')
     [Fact]
     public async Task ContainsKey_nullable_hstore()
     {
+        // ? propagates a NULL hstore, whereas ContainsKey on a null dictionary throws NullReferenceException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -490,6 +512,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Count_nullable_hstore()
     {
+        // akeys()/cardinality() propagate a NULL hstore, whereas Count on a null dictionary throws NullReferenceException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -561,6 +584,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task IsEmpty_nullable_hstore()
     {
+        // cardinality(akeys(NULL)) is NULL, so WHERE excludes NULL hstores instead of throwing on a null dictionary.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.NullableImmutableTags!.IsEmpty)
@@ -700,6 +724,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Remove_nullable_hstore()
     {
+        // Both - operators propagate a NULL hstore, whereas Remove/RemoveRange on a null dictionary throw.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -940,6 +965,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task SetItems_nullable_hstore()
     {
+        // || propagates a NULL hstore, whereas SetItems on a null dictionary throws NullReferenceException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -1082,6 +1108,7 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task GetValueOrDefault_nullable_hstore()
     {
+        // -> propagates a NULL hstore, whereas GetValueOrDefault on a null dictionary throws ArgumentNullException.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
@@ -1284,6 +1311,8 @@ WHERE NOT (e."Tags" ?| ARRAY['Variant']::text[]) AND NOT (e."ImmutableTags" ?& A
     [Fact]
     public async Task Contains_keys_nullable_hstore()
     {
+        // ?& and ?| propagate NULL hstores, so WHERE excludes them instead of throwing
+        // when ContainsKey is called on a null dictionary.
         string[] keys = ["Variant"];
         using var context = Fixture.CreateContext();
         var results = await context.Entities
@@ -1441,6 +1470,8 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsValue_computed_value()
     {
+        // -> and upper() propagate NULL instead of throwing for missing keys or null strings.
+        // ContainsValue can then match a stored NULL via array_position().
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags.ContainsValue(e.Tags["Variant"]!.ToUpper())
@@ -1462,6 +1493,8 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsValue_nullable_hstore_projection()
     {
+        // array_position(avals(NULL), ...) IS NOT NULL is false, rather than throwing
+        // NullReferenceException as ContainsValue on a null dictionary would.
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .OrderBy(e => e.Id)
