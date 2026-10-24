@@ -1522,6 +1522,37 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         }
         && selectExpression.Tables[0] is TableExpression && selectExpression.Tables.Skip(1).All(t => t is InnerJoinExpression);
 
+
+    /// <inheritdoc />
+    [Experimental(EFDiagnostics.ExecuteMergeExperimental)]
+    protected override Expression TranslateExecuteMerge(
+        ShapedQueryExpression source,
+        QueryParameterExpression sourceRows,
+        IReadOnlyList<ExecuteMergeMatch> matches,
+        IReadOnlyList<ExecuteUpdateSetter>? whenMatchedSetters,
+        IReadOnlyList<ExecuteUpdateSetter>? whenNotMatchedSetters,
+        LambdaExpression? returningSelector)
+    {
+        if (_isRedshift)
+        {
+            throw new NotSupportedException("ExecuteMerge is not supported on Amazon Redshift.");
+        }
+
+        var translation = base.TranslateExecuteMerge(
+            source, sourceRows, matches, whenMatchedSetters, whenNotMatchedSetters, returningSelector);
+
+        if (translation is MergeExpression { Returning: not null, Table.Table: ITable table })
+        {
+            if (!table.IsSqlReturningClauseUsed())
+            {
+                throw new InvalidOperationException(
+                    RelationalStrings.ExecuteMergeReturningWithoutReturningClause(table.SchemaQualifiedName));
+            }
+        }
+
+        return translation;
+    }
+
     // PostgreSQL unnest is guaranteed to return output rows in the same order as its input array,
     // https://www.postgresql.org/docs/current/functions-array.html.
     /// <inheritdoc />
