@@ -71,6 +71,17 @@ public class NpgsqlStringTypeMapping : StringTypeMapping, INpgsqlTypeMapping
     public virtual NpgsqlStringTypeMapping Clone(NpgsqlDbType npgsqlDbType)
         => new(Parameters, npgsqlDbType);
 
+    /// <inheritdoc />
+    protected override string GenerateNonNullSqlLiteral(object value)
+    {
+        var literal = (string)value;
+
+        // Physical line breaks are normalized and indented when generating migration scripts.
+        return literal.Contains('\r') || literal.Contains('\n')
+            ? $"E'{EscapeSqlLiteral(literal).Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'"
+            : base.GenerateNonNullSqlLiteral(value);
+    }
+
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
     ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
