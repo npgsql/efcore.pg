@@ -18,6 +18,10 @@ public static class NpgsqlEntityTypeBuilderExtensions
     /// <summary>
     ///     Configures a property on this entity to be a full-text search tsvector column over other given properties.
     /// </summary>
+    /// <remarks>
+    ///     Properties mapped to PostgreSQL integer types or <c>numeric</c>/<c>decimal</c> are cast to text.
+    ///     No other types are automatically cast to text.
+    /// </remarks>
     /// <param name="entityTypeBuilder">The builder for the entity being configured.</param>
     /// <param name="tsVectorPropertyExpression">
     ///     A lambda expression representing the property to be configured as a tsvector column

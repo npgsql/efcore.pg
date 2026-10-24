@@ -714,6 +714,10 @@ public static class NpgsqlPropertyBuilderExtensions
     /// <summary>
     ///     Configures the property to be a full-text search tsvector column over the given properties.
     /// </summary>
+    /// <remarks>
+    ///     Properties mapped to PostgreSQL integer types or <c>numeric</c>/<c>decimal</c> are cast to text.
+    ///     No other types are automatically cast to text.
+    /// </remarks>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="config">
     ///     <para>
@@ -745,6 +749,10 @@ public static class NpgsqlPropertyBuilderExtensions
     /// <summary>
     ///     Configures the property to be a full-text search tsvector column over the given properties.
     /// </summary>
+    /// <remarks>
+    ///     Properties mapped to PostgreSQL integer types or <c>numeric</c>/<c>decimal</c> are cast to text.
+    ///     No other types are automatically cast to text.
+    /// </remarks>
     /// <param name="propertyBuilder">The builder for the property being configured.</param>
     /// <param name="config">
     ///     <para>

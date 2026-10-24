@@ -811,6 +811,28 @@ DROP SEQUENCE "Person_Id_old_seq";
                     },
                     options)).Message);
 
+    [Theory]
+    [InlineData(typeof(bool), "boolean")]
+    [InlineData(typeof(Guid), "uuid")]
+    [InlineData(typeof(decimal), "money")]
+    [InlineData(typeof(float), "real")]
+    [InlineData(typeof(double), "double precision")]
+    [InlineData(typeof(DateOnly), "date")]
+    public void Create_index_tsvector_does_not_cast_other_store_types(Type clrType, string storeType)
+    {
+        Generate(
+            builder => builder.Entity("Values").Property(clrType, "Value").HasColumnType(storeType),
+            new CreateIndexOperation
+            {
+                Name = "IX_Values_Value",
+                Table = "Values",
+                Columns = ["Value"],
+                [NpgsqlAnnotationNames.TsVectorConfig] = "simple"
+            });
+
+        AssertSql("""CREATE INDEX "IX_Values_Value" ON "Values" (to_tsvector('simple', "Value"));""");
+    }
+
     #region JSON indexes
 
     [Theory]
