@@ -1451,6 +1451,149 @@ ORDER BY e."Id" NULLS FIRST
 """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ContainsValue(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => e.Tags.ContainsValue("SD") && e.ImmutableTags.ContainsValue("SD")).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE array_position(avals(e."Tags"), 'SD') IS NOT NULL AND array_position(avals(e."ImmutableTags"), 'SD') IS NOT NULL
+""");
+    }
+
+    [Theory]
+    [InlineData(false, "SD")]
+    [InlineData(true, "SD")]
+    [InlineData(false, "Missing")]
+    [InlineData(true, "Missing")]
+    [InlineData(false, null)]
+    [InlineData(true, null)]
+    public async Task ContainsValue_parameter_projection(bool async, string? value)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id)
+            .Select(e => new { Mutable = e.Tags.ContainsValue(value), Immutable = e.ImmutableTags.ContainsValue(value) });
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        bool[] expected = value switch
+        {
+            "SD" => [true, false, false, false],
+            null => [false, false, false, true],
+            _ => [false, false, false, false]
+        };
+        Assert.Equal(expected, results.Select(e => e.Mutable));
+        Assert.Equal(expected, results.Select(e => e.Immutable));
+        AssertSql(
+            value is null
+                ? """
+SELECT array_position(avals(e."Tags"), NULL) IS NOT NULL AS "Mutable", array_position(avals(e."ImmutableTags"), NULL) IS NOT NULL AS "Immutable"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+"""
+                : $"""
+@value='{value}'
+
+SELECT array_position(avals(e."Tags"), @value) IS NOT NULL AS "Mutable", array_position(avals(e."ImmutableTags"), @value) IS NOT NULL AS "Immutable"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ContainsValue_null(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => e.Tags.ContainsValue(null) && e.ImmutableTags.ContainsValue(null)).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([4], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE array_position(avals(e."Tags"), NULL) IS NOT NULL AND array_position(avals(e."ImmutableTags"), NULL) IS NOT NULL
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ContainsValue_negated(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => !e.Tags.ContainsValue(null) && !e.ImmutableTags.ContainsValue(null))
+            .OrderBy(e => e.Id).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 2, 3], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE array_position(avals(e."Tags"), NULL) IS NULL AND array_position(avals(e."ImmutableTags"), NULL) IS NULL
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ContainsValue_computed_value(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.Where(e => e.Tags.ContainsValue(e.Tags["Variant"]!.ToUpper())
+                && e.ImmutableTags.ContainsValue(e.ImmutableTags["Variant"]!.ToUpper()))
+            .OrderBy(e => e.Id).Select(e => e.Id);
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([1, 2, 4], results);
+        AssertSql(
+            """
+SELECT e."Id"
+FROM "Entities" AS e
+WHERE array_position(avals(e."Tags"), upper(e."Tags" -> 'Variant')) IS NOT NULL AND array_position(avals(e."ImmutableTags"), upper(e."ImmutableTags" -> 'Variant')) IS NOT NULL
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ContainsValue_nullable_hstore_projection(bool async)
+    {
+        using var context = Fixture.CreateContext();
+        var query = context.Entities.OrderBy(e => e.Id)
+            .Select(e => new
+            {
+                Mutable = e.NullableTags!.ContainsValue("SD"),
+                Immutable = e.NullableImmutableTags!.ContainsValue("SD"),
+                MutableNull = e.NullableTags!.ContainsValue(null),
+                ImmutableNull = e.NullableImmutableTags!.ContainsValue(null)
+            });
+        var results = async ? await query.ToArrayAsync() : query.ToArray();
+
+        Assert.Equal([true, false, false, false], results.Select(e => e.Mutable));
+        Assert.Equal([true, false, false, false], results.Select(e => e.Immutable));
+        Assert.Equal([false, false, false, true], results.Select(e => e.MutableNull));
+        Assert.Equal([false, false, false, true], results.Select(e => e.ImmutableNull));
+        AssertSql(
+            """
+SELECT array_position(avals(e."NullableTags"), 'SD') IS NOT NULL AS "Mutable", array_position(avals(e."NullableImmutableTags"), 'SD') IS NOT NULL AS "Immutable", array_position(avals(e."NullableTags"), NULL) IS NOT NULL AS "MutableNull", array_position(avals(e."NullableImmutableTags"), NULL) IS NOT NULL AS "ImmutableNull"
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

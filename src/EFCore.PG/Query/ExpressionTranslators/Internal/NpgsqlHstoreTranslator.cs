@@ -49,6 +49,23 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
                     "get_Item" => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, instance, arguments[0]),
                     nameof(Dictionary<string, string>.ContainsKey)
                         => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsKey, instance, arguments[0]),
+                    nameof(Dictionary<string, string>.ContainsValue)
+                        => sqlExpressionFactory.IsNotNull(
+                            sqlExpressionFactory.Function(
+                                "array_position",
+                                [
+                                    sqlExpressionFactory.Function(
+                                        "avals",
+                                        [instance],
+                                        nullable: true,
+                                        argumentsPropagateNullability: TrueArrays[1],
+                                        typeof(string[])),
+                                    arguments[0]
+                                ],
+                                nullable: true,
+                                // A missing value returns NULL, while NULL itself is a valid search value.
+                                argumentsPropagateNullability: FalseArrays[2],
+                                typeof(int))),
                     nameof(ImmutableDictionary<string, string>.Remove) or nameof(ImmutableDictionary<string, string>.RemoveRange)
                         when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
                         => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreRemove, instance, arguments[0]),
