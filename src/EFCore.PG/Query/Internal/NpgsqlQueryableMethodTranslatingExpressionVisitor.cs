@@ -362,6 +362,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Right: ColumnExpression key
                     }
                     when key.TableAlias == tableAlias
+                        // Rewriting All to ?& removes the iterated key's scope. If the hstore depends on that key
+                        // (e.g. tags.Remove(key)), keep the correlated subquery instead.
                         && !new OuterReferenceFindingExpressionVisitor(tableAlias).ContainsReferenceToMainTable(hstore):
                     return BuildSimplifiedShapedQuery(
                         source,
@@ -519,6 +521,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         Right: ColumnExpression key
                     }
                         when key.TableAlias == tableAlias
+                            // Rewriting Any to ?| removes the iterated key's scope. If the hstore depends on that key
+                            // (e.g. tags.Remove(key)), keep the correlated subquery instead.
                             && !new OuterReferenceFindingExpressionVisitor(tableAlias).ContainsReferenceToMainTable(hstore):
                         return BuildSimplifiedShapedQuery(
                             source,
