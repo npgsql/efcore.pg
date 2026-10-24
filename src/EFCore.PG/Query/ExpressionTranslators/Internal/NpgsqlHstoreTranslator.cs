@@ -81,32 +81,32 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
         Type returnType,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (instance?.TypeMapping is not NpgsqlHstoreTypeMapping
-            || member.Name is not (nameof(Dictionary<string, string>.Count) or nameof(ImmutableDictionary<string, string>.IsEmpty))
-            || (member.DeclaringType != typeof(Dictionary<string, string>)
-                && member.DeclaringType != typeof(ImmutableDictionary<string, string>)))
+        if (instance?.TypeMapping is NpgsqlHstoreTypeMapping
+            && member.Name is nameof(Dictionary<string, string>.Count) or nameof(ImmutableDictionary<string, string>.IsEmpty)
+            && (member.DeclaringType == typeof(Dictionary<string, string>)
+                || member.DeclaringType == typeof(ImmutableDictionary<string, string>)))
         {
-            return null;
+            var count = sqlExpressionFactory.Function(
+                "cardinality",
+                [
+                    sqlExpressionFactory.Function(
+                        "akeys",
+                        [instance],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(string[]))
+                ],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[1],
+                typeof(int));
+
+            return member.Name switch
+            {
+                nameof(ImmutableDictionary<string, string>.IsEmpty) => sqlExpressionFactory.Equal(count, sqlExpressionFactory.Constant(0)),
+                _ => count
+            };
         }
 
-        var count = sqlExpressionFactory.Function(
-            "cardinality",
-            [
-                sqlExpressionFactory.Function(
-                    "akeys",
-                    [instance],
-                    nullable: true,
-                    argumentsPropagateNullability: TrueArrays[1],
-                    typeof(string[]))
-            ],
-            nullable: true,
-            argumentsPropagateNullability: TrueArrays[1],
-            typeof(int));
-
-        return member.Name switch
-        {
-            nameof(ImmutableDictionary<string, string>.IsEmpty) => sqlExpressionFactory.Equal(count, sqlExpressionFactory.Constant(0)),
-            _ => count
-        };
+        return null;
     }
 }
