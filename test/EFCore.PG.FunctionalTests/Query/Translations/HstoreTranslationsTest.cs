@@ -2,13 +2,11 @@ using System.Collections.Immutable;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
 
-public class HstoreTranslationsTest : IClassFixture<HstoreTranslationsTest.HstoreQueryFixture>
+public class HstoreTranslationsTest : QueryTestBase<HstoreTranslationsTest.HstoreQueryFixture>
 {
-    private HstoreQueryFixture Fixture { get; }
-
     public HstoreTranslationsTest(HstoreQueryFixture fixture, ITestOutputHelper testOutputHelper)
+        : base(fixture)
     {
-        Fixture = fixture;
         Fixture.TestSqlLoggerFactory.Clear();
         Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
     }
@@ -336,14 +334,12 @@ ORDER BY e."Tags" -> 'Variant' NULLS FIRST, e."ImmutableTags" -> 'Variant' NULLS
     [Fact]
     public async Task ContainsKey()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Mutable = e.Tags.ContainsKey("Variant"), Immutable = e.ImmutableTags.ContainsKey("Variant") })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Mutable = e.Tags.ContainsKey("Variant"), Immutable = e.ImmutableTags.ContainsKey("Variant") }),
+            assertOrder: true);
 
-        Assert.Equal([true, true, false, true], results.Select(e => e.Mutable));
-        Assert.Equal([true, true, false, true], results.Select(e => e.Immutable));
         AssertSql(
             """
 SELECT e."Tags" ? 'Variant' AS "Mutable", e."ImmutableTags" ? 'Variant' AS "Immutable"
@@ -355,15 +351,18 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsKey_parameter_key()
     {
-        using var context = Fixture.CreateContext();
         var key = "Variant";
-        var results = await context.Entities
-            .Where(e => e.Tags.ContainsKey(EF.Parameter(key)) && e.ImmutableTags.ContainsKey(EF.Parameter(key)))
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.ContainsKey(EF.Parameter(key)) && e.ImmutableTags.ContainsKey(EF.Parameter(key)))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.ContainsKey(key) && e.ImmutableTags.ContainsKey(key))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2, 4], results);
         AssertSql(
             """
 @key='Variant'
@@ -378,14 +377,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsKey_column_key()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.Tags.ContainsKey(e.Key) && e.ImmutableTags.ContainsKey(e.Key))
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.ContainsKey(e.Key) && e.ImmutableTags.ContainsKey(e.Key))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2, 4], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -398,14 +396,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsKey_computed_key()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.Tags.ContainsKey(e.Key + "Suffix") && e.ImmutableTags.ContainsKey(e.Key + "Suffix"))
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.ContainsKey(e.Key + "Suffix") && e.ImmutableTags.ContainsKey(e.Key + "Suffix"))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -418,13 +415,11 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsKey_negated()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => !e.Tags.ContainsKey("Variant") && !e.ImmutableTags.ContainsKey("Variant"))
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => !e.Tags.ContainsKey("Variant") && !e.ImmutableTags.ContainsKey("Variant"))
+                .Select(e => e.Id));
 
-        Assert.Equal([3], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -459,14 +454,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Count()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.Tags.Count == 2 && e.ImmutableTags.Count == 2)
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.Count == 2 && e.ImmutableTags.Count == 2)
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -479,14 +473,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Count_projection()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Mutable = e.Tags.Count, Immutable = e.ImmutableTags.Count })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Mutable = e.Tags.Count, Immutable = e.ImmutableTags.Count }),
+            assertOrder: true);
 
-        Assert.Equal([2, 2, 0, 1], results.Select(e => e.Mutable));
-        Assert.Equal([2, 2, 0, 1], results.Select(e => e.Immutable));
         AssertSql(
             """
 SELECT cardinality(akeys(e."Tags")) AS "Mutable", cardinality(akeys(e."ImmutableTags")) AS "Immutable"
@@ -517,13 +509,11 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task IsEmpty()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.ImmutableTags.IsEmpty)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.ImmutableTags.IsEmpty)
+                .Select(e => e.Id));
 
-        Assert.Equal([3], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -535,14 +525,13 @@ WHERE cardinality(akeys(e."ImmutableTags")) = 0
     [Fact]
     public async Task IsEmpty_negated()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => !e.ImmutableTags.IsEmpty)
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => !e.ImmutableTags.IsEmpty)
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2, 4], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -555,13 +544,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task IsEmpty_projection()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.IsEmpty)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.IsEmpty),
+            assertOrder: true);
 
-        Assert.Equal([false, false, true, false], results);
         AssertSql(
             """
 SELECT cardinality(akeys(e."ImmutableTags")) = 0
@@ -591,18 +579,17 @@ WHERE cardinality(akeys(e."NullableImmutableTags")) = 0
     [Fact]
     public async Task Remove()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Variant") })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Variant") }),
+            elementAsserter: (e, a) =>
+            {
+                AssertHstore(e.Original, a.Original);
+                AssertHstore(e.Removed, a.Removed);
+            },
+            assertOrder: true);
 
-        Assert.Equal([2, 2, 0, 1], results.Select(e => e.Original.Count));
-        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Removed.Count));
-        Assert.All(results, e => Assert.False(e.Removed.ContainsKey("Variant")));
-        Assert.Equal(["value", "other"], results.Take(2).Select(e => e.Removed["VariantSuffix"]));
-        Assert.True(results[3].Original.ContainsKey("Variant"));
-        Assert.Null(results[3].Original["Variant"]);
         AssertSql(
             """
 SELECT e."ImmutableTags" AS "Original", e."ImmutableTags" - 'Variant'::text AS "Removed"
@@ -614,15 +601,17 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Remove_parameter_key()
     {
-        using var context = Fixture.CreateContext();
         var key = "Variant";
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.Remove(EF.Parameter(key)))
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.Remove(EF.Parameter(key))),
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.Remove(key)),
+            elementAsserter: AssertHstore,
+            assertOrder: true);
 
-        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
-        Assert.All(results, e => Assert.False(e.ContainsKey("Variant")));
         AssertSql(
             """
 @key='Variant'
@@ -636,13 +625,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Remove_column_key()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.Remove(e.Key).Count)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.Remove(e.Key).Count),
+            assertOrder: true);
 
-        Assert.Equal([1, 1, 0, 0], results);
         AssertSql(
             """
 SELECT cardinality(akeys(e."ImmutableTags" - e."Key"))
@@ -654,13 +642,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Remove_computed_key()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.Remove(e.Key + "Suffix").Count)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.Remove(e.Key + "Suffix").Count),
+            assertOrder: true);
 
-        Assert.Equal([1, 1, 0, 1], results);
         AssertSql(
             """
 SELECT cardinality(akeys(e."ImmutableTags" - (e."Key" || 'Suffix')))
@@ -672,14 +659,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Remove_composition()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.ImmutableTags.Remove("VariantSuffix").Count == 1)
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.Remove("VariantSuffix")["Variant"])
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.ImmutableTags.Remove("VariantSuffix").Count == 1)
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.Remove("VariantSuffix")["Variant"]),
+            assertOrder: true);
 
-        Assert.Equal(new string?[] { "SD", "HD", null }, results);
         AssertSql(
             """
 SELECT e."ImmutableTags" - 'VariantSuffix'::text -> 'Variant'
@@ -692,16 +678,16 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Remove_missing_key()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Missing") })
-            .ToArrayAsync();
-
-        foreach (var result in results)
-        {
-            Assert.Equal(result.Original.OrderBy(e => e.Key), result.Removed.OrderBy(e => e.Key));
-        }
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Missing") }),
+            elementAsserter: (e, a) =>
+            {
+                AssertHstore(e.Original, a.Original);
+                AssertHstore(e.Removed, a.Removed);
+            },
+            assertOrder: true);
 
         AssertSql(
             """
@@ -737,14 +723,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Remove_chained()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.ImmutableTags.Remove("Variant").RemoveRange(new[] { "VariantSuffix" }).IsEmpty)
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.ImmutableTags.Remove("Variant").RemoveRange(new[] { "VariantSuffix" }).IsEmpty)
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2, 3, 4], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -757,15 +742,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task RemoveRange()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.RemoveRange(new[] { "Variant", "Missing" }))
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.RemoveRange(new[] { "Variant", "Missing" })),
+            elementAsserter: AssertHstore,
+            assertOrder: true);
 
-        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
-        Assert.All(results, e => Assert.False(e.ContainsKey("Variant")));
-        Assert.Equal(["value", "other"], results.Take(2).Select(e => e["VariantSuffix"]));
         AssertSql(
             """
 SELECT e."ImmutableTags" - ARRAY['Variant','Missing']::text[]
@@ -777,15 +760,17 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task RemoveRange_parameter_keys()
     {
-        using var context = Fixture.CreateContext();
         string[] keys = ["Variant", "Missing"];
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.RemoveRange(EF.Parameter(keys)))
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.RemoveRange(EF.Parameter(keys))),
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.RemoveRange(keys)),
+            elementAsserter: AssertHstore,
+            assertOrder: true);
 
-        Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
-        Assert.All(results, e => Assert.False(e.ContainsKey("Variant")));
         AssertSql(
             """
 @keys={ 'Variant'
@@ -800,14 +785,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task RemoveRange_column_keys()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.RemoveRange(e.Keys))
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.RemoveRange(e.Keys)),
+            elementAsserter: AssertHstore,
+            assertOrder: true);
 
-        Assert.Equal(4, results.Length);
-        Assert.All(results, e => Assert.Empty(e));
         AssertSql(
             """
 SELECT e."ImmutableTags" - e."Keys"
@@ -819,13 +803,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task RemoveRange_computed_keys()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => e.ImmutableTags.RemoveRange(new[] { e.Key, e.Key + "Suffix" }).IsEmpty)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => e.ImmutableTags.RemoveRange(new[] { e.Key, e.Key + "Suffix" }).IsEmpty),
+            assertOrder: true);
 
-        Assert.Equal([true, true, true, true], results);
         AssertSql(
             """
 SELECT cardinality(akeys(e."ImmutableTags" - ARRAY[e."Key",e."Key" || 'Suffix']::text[])) = 0
@@ -837,16 +820,16 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task RemoveRange_empty_keys()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.RemoveRange(Array.Empty<string>()) })
-            .ToArrayAsync();
-
-        foreach (var result in results)
-        {
-            Assert.Equal(result.Original.OrderBy(e => e.Key), result.Removed.OrderBy(e => e.Key));
-        }
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.RemoveRange(Array.Empty<string>()) }),
+            elementAsserter: (e, a) =>
+            {
+                AssertHstore(e.Original, a.Original);
+                AssertHstore(e.Removed, a.Removed);
+            },
+            assertOrder: true);
 
         AssertSql(
             """
@@ -859,23 +842,17 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task SetItems()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Original = e.ImmutableTags, Updated = e.ImmutableTags.SetItems(e.Updates) })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Original = e.ImmutableTags, Updated = e.ImmutableTags.SetItems(e.Updates) }),
+            elementAsserter: (e, a) =>
+            {
+                AssertHstore(e.Original, a.Original);
+                AssertHstore(e.Updated, a.Updated);
+            },
+            assertOrder: true);
 
-        Assert.Equal([2, 2, 0, 1], results.Select(e => e.Original.Count));
-        Assert.Equal(new string?[] { "SD", "HD", null, null }, results.Select(e => e.Original.GetValueOrDefault("Variant")));
-        Assert.Equal([4, 4, 3, 3], results.Select(e => e.Updated.Count));
-        Assert.All(results, e =>
-        {
-            Assert.Equal("Updated", e.Updated["Variant"]);
-            Assert.Equal("New", e.Updated["Added"]);
-            Assert.True(e.Updated.ContainsKey("NullValue"));
-            Assert.Null(e.Updated["NullValue"]);
-        });
-        Assert.Equal(["value", "other"], results.Take(2).Select(e => e.Updated["VariantSuffix"]));
         AssertSql(
             """
 SELECT e."ImmutableTags" AS "Original", e."ImmutableTags" || e."Updates" AS "Updated"
@@ -889,21 +866,17 @@ ORDER BY e."Id" NULLS FIRST
     {
         var items = new Dictionary<string, string?> { ["Variant"] = "Updated", ["Added"] = "New", ["NullValue"] = null };
         var immutableItems = items.ToImmutableDictionary();
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Mutable = e.ImmutableTags.SetItems(items), Immutable = e.ImmutableTags.SetItems(immutableItems) })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Mutable = e.ImmutableTags.SetItems(items), Immutable = e.ImmutableTags.SetItems(immutableItems) }),
+            elementAsserter: (e, a) =>
+            {
+                AssertHstore(e.Mutable, a.Mutable);
+                AssertHstore(e.Immutable, a.Immutable);
+            },
+            assertOrder: true);
 
-        Assert.Equal([4, 4, 3, 3], results.Select(e => e.Mutable.Count));
-        Assert.Equal([4, 4, 3, 3], results.Select(e => e.Immutable.Count));
-        Assert.All(results.SelectMany(e => new[] { e.Mutable, e.Immutable }), e =>
-        {
-            Assert.Equal("Updated", e["Variant"]);
-            Assert.Equal("New", e["Added"]);
-            Assert.True(e.ContainsKey("NullValue"));
-            Assert.Null(e["NullValue"]);
-        });
         AssertSql(
             """
 @items='System.Collections.Generic.Dictionary`2[System.String,System.String]' (DbType = Object)
@@ -919,13 +892,17 @@ ORDER BY e."Id" NULLS FIRST
     public async Task SetItems_empty_parameter()
     {
         var items = ImmutableDictionary<string, string?>.Empty;
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Original = e.ImmutableTags, Updated = e.ImmutableTags.SetItems(items) })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Original = e.ImmutableTags, Updated = e.ImmutableTags.SetItems(items) }),
+            elementAsserter: (e, a) =>
+            {
+                AssertHstore(e.Original, a.Original);
+                AssertHstore(e.Updated, a.Updated);
+            },
+            assertOrder: true);
 
-        Assert.All(results, e => Assert.Equal(e.Original.OrderBy(p => p.Key), e.Updated.OrderBy(p => p.Key)));
         AssertSql(
             """
 @items='System.Collections.Immutable.ImmutableDictionary`2[System.String,System.String]' (DbType = Object)
@@ -939,27 +916,19 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task SetItems_composed()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                Value = e.ImmutableTags.SetItems(e.Updates).Remove("Added").SetItems(e.ImmutableTags)["Variant"],
-                Count = e.ImmutableTags.SetItems(e.Updates).Count,
-                RemovedCount = e.ImmutableTags.SetItems(e.Updates).Remove("Added").Count,
-                HasNull = e.ImmutableTags.SetItems(e.Updates).ContainsKey("NullValue"),
-                IsEmpty = e.ImmutableTags.SetItems(e.Updates).IsEmpty
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    Value = e.ImmutableTags.SetItems(e.Updates).Remove("Added").SetItems(e.ImmutableTags)["Variant"],
+                    Count = e.ImmutableTags.SetItems(e.Updates).Count,
+                    RemovedCount = e.ImmutableTags.SetItems(e.Updates).Remove("Added").Count,
+                    HasNull = e.ImmutableTags.SetItems(e.Updates).ContainsKey("NullValue"),
+                    IsEmpty = e.ImmutableTags.SetItems(e.Updates).IsEmpty
+                }),
+            assertOrder: true);
 
-        Assert.Equal(new string?[] { "SD", "HD", "Updated", null }, results.Select(e => e.Value));
-        Assert.Equal([4, 4, 3, 3], results.Select(e => e.Count));
-        Assert.Equal([3, 3, 2, 2], results.Select(e => e.RemovedCount));
-        Assert.All(results, e =>
-        {
-            Assert.True(e.HasNull);
-            Assert.False(e.IsEmpty);
-        });
         AssertSql(
             """
 SELECT ((e."ImmutableTags" || e."Updates") - 'Added'::text || e."ImmutableTags") -> 'Variant' AS "Value", cardinality(akeys(e."ImmutableTags" || e."Updates")) AS "Count", cardinality(akeys((e."ImmutableTags" || e."Updates") - 'Added'::text)) AS "RemovedCount", (e."ImmutableTags" || e."Updates") ? 'NullValue' AS "HasNull", cardinality(akeys(e."ImmutableTags" || e."Updates")) = 0 AS "IsEmpty"
@@ -995,14 +964,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task GetValueOrDefault()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Mutable = e.Tags.GetValueOrDefault("Variant"), Immutable = e.ImmutableTags.GetValueOrDefault("Variant") })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Mutable = e.Tags.GetValueOrDefault("Variant"), Immutable = e.ImmutableTags.GetValueOrDefault("Variant") }),
+            assertOrder: true);
 
-        Assert.Equal(new string?[] { "SD", "HD", null, null }, results.Select(e => e.Mutable));
-        Assert.Equal(new string?[] { "SD", "HD", null, null }, results.Select(e => e.Immutable));
         AssertSql(
             """
 SELECT e."Tags" -> 'Variant' AS "Mutable", e."ImmutableTags" -> 'Variant' AS "Immutable"
@@ -1014,18 +981,16 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task GetValueOrDefault_fallback()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                Mutable = e.Tags.GetValueOrDefault("Variant", "fallback"),
-                Immutable = e.ImmutableTags.GetValueOrDefault("Variant", "fallback")
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    Mutable = e.Tags.GetValueOrDefault("Variant", "fallback"),
+                    Immutable = e.ImmutableTags.GetValueOrDefault("Variant", "fallback")
+                }),
+            assertOrder: true);
 
-        Assert.Equal(new string?[] { "SD", "HD", "fallback", null }, results.Select(e => e.Mutable));
-        Assert.Equal(new string?[] { "SD", "HD", "fallback", null }, results.Select(e => e.Immutable));
         AssertSql(
             """
 SELECT CASE
@@ -1045,22 +1010,27 @@ ORDER BY e."Id" NULLS FIRST
     {
         var key = "Variant";
         var fallback = "fallback";
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                Mutable = e.Tags.GetValueOrDefault(EF.Parameter(key)),
-                Immutable = e.ImmutableTags.GetValueOrDefault(EF.Parameter(key)),
-                MutableFallback = e.Tags.GetValueOrDefault(EF.Parameter(key), fallback),
-                ImmutableFallback = e.ImmutableTags.GetValueOrDefault(EF.Parameter(key), fallback)
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    Mutable = e.Tags.GetValueOrDefault(EF.Parameter(key)),
+                    Immutable = e.ImmutableTags.GetValueOrDefault(EF.Parameter(key)),
+                    MutableFallback = e.Tags.GetValueOrDefault(EF.Parameter(key), fallback),
+                    ImmutableFallback = e.ImmutableTags.GetValueOrDefault(EF.Parameter(key), fallback)
+                }),
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    Mutable = e.Tags.GetValueOrDefault(key),
+                    Immutable = e.ImmutableTags.GetValueOrDefault(key),
+                    MutableFallback = e.Tags.GetValueOrDefault(key, fallback),
+                    ImmutableFallback = e.ImmutableTags.GetValueOrDefault(key, fallback)
+                }),
+            assertOrder: true);
 
-        Assert.Equal(new string?[] { "SD", "HD", null, null }, results.Select(e => e.Mutable));
-        Assert.Equal(new string?[] { "SD", "HD", null, null }, results.Select(e => e.Immutable));
-        Assert.Equal(new string?[] { "SD", "HD", "fallback", null }, results.Select(e => e.MutableFallback));
-        Assert.Equal(new string?[] { "SD", "HD", "fallback", null }, results.Select(e => e.ImmutableFallback));
         AssertSql(
             """
 @key='Variant'
@@ -1081,20 +1051,17 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task GetValueOrDefault_computed_key_and_column_fallback()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                Mutable = e.Tags.GetValueOrDefault(e.Key + "Suffix", e.Key),
-                Immutable = e.ImmutableTags.GetValueOrDefault(e.Key + "Suffix", e.Key),
-                Length = e.ImmutableTags.GetValueOrDefault(e.Key + "Suffix", e.Key)!.Length
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    Mutable = e.Tags.GetValueOrDefault(e.Key + "Suffix", e.Key),
+                    Immutable = e.ImmutableTags.GetValueOrDefault(e.Key + "Suffix", e.Key),
+                    Length = e.ImmutableTags.GetValueOrDefault(e.Key + "Suffix", e.Key)!.Length
+                }),
+            assertOrder: true);
 
-        Assert.Equal(["value", "other", "Variant", "Variant"], results.Select(e => e.Mutable));
-        Assert.Equal(["value", "other", "Variant", "Variant"], results.Select(e => e.Immutable));
-        Assert.Equal([5, 5, 7, 7], results.Select(e => e.Length));
         AssertSql(
             """
 SELECT CASE
@@ -1138,14 +1105,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task GetValueOrDefault_predicate()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.Tags.GetValueOrDefault("Variant", "fallback") == "fallback"
-                && e.ImmutableTags.GetValueOrDefault("Variant") == null)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.GetValueOrDefault("Variant", "fallback") == "fallback"
+                    && e.ImmutableTags.GetValueOrDefault("Variant") == null)
+                .Select(e => e.Id));
 
-        Assert.Equal([3], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1162,23 +1127,17 @@ END = 'fallback' AND e."ImmutableTags" -> 'Variant' IS NULL
     {
         var tags = new Dictionary<string, string?> { ["Variant"] = "SD" };
         var immutableTags = tags.ToImmutableDictionary();
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                Mutable = tags.GetValueOrDefault(e.Key),
-                Immutable = immutableTags.GetValueOrDefault(e.Key),
-                Fallback = tags.GetValueOrDefault(e.Key + "Suffix", "fallback")
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    Mutable = tags.GetValueOrDefault(e.Key),
+                    Immutable = immutableTags.GetValueOrDefault(e.Key),
+                    Fallback = tags.GetValueOrDefault(e.Key + "Suffix", "fallback")
+                }),
+            assertOrder: true);
 
-        Assert.All(results, e =>
-        {
-            Assert.Equal("SD", e.Mutable);
-            Assert.Equal("SD", e.Immutable);
-            Assert.Equal("fallback", e.Fallback);
-        });
         AssertSql(
             """
 @tags='System.Collections.Generic.Dictionary`2[System.String,System.String]' (DbType = Object)
@@ -1196,15 +1155,14 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Contains_all_keys()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => new[] { "Variant", "VariantSuffix" }.All(key => e.Tags.ContainsKey(key))
-                && new[] { "Variant", "VariantSuffix" }.All(key => e.ImmutableTags.ContainsKey(key)))
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => new[] { "Variant", "VariantSuffix" }.All(key => e.Tags.ContainsKey(key))
+                    && new[] { "Variant", "VariantSuffix" }.All(key => e.ImmutableTags.ContainsKey(key)))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1217,15 +1175,14 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Contains_any_key()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => new[] { "Variant", "Missing" }.Any(key => e.Tags.ContainsKey(key))
-                && new[] { "Variant", "Missing" }.Any(key => e.ImmutableTags.ContainsKey(key)))
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => new[] { "Variant", "Missing" }.Any(key => e.Tags.ContainsKey(key))
+                    && new[] { "Variant", "Missing" }.Any(key => e.ImmutableTags.ContainsKey(key)))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2, 4], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1239,25 +1196,18 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Contains_keys_parameter_projection()
     {
         string[] keys = ["Variant", "Missing"];
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                All = keys.All(key => e.Tags.ContainsKey(key)),
-                Any = keys.Any(key => e.Tags.ContainsKey(key)),
-                ImmutableAll = keys.All(key => e.ImmutableTags.ContainsKey(key)),
-                ImmutableAny = keys.Any(key => e.ImmutableTags.ContainsKey(key))
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    All = keys.All(key => e.Tags.ContainsKey(key)),
+                    Any = keys.Any(key => e.Tags.ContainsKey(key)),
+                    ImmutableAll = keys.All(key => e.ImmutableTags.ContainsKey(key)),
+                    ImmutableAny = keys.Any(key => e.ImmutableTags.ContainsKey(key))
+                }),
+            assertOrder: true);
 
-        Assert.All(results, e =>
-        {
-            Assert.False(e.All);
-            Assert.False(e.ImmutableAll);
-        });
-        Assert.Equal([true, true, false, true], results.Select(e => e.Any));
-        Assert.Equal([true, true, false, true], results.Select(e => e.ImmutableAny));
         AssertSql(
             """
 @keys={ 'Variant'
@@ -1272,18 +1222,16 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Contains_keys_column_projection()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                All = e.Keys.All(key => e.Tags.ContainsKey(key)),
-                Any = e.Keys.Any(key => e.ImmutableTags.ContainsKey(key))
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    All = e.Keys.All(key => e.Tags.ContainsKey(key)),
+                    Any = e.Keys.Any(key => e.ImmutableTags.ContainsKey(key))
+                }),
+            assertOrder: true);
 
-        Assert.Equal([true, true, false, false], results.Select(e => e.All));
-        Assert.Equal([true, true, false, true], results.Select(e => e.Any));
         AssertSql(
             """
 SELECT e."Tags" ?& e."Keys" AS "All", e."ImmutableTags" ?| e."Keys" AS "Any"
@@ -1296,21 +1244,16 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Contains_keys_empty_parameter()
     {
         string[] keys = [];
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                All = keys.All(key => e.Tags.ContainsKey(key)),
-                Any = keys.Any(key => e.ImmutableTags.ContainsKey(key))
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    All = keys.All(key => e.Tags.ContainsKey(key)),
+                    Any = keys.Any(key => e.ImmutableTags.ContainsKey(key))
+                }),
+            assertOrder: true);
 
-        Assert.All(results, e =>
-        {
-            Assert.True(e.All);
-            Assert.False(e.Any);
-        });
         AssertSql(
             """
 @keys={  } (DbType = Object)
@@ -1324,14 +1267,12 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Contains_keys_negated()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => !new[] { "Variant" }.Any(key => e.Tags.ContainsKey(key))
-                && !new[] { "Variant" }.All(key => e.ImmutableTags.ContainsKey(key)))
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => !new[] { "Variant" }.Any(key => e.Tags.ContainsKey(key))
+                    && !new[] { "Variant" }.All(key => e.ImmutableTags.ContainsKey(key)))
+                .Select(e => e.Id));
 
-        Assert.Equal([3], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1367,14 +1308,13 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Contains_keys_composed_hstore()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.Keys.Any(key => e.ImmutableTags.Remove("Variant").ContainsKey(key)))
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Keys.Any(key => e.ImmutableTags.Remove("Variant").ContainsKey(key)))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1387,22 +1327,16 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task Contains_keys_hstore_depends_on_key()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new
-            {
-                All = e.Keys.All(key => e.ImmutableTags.Remove(key).ContainsKey(key)),
-                Any = e.Keys.Any(key => e.ImmutableTags.Remove(key).ContainsKey(key))
-            })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new
+                {
+                    All = e.Keys.All(key => e.ImmutableTags.Remove(key).ContainsKey(key)),
+                    Any = e.Keys.Any(key => e.ImmutableTags.Remove(key).ContainsKey(key))
+                }),
+            assertOrder: true);
 
-        Assert.Equal(4, results.Length);
-        Assert.All(results, e =>
-        {
-            Assert.False(e.All);
-            Assert.False(e.Any);
-        });
         AssertSql(
             """
 SELECT NOT EXISTS (
@@ -1420,13 +1354,11 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsValue()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.Tags.ContainsValue("SD") && e.ImmutableTags.ContainsValue("SD"))
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.ContainsValue("SD") && e.ImmutableTags.ContainsValue("SD"))
+                .Select(e => e.Id));
 
-        Assert.Equal([1], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1449,20 +1381,12 @@ WHERE array_position(avals(e."Tags"), 'SD') IS NOT NULL AND array_position(avals
 
     private async Task AssertContainsValueParameterProjection(string? value)
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .OrderBy(e => e.Id)
-            .Select(e => new { Mutable = e.Tags.ContainsValue(value), Immutable = e.ImmutableTags.ContainsValue(value) })
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .OrderBy(e => e.Id)
+                .Select(e => new { Mutable = e.Tags.ContainsValue(value), Immutable = e.ImmutableTags.ContainsValue(value) }),
+            assertOrder: true);
 
-        bool[] expected = value switch
-        {
-            "SD" => [true, false, false, false],
-            null => [false, false, false, true],
-            _ => [false, false, false, false]
-        };
-        Assert.Equal(expected, results.Select(e => e.Mutable));
-        Assert.Equal(expected, results.Select(e => e.Immutable));
         AssertSql(
             value is null
                 ? """
@@ -1482,13 +1406,11 @@ ORDER BY e."Id" NULLS FIRST
     [Fact]
     public async Task ContainsValue_null()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => e.Tags.ContainsValue(null) && e.ImmutableTags.ContainsValue(null))
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => e.Tags.ContainsValue(null) && e.ImmutableTags.ContainsValue(null))
+                .Select(e => e.Id));
 
-        Assert.Equal([4], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1500,14 +1422,13 @@ WHERE array_position(avals(e."Tags"), NULL) IS NOT NULL AND array_position(avals
     [Fact]
     public async Task ContainsValue_negated()
     {
-        using var context = Fixture.CreateContext();
-        var results = await context.Entities
-            .Where(e => !e.Tags.ContainsValue(null) && !e.ImmutableTags.ContainsValue(null))
-            .OrderBy(e => e.Id)
-            .Select(e => e.Id)
-            .ToArrayAsync();
+        await AssertQuery(
+            ss => ss.Set<Entity>()
+                .Where(e => !e.Tags.ContainsValue(null) && !e.ImmutableTags.ContainsValue(null))
+                .OrderBy(e => e.Id)
+                .Select(e => e.Id),
+            assertOrder: true);
 
-        Assert.Equal([1, 2, 3], results);
         AssertSql(
             """
 SELECT e."Id"
@@ -1568,6 +1489,11 @@ ORDER BY e."Id" NULLS FIRST
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
+    private static void AssertHstore(
+        IEnumerable<KeyValuePair<string, string?>> expected,
+        IEnumerable<KeyValuePair<string, string?>> actual)
+        => Assert.Equal(expected.OrderBy(p => p.Key), actual.OrderBy(p => p.Key));
+
     public class HstoreQueryContext(DbContextOptions options) : PoolableDbContext(options)
     {
         public DbSet<Entity> Entities { get; set; }
@@ -1590,8 +1516,10 @@ ORDER BY e."Id" NULLS FIRST
         public ImmutableDictionary<string, string?>? NullableImmutableTags { get; set; }
     }
 
-    public class HstoreQueryFixture : SharedStoreFixtureBase<HstoreQueryContext>
+    public class HstoreQueryFixture : QueryFixtureBase<HstoreQueryContext>, ITestSqlLoggerFactory
     {
+        private readonly HstoreData _expectedData = new();
+
         protected override string StoreName
             => "HstoreQueryTest";
 
@@ -1612,6 +1540,30 @@ ORDER BY e."Id" NULLS FIRST
 
         protected override async Task SeedAsync(HstoreQueryContext context)
         {
+            context.Entities.AddRange(HstoreData.CreateEntities());
+            await context.SaveChangesAsync();
+        }
+
+        public override ISetSource GetExpectedData()
+            => _expectedData;
+
+        public override IReadOnlyDictionary<Type, object> EntitySorters { get; } = new Dictionary<Type, object>();
+
+        public override IReadOnlyDictionary<Type, object> EntityAsserters { get; } = new Dictionary<Type, object>();
+    }
+
+    private class HstoreData : ISetSource
+    {
+        private IReadOnlyList<Entity> Entities { get; } = CreateEntities();
+
+        public IQueryable<TEntity> Set<TEntity>()
+            where TEntity : class
+            => typeof(TEntity) == typeof(Entity)
+                ? (IQueryable<TEntity>)Entities.AsQueryable()
+                : throw new InvalidOperationException("Invalid entity type: " + typeof(TEntity));
+
+        public static IReadOnlyList<Entity> CreateEntities()
+        {
             Entity[] entities =
             [
                 new Entity
@@ -1631,8 +1583,7 @@ ORDER BY e."Id" NULLS FIRST
                 entity.NullableImmutableTags = entity.NullableTags?.ToImmutableDictionary();
             }
 
-            context.Entities.AddRange(entities);
-            await context.SaveChangesAsync();
+            return entities;
         }
     }
 }
