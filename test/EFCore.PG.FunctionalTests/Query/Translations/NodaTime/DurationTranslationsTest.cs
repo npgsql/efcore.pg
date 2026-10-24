@@ -156,6 +156,22 @@ WHERE floor(date_part('second', n."Duration"))::int = 8
 """);
     }
 
+    [ConditionalTheory] // #4086
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Negative_constant_with_days(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration + Duration.FromHours(-36) == t.Duration - Duration.FromHours(36)));
+
+        AssertSql(
+            """
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE n."Duration" + INTERVAL '-1 -12:00:00' = n."Duration" - INTERVAL '1 12:00:00'
+""");
+    }
+
     [ConditionalFact] // #3831
     public async Task DateTrunc()
     {

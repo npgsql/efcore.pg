@@ -34,6 +34,19 @@ public class NpgsqlTypeMappingTest
             GetMapping(typeof(double), "numeric").GenerateSqlLiteral(1.878787m));
     }
 
+    [Fact]
+    public void GenerateSqlLiteral_returns_real_literal()
+    {
+        var mapping = GetMapping(typeof(float));
+
+        Assert.Equal("REAL '0.1'", mapping.GenerateSqlLiteral(0.1f));
+        Assert.Equal("REAL '-9.5'", mapping.GenerateSqlLiteral(-9.5f));
+        Assert.Equal("REAL '3.4028235E+38'", mapping.GenerateSqlLiteral(float.MaxValue));
+        Assert.Equal("REAL 'NaN'", mapping.GenerateSqlLiteral(float.NaN));
+        Assert.Equal("REAL 'Infinity'", mapping.GenerateSqlLiteral(float.PositiveInfinity));
+        Assert.Equal("REAL '-Infinity'", mapping.GenerateSqlLiteral(float.NegativeInfinity));
+    }
+
     #endregion Numeric
 
     #region Date/Time
@@ -98,6 +111,7 @@ public class NpgsqlTypeMappingTest
             [new DateTimeOffset(2023, 5, 29, 4, 5, 6, TimeSpan.FromHours(-3)), "timetz",
                 "TIMETZ '04:05:06-3'", "04:05:06-3"],
             [new TimeSpan(3, 4, 5, 6, 7), "interval", "INTERVAL '3 04:05:06.007'", "3 04:05:06.007"],
+            [new TimeSpan(-3, -4, -5, -6, -7), "interval", "INTERVAL '-3 -04:05:06.007'", "-3 -04:05:06.007"],
             [TimeSpan.Zero, "interval", "INTERVAL '00:00:00'", "00:00:00"]
         ];
 
@@ -363,7 +377,9 @@ public class NpgsqlTypeMappingTest
         Assert.Equal("INTERVAL '3 04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6, 7)));
         Assert.Equal("INTERVAL '3 04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6)));
         Assert.Equal("INTERVAL '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
-        Assert.Equal("INTERVAL '-3 04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(-3, -4, -5, -6, -7)));
+        Assert.Equal("INTERVAL '-3 -04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(-3, -4, -5, -6, -7)));
+        Assert.Equal("INTERVAL '-1 -02:00:00'", mapping.GenerateSqlLiteral(TimeSpan.FromHours(-26)));
+        Assert.Equal("INTERVAL '-02:00:00'", mapping.GenerateSqlLiteral(TimeSpan.FromHours(-2)));
         Assert.Equal(
             "INTERVAL '3 04:05:06'", mapping.GenerateSqlLiteral(
                 new TimeSpan(3, 4, 5, 6)
@@ -393,6 +409,18 @@ public class NpgsqlTypeMappingTest
         readerManager.MoveNext();
         var actualTimeSpan = readerWriter.FromJson(ref readerManager, existingObject: null);
         Assert.Equal(TimeSpan.Parse(json, CultureInfo.InvariantCulture), actualTimeSpan);
+    }
+
+    [Theory]
+    [InlineData("-1 -02:00:00")]
+    [InlineData("-1 02:00:00")] // Written by versions before the time part carried its own sign
+    public void TimeSpan_json_negative_with_days(string json)
+    {
+        var readerWriter = GetMapping(typeof(TimeSpan)).JsonValueReaderWriter!;
+
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{json}\"")), null);
+        readerManager.MoveNext();
+        Assert.Equal(TimeSpan.FromHours(-26), readerWriter.FromJson(ref readerManager, existingObject: null));
     }
 
     #endregion Date/Time

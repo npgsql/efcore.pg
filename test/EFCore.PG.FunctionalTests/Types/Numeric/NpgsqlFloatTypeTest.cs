@@ -11,7 +11,7 @@ public class NpgsqlFloatTypeTest(NpgsqlFloatTypeTest.FloatTypeFixture fixture, I
             """
 SELECT t."Id", t."ArrayValue", t."OtherValue", t."Value"
 FROM "TypeEntity" AS t
-WHERE t."Value" = 30.5
+WHERE t."Value" = REAL '30.5'
 LIMIT 2
 """);
     }
@@ -97,7 +97,7 @@ SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(@Fixt
         AssertSql(
             """
 UPDATE "JsonTypeEntity" AS j
-SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(30::real))
+SET "JsonContainer" = jsonb_set_lax(j."JsonContainer", '{Value}', to_jsonb(REAL '30'::real))
 """);
     }
 

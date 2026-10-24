@@ -54,23 +54,7 @@ public class NpgsqlFloatTypeMapping : FloatTypeMapping
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     protected override string GenerateNonNullSqlLiteral(object value)
-    {
-        var singleValue = Convert.ToSingle(value);
-        if (double.IsNaN(singleValue))
-        {
-            return "'NaN'";
-        }
-
-        if (double.IsPositiveInfinity(singleValue))
-        {
-            return "'Infinity'";
-        }
-
-        if (double.IsNegativeInfinity(singleValue))
-        {
-            return "'-Infinity'";
-        }
-
-        return base.GenerateNonNullSqlLiteral(singleValue);
-    }
+        // An untyped literal such as 0.1 is numeric, which PostgreSQL compares with a real as double precision, where it never equals
+        // 0.1f. The typed literal also accepts NaN, Infinity and -Infinity as written by the base implementation.
+        => $"REAL '{base.GenerateNonNullSqlLiteral(value)}'";
 }
