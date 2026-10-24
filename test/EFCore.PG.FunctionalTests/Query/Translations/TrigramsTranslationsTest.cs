@@ -207,7 +207,7 @@ WHERE (t."Text" || ' ' || t."Text") % 'query'
             """
 SELECT t."Id", t."Text"
 FROM "TrigramsTestEntities" AS t
-WHERE 1 - (t."Text" <-> 'query') > 8
+WHERE REAL '1' - (t."Text" <-> 'query') > REAL '8'
 """);
     }
 

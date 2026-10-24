@@ -2538,7 +2538,7 @@ WHERE (CAST(j."Reference" ->> 'TestSignedByte' AS smallint)) <> 100 OR (CAST(j."
             """
 SELECT j."Id", j."TestDateTimeCollection", j."TestDecimalCollection", j."TestDefaultStringCollection", j."TestEnumWithIntConverterCollection", j."TestInt32Collection", j."TestMaxLengthStringCollection", j."TestSignedByteCollection", j."TestSingleCollection", j."TestTimeSpanCollection", j."TestUnsignedInt32Collection", j."Collection", j."Reference"
 FROM "JsonEntitiesAllTypes" AS j
-WHERE (CAST(j."Reference" ->> 'TestSingle' AS real)) <> 10.4 OR (CAST(j."Reference" ->> 'TestSingle' AS real)) IS NULL
+WHERE (CAST(j."Reference" ->> 'TestSingle' AS real)) <> REAL '10.4' OR (CAST(j."Reference" ->> 'TestSingle' AS real)) IS NULL
 """);
     }
 

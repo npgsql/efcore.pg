@@ -77,7 +77,7 @@ WHERE ceiling(b."Double") = 9.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE ceiling(b."Float") = 9
+WHERE ceiling(b."Float") = REAL '9'
 """);
     }
 
@@ -113,7 +113,7 @@ WHERE floor(b."Double") = 8.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE floor(b."Float") = 8
+WHERE floor(b."Float") = REAL '8'
 """);
     }
 
@@ -137,7 +137,7 @@ WHERE power(b."Int"::double precision, 2.0) = 64.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE power(b."Float", 2) > 73 AND power(b."Float", 2) < 74
+WHERE power(b."Float", REAL '2') > REAL '73' AND power(b."Float", REAL '2') < REAL '74'
 """);
     }
 
@@ -183,7 +183,7 @@ FROM "BasicTypesEntities" AS b
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE round(b."Float")::real = 9
+WHERE round(b."Float")::real = REAL '9'
 """,
             //
             """
@@ -254,7 +254,7 @@ FROM "BasicTypesEntities" AS b
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE trunc(b."Float")::real = 8
+WHERE trunc(b."Float")::real = REAL '8'
 """,
             //
             """
@@ -331,7 +331,7 @@ WHERE exp(b."Double") > 1.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE exp(b."Float") > 1
+WHERE exp(b."Float") > REAL '1'
 """);
     }
 
@@ -355,7 +355,7 @@ WHERE b."Double" > 0.0 AND ln(b."Double") <> 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Float" > 0 AND ln(b."Float") <> 0
+WHERE b."Float" > REAL '0' AND ln(b."Float") <> REAL '0'
 """);
     }
 
@@ -387,7 +387,7 @@ WHERE b."Double" > 0.0 AND log(b."Double") <> 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Float" > 0 AND log(b."Float") <> 0
+WHERE b."Float" > REAL '0' AND log(b."Float") <> REAL '0'
 """);
     }
 
@@ -414,7 +414,7 @@ WHERE b."Double" > 0.0 AND sqrt(b."Double") > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Float" > 0 AND sqrt(b."Float") > 0
+WHERE b."Float" > REAL '0' AND sqrt(b."Float") > REAL '0'
 """);
     }
 
@@ -578,7 +578,7 @@ WHERE degrees(b."Double") > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE degrees(b."Float") > 0
+WHERE degrees(b."Float") > REAL '0'
 """);
     }
 
@@ -602,7 +602,7 @@ WHERE radians(b."Double") > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE radians(b."Float") > 0
+WHERE radians(b."Float") > REAL '0'
 """);
     }
 
@@ -628,7 +628,7 @@ WHERE b."Double" >= -1.0 AND b."Double" <= 1.0 AND acos(b."Double") > 1.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Float" >= -1 AND b."Float" <= 1 AND acos(b."Float") > 0
+WHERE b."Float" >= REAL '-1' AND b."Float" <= REAL '1' AND acos(b."Float") > REAL '0'
 """);
     }
 
@@ -655,7 +655,7 @@ WHERE b."Double" >= -1.0 AND b."Double" <= 1.0 AND asin(b."Double") > -1.7976931
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Float" >= -1 AND b."Float" <= 1 AND asin(b."Float")::double precision > -1.7976931348623157E+308
+WHERE b."Float" >= REAL '-1' AND b."Float" <= REAL '1' AND asin(b."Float")::double precision > -1.7976931348623157E+308
 """);
     }
 
@@ -682,7 +682,7 @@ WHERE atan(b."Double") > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE atan(b."Float") > 0
+WHERE atan(b."Float") > REAL '0'
 """);
     }
 
@@ -709,7 +709,7 @@ WHERE atan2(b."Double", 1.0) > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE atan2(b."Float", 1) > 0
+WHERE atan2(b."Float", REAL '1') > REAL '0'
 """);
     }
 
@@ -733,7 +733,7 @@ WHERE cos(b."Double") > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE cos(b."Float") > 0
+WHERE cos(b."Float") > REAL '0'
 """);
     }
 
@@ -760,7 +760,7 @@ WHERE sin(b."Double") > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE sin(b."Float") > 0
+WHERE sin(b."Float") > REAL '0'
 """);
     }
 
@@ -787,7 +787,7 @@ WHERE tan(b."Double") > 0.0
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE tan(b."Float") > 0
+WHERE tan(b."Float") > REAL '0'
 """);
     }
 

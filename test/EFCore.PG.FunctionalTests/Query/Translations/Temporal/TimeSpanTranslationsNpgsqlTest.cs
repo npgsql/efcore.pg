@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
+
 namespace Microsoft.EntityFrameworkCore.Query.Translations.Temporal;
 
 public class TimeSpanTranslationsNpgsqlTest : TimeSpanTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
@@ -62,6 +64,20 @@ WHERE floor(date_part('millisecond', b."TimeSpan"))::int % 1000 = 678
 
     public override Task Nanoseconds()
         => AssertTranslationFailed(() => base.Nanoseconds());
+
+    [ConditionalFact] // #4086
+    public virtual async Task Negative_constant_with_days()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(b => b.TimeSpan + TimeSpan.FromHours(-26) == b.TimeSpan - TimeSpan.FromHours(26)));
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."TimeSpan" + INTERVAL '-1 -02:00:00' = b."TimeSpan" - INTERVAL '1 02:00:00'
+""");
+    }
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
