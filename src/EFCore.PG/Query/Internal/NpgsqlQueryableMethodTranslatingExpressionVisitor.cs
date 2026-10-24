@@ -662,7 +662,9 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             }
             && projectedColumn1.TableAlias == table1.Alias
             && projectedColumn2.TableAlias == table2.Alias
-            // Unlike INTERSECT, array overlap doesn't match null elements.
+            // Unlike INTERSECT, array overlap doesn't match null elements, so a null on both sides would be missed; only translate
+            // when at least one side's elements are non-nullable.
+            && (!projectedColumn1.IsNullable || !projectedColumn2.IsNullable)
             && (table1 is PgUnnestExpression { Array: { TypeMapping: not NpgsqlMultirangeTypeMapping } array1 }
                 || (projectedColumn1 is { Name: "Value", IsNullable: false }
                     && source1.TryConvertToArray(out array1, ignoreOrderings: true)))
@@ -1035,20 +1037,24 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         if (source.TryExtractArray(out var array, out var projectedColumn)
             && TranslateExpression(count) is { } translatedCount)
         {
+            var lowerBound = GenerateOneBasedIndexExpression(translatedCount);
+
+            // If Take has been called before, an array slice expression with only an upper bound is already there; integrate this Skip
+            // into it. The upper bound operates on the original array, so it stays the same. Any other slice gets wrapped in a new one
+            // (the SQL generator parenthesizes the inner slice).
+            var sliceExpression = array is PgArraySliceExpression { LowerBound: null } existingSliceExpression
+                ? existingSliceExpression.Update(existingSliceExpression.Array, lowerBound, existingSliceExpression.UpperBound)
+                : _sqlExpressionFactory.ArraySlice(
+                    array,
+                    lowerBound,
+                    upperBound: null,
+                    // isColumnNullable: /*projectedColumn.IsNullable*/ true, // TODO: This fails because of a shaper check
+                    projectedColumn.IsNullable);
+
 #pragma warning disable EF1001 // SelectExpression constructors are currently internal
             var tableAlias = ((SelectExpression)source.QueryExpression).Tables[0].Alias!;
             var selectExpression = new SelectExpression(
-                [
-                    new PgUnnestExpression(
-                        tableAlias,
-                        _sqlExpressionFactory.ArraySlice(
-                            array,
-                            lowerBound: GenerateOneBasedIndexExpression(translatedCount),
-                            upperBound: null,
-                            // isColumnNullable: /*projectedColumn.IsNullable*/ true, // TODO: This fails because of a shaper check
-                            projectedColumn.IsNullable),
-                        "value"),
-                ],
+                [new PgUnnestExpression(tableAlias, sliceExpression, "value")],
                 new ColumnExpression("value", tableAlias, projectedColumn.Type, projectedColumn.TypeMapping, projectedColumn.IsNullable),
                 identifier: [GenerateOrdinalityIdentifier(tableAlias)],
                 _queryCompilationContext.SqlAliasManager);
@@ -1103,7 +1109,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                         existingSliceExpression.Array,
                         existingSliceExpression.LowerBound,
                         translatedCount is SqlConstantExpression { Value: int takeCount }
-                            ? _sqlExpressionFactory.Constant(lowerBoundValue + takeCount - 1, lowerBound.TypeMapping)
+                            ? _sqlExpressionFactory.Constant(ClampToInt((long)lowerBoundValue + takeCount - 1), lowerBound.TypeMapping)
                             : _sqlExpressionFactory.Subtract(
                                 _sqlExpressionFactory.Add(lowerBound, translatedCount),
                                 _sqlExpressionFactory.Constant(1, lowerBound.TypeMapping)));
@@ -1543,8 +1549,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
     /// </summary>
     private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
         => expression is SqlConstantExpression constant
-            ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
+            ? _sqlExpressionFactory.Constant(ClampToInt(Convert.ToInt64(constant.Value) + 1), constant.TypeMapping)
             : _sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
+
+    /// <summary>
+    ///     Array subscripts are ints in PostgreSQL, so constant bounds computed past the int range are clamped instead of overflowing.
+    ///     No PostgreSQL array has int.MaxValue elements, so a clamped bound selects the same elements.
+    /// </summary>
+    private static int ClampToInt(long value)
+        => (int)Math.Clamp(value, int.MinValue, int.MaxValue);
 
 #pragma warning disable EF1001 // SelectExpression constructors are currently internal
     private ShapedQueryExpression BuildSimplifiedShapedQuery(ShapedQueryExpression source, SqlExpression translation)
