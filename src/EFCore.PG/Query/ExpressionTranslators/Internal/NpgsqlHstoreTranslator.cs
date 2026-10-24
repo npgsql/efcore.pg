@@ -25,57 +25,53 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
         IReadOnlyList<SqlExpression> arguments,
         IDiagnosticsLogger<DbLoggerCategory.Query> logger)
     {
-        if (method.Name == nameof(CollectionExtensions.GetValueOrDefault)
-            && (method.DeclaringType == typeof(CollectionExtensions) || method.DeclaringType == typeof(ImmutableDictionary))
-            && method.ReturnType == typeof(string)
-            && sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) is { TypeMapping: NpgsqlHstoreTypeMapping } hstore
-            && arguments[1].Type == typeof(string))
-        {
-            var value = sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, hstore, arguments[1]);
-            return arguments.Count == 2
-                ? value
-                : sqlExpressionFactory.Case(
-                    [new CaseWhenClause(
-                        sqlExpressionFactory.Contains(hstore, arguments[1]),
-                        value)],
-                    arguments[2]);
-        }
+        var isDictionaryMethod = method.DeclaringType == typeof(Dictionary<string, string>)
+            || method.DeclaringType == typeof(ImmutableDictionary<string, string>);
 
-        return instance?.TypeMapping is NpgsqlHstoreTypeMapping
-            && (method.DeclaringType == typeof(Dictionary<string, string>)
-                || method.DeclaringType == typeof(ImmutableDictionary<string, string>))
-                ? method.Name switch
-                {
-                    "get_Item" => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, instance, arguments[0]),
-                    nameof(Dictionary<string, string>.ContainsKey)
-                        => sqlExpressionFactory.Contains(instance, arguments[0]),
-                    nameof(Dictionary<string, string>.ContainsValue)
-                        => sqlExpressionFactory.IsNotNull(
+        return method.Name switch
+        {
+            "get_Item" when isDictionaryMethod && instance?.TypeMapping is NpgsqlHstoreTypeMapping
+                => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, instance, arguments[0]),
+            nameof(Dictionary<string, string>.ContainsKey) when isDictionaryMethod && instance?.TypeMapping is NpgsqlHstoreTypeMapping
+                => sqlExpressionFactory.Contains(instance, arguments[0]),
+            nameof(Dictionary<string, string>.ContainsValue) when isDictionaryMethod && instance?.TypeMapping is NpgsqlHstoreTypeMapping
+                => sqlExpressionFactory.IsNotNull(
+                    sqlExpressionFactory.Function(
+                        "array_position",
+                        [
                             sqlExpressionFactory.Function(
-                                "array_position",
-                                [
-                                    sqlExpressionFactory.Function(
-                                        "avals",
-                                        [instance],
-                                        nullable: true,
-                                        argumentsPropagateNullability: TrueArrays[1],
-                                        typeof(string[])),
-                                    arguments[0]
-                                ],
+                                "avals",
+                                [instance],
                                 nullable: true,
-                                // A missing value returns NULL, while NULL itself is a valid search value.
-                                argumentsPropagateNullability: FalseArrays[2],
-                                typeof(int))),
-                    nameof(ImmutableDictionary<string, string>.Remove) or nameof(ImmutableDictionary<string, string>.RemoveRange)
-                        when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
-                        => sqlExpressionFactory.Subtract(instance, arguments[0]),
-                    nameof(ImmutableDictionary<string, string>.SetItems)
-                        when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
-                        && sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) is { TypeMapping: NpgsqlHstoreTypeMapping } items
-                        => sqlExpressionFactory.Add(instance, items),
-                    _ => null
-                }
-                : null;
+                                argumentsPropagateNullability: TrueArrays[1],
+                                typeof(string[])),
+                            arguments[0]
+                        ],
+                        nullable: true,
+                        // A missing value returns NULL, while NULL itself is a valid search value.
+                        argumentsPropagateNullability: FalseArrays[2],
+                        typeof(int))),
+            nameof(ImmutableDictionary<string, string>.Remove) or nameof(ImmutableDictionary<string, string>.RemoveRange)
+                when method.DeclaringType == typeof(ImmutableDictionary<string, string>) && instance?.TypeMapping is NpgsqlHstoreTypeMapping
+                => sqlExpressionFactory.Subtract(instance, arguments[0]),
+            nameof(ImmutableDictionary<string, string>.SetItems)
+                when method.DeclaringType == typeof(ImmutableDictionary<string, string>) && instance?.TypeMapping is NpgsqlHstoreTypeMapping
+                && sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) is { TypeMapping: NpgsqlHstoreTypeMapping } items
+                => sqlExpressionFactory.Add(instance, items),
+            nameof(CollectionExtensions.GetValueOrDefault)
+                when (method.DeclaringType == typeof(CollectionExtensions) || method.DeclaringType == typeof(ImmutableDictionary))
+                && method.ReturnType == typeof(string)
+                && sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) is { TypeMapping: NpgsqlHstoreTypeMapping } hstore
+                && arguments[1].Type == typeof(string)
+                => arguments.Count == 2
+                    ? sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, hstore, arguments[1])
+                    : sqlExpressionFactory.Case(
+                        [new CaseWhenClause(
+                            sqlExpressionFactory.Contains(hstore, arguments[1]),
+                            sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, hstore, arguments[1]))],
+                        arguments[2]),
+            _ => null
+        };
     }
 
     /// <inheritdoc />
