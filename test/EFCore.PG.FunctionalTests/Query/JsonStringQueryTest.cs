@@ -92,6 +92,57 @@ LIMIT 2
     }
 
     [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Serialized_json_native_text_comparison(bool jsonb, bool reversed, bool notEqual)
+    {
+        using var ctx = CreateContext();
+        ctx.Database.CreateExecutionStrategy().Execute(
+            () =>
+            {
+                using var transaction = ctx.Database.BeginTransaction();
+                var serialized = jsonb ? """{"Age": 25}""" : """{"Age":25}""";
+                ctx.Database.ExecuteSql(
+                    $"""UPDATE "JsonEntities" SET "CustomerJsonb" = {serialized}::jsonb, "CustomerJson" = {serialized}::json, "SomeString" = {serialized} WHERE "Id" = 1""");
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var entities = ctx.JsonEntities.Where(e => e.Id <= 2);
+                var query = (jsonb, reversed, notEqual) switch
+                {
+                    (true, false, false) => entities.Where(e => e.CustomerJsonb == e.SomeString),
+                    (false, false, false) => entities.Where(e => e.CustomerJson == e.SomeString),
+                    (true, true, false) => entities.Where(e => e.SomeString == e.CustomerJsonb),
+                    (false, true, false) => entities.Where(e => e.SomeString == e.CustomerJson),
+                    (true, false, true) => entities.Where(e => e.CustomerJsonb != e.SomeString),
+                    (false, false, true) => entities.Where(e => e.CustomerJson != e.SomeString),
+                    (true, true, true) => entities.Where(e => e.SomeString != e.CustomerJsonb),
+                    (false, true, true) => entities.Where(e => e.SomeString != e.CustomerJson)
+                };
+
+                Assert.Equal(notEqual ? 2 : 1, query.Select(e => e.Id).Single());
+
+                var json = $"""j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"::text""";
+                const string text = "j.\"SomeString\"";
+                var left = reversed ? text : json;
+                var right = reversed ? json : text;
+                var predicate = notEqual ? $"({left} <> {right} OR j.\"SomeString\" IS NULL)" : $"{left} = {right}";
+                AssertSql(
+                    $"""
+SELECT j."Id"
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2 AND {predicate}
+LIMIT 2
+""");
+            });
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]

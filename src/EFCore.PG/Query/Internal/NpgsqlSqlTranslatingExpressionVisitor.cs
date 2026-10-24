@@ -488,6 +488,18 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             return true;
         }
 
+        if (left.Type == typeof(string) && right.Type == typeof(string)
+            && ((left.TypeMapping is NpgsqlJsonTypeMapping { Converter: null } && right.TypeMapping is not NpgsqlJsonTypeMapping)
+                || (right.TypeMapping is NpgsqlJsonTypeMapping { Converter: null } && left.TypeMapping is not NpgsqlJsonTypeMapping)))
+        {
+            // A native text operand is a CLR string, not a JSON string value.
+            var textMapping = _typeMappingSource.FindMapping("text")!;
+            left = _sqlExpressionFactory.Convert(left, typeof(string), textMapping);
+            right = _sqlExpressionFactory.Convert(right, typeof(string), textMapping);
+            translation = _sqlExpressionFactory.MakeBinary(comparison.OperatorType, left, right, typeMapping: null);
+            return translation is not null;
+        }
+
         if (right is SqlConstantExpression { Value: null } && JsonNullIsClrNull(left))
         {
             var textMapping = _typeMappingSource.FindMapping("text")!;
@@ -587,6 +599,14 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     private static bool CanShareJsonConverter(SqlExpression expression, RelationalTypeMapping mapping)
     {
         expression = Unbox(expression);
+        if (mapping.Converter == NpgsqlJsonPocoTranslator.ObjectJsonConverter
+            && expression.TypeMapping is NpgsqlJsonTypeMapping { Converter: null }
+            && expression.Type.UnwrapNullableType() is var type
+            && (type == typeof(string) || type == typeof(JsonDocument) || type == typeof(JsonElement)))
+        {
+            return false;
+        }
+
         if (expression is SqlConstantExpression or SqlParameterExpression)
         {
             return true;

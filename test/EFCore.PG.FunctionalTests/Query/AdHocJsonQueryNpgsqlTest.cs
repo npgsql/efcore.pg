@@ -14,6 +14,127 @@ public class AdHocJsonQueryNpgsqlTest(NonSharedFixture fixture) : NonSharedModel
     protected override ITestStoreFactory NonSharedTestStoreFactory
         => NpgsqlTestStoreFactory.Instance;
 
+    [Theory]
+    [InlineData(false, "String", false)]
+    [InlineData(true, "String", false)]
+    [InlineData(false, "Document", false)]
+    [InlineData(true, "Document", false)]
+    [InlineData(false, "Element", false)]
+    [InlineData(true, "Element", false)]
+    [InlineData(false, "String", true)]
+    [InlineData(true, "String", true)]
+    [InlineData(false, "Document", true)]
+    [InlineData(true, "Document", true)]
+    [InlineData(false, "Element", true)]
+    [InlineData(true, "Element", true)]
+    public async Task Mixed_json_mapping_object_projection(bool jsonb, string type, bool coalesce)
+    {
+        var contextFactory = await InitializeNonSharedTest<MixedJsonContext>(
+            onModelCreating: modelBuilder =>
+            {
+                var entity = modelBuilder.Entity<MixedJsonEntity>();
+                var storeType = jsonb ? "jsonb" : "json";
+                entity.Property(e => e.RawJson).HasColumnType(storeType);
+                entity.Property(e => e.Document).HasColumnType(storeType);
+                entity.Property(e => e.Element).HasColumnType(storeType);
+                entity.Property(e => e.Payload).HasColumnType(storeType);
+            },
+            onConfiguring: options => options.UseNpgsql(
+                ((NpgsqlTestStore)NonSharedTestStore).ConnectionString,
+                o => o.ConfigureDataSource(b => b.EnableDynamicJson())),
+            seed: async context =>
+            {
+                using var document = JsonDocument.Parse("""{"Age":25}""");
+                using var nullDocument = JsonDocument.Parse("null");
+                context.Entities.AddRange(
+                    new MixedJsonEntity
+                    {
+                        Id = 1,
+                        RawJson = document.RootElement.GetRawText(),
+                        Document = document,
+                        Element = document.RootElement,
+                        Payload = new() { ["Name"] = "Joe" }
+                    },
+                    new MixedJsonEntity
+                    {
+                        Id = 2,
+                        RawJson = "null",
+                        Document = nullDocument,
+                        Element = nullDocument.RootElement,
+                        Payload = new() { ["Name"] = "Moe" }
+                    },
+                    new MixedJsonEntity { Id = 3, Payload = new() { ["Name"] = "Fallback" } });
+                await context.SaveChangesAsync();
+            });
+
+        using var context = contextFactory.CreateDbContext();
+        var entities = context.Entities.OrderBy(e => e.Id);
+        var query = (type, coalesce) switch
+        {
+            ("String", false) => entities.Select(e => e.Id <= 2 ? (object)e.RawJson : e.Payload["Name"]),
+            ("String", true) => entities.Select(e => (object)e.RawJson ?? e.Payload["Name"]),
+            ("Document", false) => entities.Select(e => e.Id <= 2 ? (object)e.Document : e.Payload["Name"]),
+            ("Document", true) => entities.Select(e => (object)e.Document ?? e.Payload["Name"]),
+            ("Element", false) => entities.Select(e => e.Id <= 2 ? (object)e.Element : e.Payload["Name"]),
+            ("Element", true) => entities.Select(e => (object)e.Element ?? e.Payload["Name"]),
+            _ => throw new UnreachableException()
+        };
+        var values = await query.ToArrayAsync();
+        switch (type)
+        {
+            case "String":
+                using (var document = JsonDocument.Parse(Assert.IsType<string>(values[0])))
+                {
+                    Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+                }
+
+                Assert.Equal("null", Assert.IsType<string>(values[1]));
+                break;
+            case "Document":
+                using (var document = Assert.IsType<JsonDocument>(values[0]))
+                using (var nullDocument = Assert.IsType<JsonDocument>(values[1]))
+                {
+                    Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+                    Assert.Equal(JsonValueKind.Null, nullDocument.RootElement.ValueKind);
+                }
+
+                break;
+            case "Element":
+                Assert.Equal(25, Assert.IsType<JsonElement>(values[0]).GetProperty("Age").GetInt32());
+                Assert.Equal(JsonValueKind.Null, Assert.IsType<JsonElement>(values[1]).ValueKind);
+                break;
+        }
+
+        Assert.Equal("Fallback", Assert.IsType<JsonElement>(values[2]).GetString());
+
+        var column = type switch
+        {
+            "String" => "RawJson",
+            "Document" => "Document",
+            _ => "Element"
+        };
+        AssertSql(
+            $"""
+SELECT {(coalesce ? "" : """e."Id" <= 2, """)}e."{column}", e."Payload" -> 'Name'
+FROM "Entities" AS e
+ORDER BY e."Id" NULLS FIRST
+""");
+    }
+
+    protected class MixedJsonContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<MixedJsonEntity> Entities { get; set; }
+    }
+
+    public class MixedJsonEntity
+    {
+        public int Id { get; set; }
+        public string RawJson { get; set; }
+        public JsonDocument Document { get; set; }
+        public JsonElement? Element { get; set; }
+        public Dictionary<string, object> Payload { get; set; } = [];
+    }
+
     [ConditionalTheory, MemberData(nameof(IsAsyncData))]
     public virtual async Task Json_predicate_on_bytea(bool async)
     {
