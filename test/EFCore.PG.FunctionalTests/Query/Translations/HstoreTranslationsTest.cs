@@ -17,7 +17,9 @@ public class HstoreTranslationsTest : IClassFixture<HstoreTranslationsTest.Hstor
     public async Task Indexer()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags["Variant"] == "SD").Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags["Variant"] == "SD")
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1], results);
@@ -34,7 +36,9 @@ WHERE e."Tags" -> 'Variant' = 'SD'
     {
         using var context = Fixture.CreateContext();
         var key = "Variant";
-        var results = await context.Entities.Where(e => e.Tags[EF.Parameter(key)] == "SD").Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags[EF.Parameter(key)] == "SD")
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1], results);
@@ -52,7 +56,9 @@ WHERE e."Tags" -> @key = 'SD'
     public async Task Indexer_column_key()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags[e.Key] == "SD").Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags[e.Key] == "SD")
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1], results);
@@ -86,7 +92,9 @@ WHERE e."Tags" -> (e."Key" || 'Suffix') = 'value'
     public async Task Indexer_projection()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.Tags["Variant"])
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.Tags["Variant"])
             .ToArrayAsync();
 
         Assert.Equal(new string?[] { "SD", "HD", null, null }, results);
@@ -102,7 +110,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Indexer_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.NullableTags!["Variant"])
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.NullableTags!["Variant"])
             .ToArrayAsync();
 
         Assert.Equal(new string?[] { "SD", null, null, null }, results);
@@ -136,7 +146,9 @@ WHERE length(e."Tags" -> 'Variant')::int = 2
     public async Task Indexer_string_methods()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags["Variant"]!.StartsWith("S")).Select(e => e.Tags["Variant"]!.ToUpper())
+        var results = await context.Entities
+            .Where(e => e.Tags["Variant"]!.StartsWith("S"))
+            .Select(e => e.Tags["Variant"]!.ToUpper())
             .ToArrayAsync();
 
         Assert.Equal(["SD"], results);
@@ -152,7 +164,10 @@ WHERE e."Tags" -> 'Variant' LIKE 'S%'
     public async Task Indexer_null()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags["Variant"] == null).OrderBy(e => e.Id).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags["Variant"] == null)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([3, 4], results);
@@ -169,7 +184,10 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Indexer_inequality()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags["Variant"] != "SD").OrderBy(e => e.Id).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags["Variant"] != "SD")
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([2, 3, 4], results);
@@ -186,7 +204,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Indexer_immutable()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.ImmutableTags[e.Key] == "SD").Select(e => e.ImmutableTags["Variant"])
+        var results = await context.Entities
+            .Where(e => e.ImmutableTags[e.Key] == "SD")
+            .Select(e => e.ImmutableTags["Variant"])
             .ToArrayAsync();
 
         Assert.Equal(["SD"], results);
@@ -203,7 +223,9 @@ WHERE e."ImmutableTags" -> e."Key" = 'SD'
     {
         using var context = Fixture.CreateContext();
         var key = "Variant";
-        var results = await context.Entities.Where(e => e.ImmutableTags[EF.Parameter(key)] == "SD").Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.ImmutableTags[EF.Parameter(key)] == "SD")
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1], results);
@@ -239,7 +261,9 @@ WHERE e."ImmutableTags" -> (e."Key" || 'Suffix') LIKE 'val%'
     public async Task Indexer_immutable_projection()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags["Variant"])
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags["Variant"])
             .ToArrayAsync();
 
         Assert.Equal(new string?[] { "SD", "HD", null, null }, results);
@@ -255,7 +279,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Indexer_immutable_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.NullableImmutableTags!["Variant"])
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.NullableImmutableTags!["Variant"])
             .ToArrayAsync();
 
         Assert.Equal(new string?[] { "SD", null, null, null }, results);
@@ -271,7 +297,10 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Indexer_immutable_inequality()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.ImmutableTags["Variant"] != "SD").OrderBy(e => e.Id).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.ImmutableTags["Variant"] != "SD")
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([2, 3, 4], results);
@@ -288,7 +317,10 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Indexer_ordering()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Tags["Variant"]).ThenBy(e => e.ImmutableTags["Variant"]).ThenBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Tags["Variant"])
+            .ThenBy(e => e.ImmutableTags["Variant"])
+            .ThenBy(e => e.Id)
             .Select(e => e.Id)
             .ToArrayAsync();
 
@@ -305,7 +337,8 @@ ORDER BY e."Tags" -> 'Variant' NULLS FIRST, e."ImmutableTags" -> 'Variant' NULLS
     public async Task ContainsKey()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Mutable = e.Tags.ContainsKey("Variant"), Immutable = e.ImmutableTags.ContainsKey("Variant") })
             .ToArrayAsync();
 
@@ -326,7 +359,8 @@ ORDER BY e."Id" NULLS FIRST
         var key = "Variant";
         var results = await context.Entities
             .Where(e => e.Tags.ContainsKey(EF.Parameter(key)) && e.ImmutableTags.ContainsKey(EF.Parameter(key)))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2, 4], results);
@@ -347,7 +381,8 @@ ORDER BY e."Id" NULLS FIRST
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags.ContainsKey(e.Key) && e.ImmutableTags.ContainsKey(e.Key))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2, 4], results);
@@ -366,7 +401,8 @@ ORDER BY e."Id" NULLS FIRST
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.Tags.ContainsKey(e.Key + "Suffix") && e.ImmutableTags.ContainsKey(e.Key + "Suffix"))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2], results);
@@ -383,7 +419,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task ContainsKey_negated()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => !e.Tags.ContainsKey("Variant") && !e.ImmutableTags.ContainsKey("Variant"))
+        var results = await context.Entities
+            .Where(e => !e.Tags.ContainsKey("Variant") && !e.ImmutableTags.ContainsKey("Variant"))
             .Select(e => e.Id)
             .ToArrayAsync();
 
@@ -400,7 +437,8 @@ WHERE NOT (e."Tags" ? 'Variant') AND NOT (e."ImmutableTags" ? 'Variant')
     public async Task ContainsKey_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Mutable = (bool?)e.NullableTags!.ContainsKey("Variant"),
@@ -422,7 +460,10 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Count()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags.Count == 2 && e.ImmutableTags.Count == 2).OrderBy(e => e.Id).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags.Count == 2 && e.ImmutableTags.Count == 2)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2], results);
@@ -439,7 +480,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Count_projection()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => new { Mutable = e.Tags.Count, Immutable = e.ImmutableTags.Count })
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => new { Mutable = e.Tags.Count, Immutable = e.ImmutableTags.Count })
             .ToArrayAsync();
 
         Assert.Equal([2, 2, 0, 1], results.Select(e => e.Mutable));
@@ -456,7 +499,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Count_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Mutable = (int?)e.NullableTags!.Count, Immutable = (int?)e.NullableImmutableTags!.Count })
             .ToArrayAsync();
 
@@ -474,7 +518,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task IsEmpty()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.ImmutableTags.IsEmpty).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.ImmutableTags.IsEmpty)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([3], results);
@@ -490,7 +536,10 @@ WHERE cardinality(akeys(e."ImmutableTags")) = 0
     public async Task IsEmpty_negated()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => !e.ImmutableTags.IsEmpty).OrderBy(e => e.Id).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => !e.ImmutableTags.IsEmpty)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2, 4], results);
@@ -507,7 +556,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task IsEmpty_projection()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.IsEmpty)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.IsEmpty)
             .ToArrayAsync();
 
         Assert.Equal([false, false, true, false], results);
@@ -523,7 +574,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task IsEmpty_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.NullableImmutableTags!.IsEmpty).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.NullableImmutableTags!.IsEmpty)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([3], results);
@@ -539,7 +592,8 @@ WHERE cardinality(akeys(e."NullableImmutableTags")) = 0
     public async Task Remove()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Variant") })
             .ToArrayAsync();
 
@@ -562,7 +616,9 @@ ORDER BY e."Id" NULLS FIRST
     {
         using var context = Fixture.CreateContext();
         var key = "Variant";
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.Remove(EF.Parameter(key)))
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.Remove(EF.Parameter(key)))
             .ToArrayAsync();
 
         Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
@@ -581,7 +637,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Remove_column_key()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.Remove(e.Key).Count)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.Remove(e.Key).Count)
             .ToArrayAsync();
 
         Assert.Equal([1, 1, 0, 0], results);
@@ -597,7 +655,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Remove_computed_key()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.Remove(e.Key + "Suffix").Count)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.Remove(e.Key + "Suffix").Count)
             .ToArrayAsync();
 
         Assert.Equal([1, 1, 0, 1], results);
@@ -613,7 +673,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Remove_composition()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.ImmutableTags.Remove("VariantSuffix").Count == 1).OrderBy(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.ImmutableTags.Remove("VariantSuffix").Count == 1)
+            .OrderBy(e => e.Id)
             .Select(e => e.ImmutableTags.Remove("VariantSuffix")["Variant"])
             .ToArrayAsync();
 
@@ -631,7 +693,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Remove_missing_key()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.Remove("Missing") })
             .ToArrayAsync();
 
@@ -652,7 +715,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Remove_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Single = e.NullableImmutableTags!.Remove("Variant"),
@@ -676,7 +740,8 @@ ORDER BY e."Id" NULLS FIRST
         using var context = Fixture.CreateContext();
         var results = await context.Entities
             .Where(e => e.ImmutableTags.Remove("Variant").RemoveRange(new[] { "VariantSuffix" }).IsEmpty)
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2, 3, 4], results);
@@ -693,7 +758,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task RemoveRange()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.RemoveRange(new[] { "Variant", "Missing" }))
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.RemoveRange(new[] { "Variant", "Missing" }))
             .ToArrayAsync();
 
         Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
@@ -712,7 +779,9 @@ ORDER BY e."Id" NULLS FIRST
     {
         using var context = Fixture.CreateContext();
         string[] keys = ["Variant", "Missing"];
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.RemoveRange(EF.Parameter(keys)))
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.RemoveRange(EF.Parameter(keys)))
             .ToArrayAsync();
 
         Assert.Equal([1, 1, 0, 0], results.Select(e => e.Count));
@@ -732,7 +801,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task RemoveRange_column_keys()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.ImmutableTags.RemoveRange(e.Keys))
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.ImmutableTags.RemoveRange(e.Keys))
             .ToArrayAsync();
 
         Assert.Equal(4, results.Length);
@@ -749,7 +820,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task RemoveRange_computed_keys()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => e.ImmutableTags.RemoveRange(new[] { e.Key, e.Key + "Suffix" }).IsEmpty)
             .ToArrayAsync();
 
@@ -766,7 +838,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task RemoveRange_empty_keys()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Original = e.ImmutableTags, Removed = e.ImmutableTags.RemoveRange(Array.Empty<string>()) })
             .ToArrayAsync();
 
@@ -787,7 +860,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task SetItems()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Original = e.ImmutableTags, Updated = e.ImmutableTags.SetItems(e.Updates) })
             .ToArrayAsync();
 
@@ -816,7 +890,8 @@ ORDER BY e."Id" NULLS FIRST
         var items = new Dictionary<string, string?> { ["Variant"] = "Updated", ["Added"] = "New", ["NullValue"] = null };
         var immutableItems = items.ToImmutableDictionary();
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Mutable = e.ImmutableTags.SetItems(items), Immutable = e.ImmutableTags.SetItems(immutableItems) })
             .ToArrayAsync();
 
@@ -845,7 +920,8 @@ ORDER BY e."Id" NULLS FIRST
     {
         var items = ImmutableDictionary<string, string?>.Empty;
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Original = e.ImmutableTags, Updated = e.ImmutableTags.SetItems(items) })
             .ToArrayAsync();
 
@@ -864,7 +940,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task SetItems_composed()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Value = e.ImmutableTags.SetItems(e.Updates).Remove("Added").SetItems(e.ImmutableTags)["Variant"],
@@ -895,7 +972,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task SetItems_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id).Select(e => e.NullableImmutableTags!.SetItems(e.Updates))
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
+            .Select(e => e.NullableImmutableTags!.SetItems(e.Updates))
             .ToArrayAsync();
 
         Assert.Null(results[1]);
@@ -917,7 +996,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task GetValueOrDefault()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Mutable = e.Tags.GetValueOrDefault("Variant"), Immutable = e.ImmutableTags.GetValueOrDefault("Variant") })
             .ToArrayAsync();
 
@@ -935,7 +1015,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task GetValueOrDefault_fallback()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Mutable = e.Tags.GetValueOrDefault("Variant", "fallback"),
@@ -965,7 +1046,8 @@ ORDER BY e."Id" NULLS FIRST
         var key = "Variant";
         var fallback = "fallback";
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Mutable = e.Tags.GetValueOrDefault(EF.Parameter(key)),
@@ -1000,7 +1082,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task GetValueOrDefault_computed_key_and_column_fallback()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Mutable = e.Tags.GetValueOrDefault(e.Key + "Suffix", e.Key),
@@ -1033,7 +1116,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task GetValueOrDefault_nullable_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Mutable = e.NullableTags!.GetValueOrDefault("Variant"),
@@ -1079,7 +1163,8 @@ END = 'fallback' AND e."ImmutableTags" -> 'Variant' IS NULL
         var tags = new Dictionary<string, string?> { ["Variant"] = "SD" };
         var immutableTags = tags.ToImmutableDictionary();
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Mutable = tags.GetValueOrDefault(e.Key),
@@ -1115,7 +1200,8 @@ ORDER BY e."Id" NULLS FIRST
         var results = await context.Entities
             .Where(e => new[] { "Variant", "VariantSuffix" }.All(key => e.Tags.ContainsKey(key))
                 && new[] { "Variant", "VariantSuffix" }.All(key => e.ImmutableTags.ContainsKey(key)))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2], results);
@@ -1135,7 +1221,8 @@ ORDER BY e."Id" NULLS FIRST
         var results = await context.Entities
             .Where(e => new[] { "Variant", "Missing" }.Any(key => e.Tags.ContainsKey(key))
                 && new[] { "Variant", "Missing" }.Any(key => e.ImmutableTags.ContainsKey(key)))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2, 4], results);
@@ -1153,7 +1240,8 @@ ORDER BY e."Id" NULLS FIRST
     {
         string[] keys = ["Variant", "Missing"];
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 All = keys.All(key => e.Tags.ContainsKey(key)),
@@ -1185,7 +1273,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Contains_keys_column_projection()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 All = e.Keys.All(key => e.Tags.ContainsKey(key)),
@@ -1208,7 +1297,8 @@ ORDER BY e."Id" NULLS FIRST
     {
         string[] keys = [];
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 All = keys.All(key => e.Tags.ContainsKey(key)),
@@ -1258,7 +1348,8 @@ WHERE NOT (e."Tags" ?| ARRAY['Variant']::text[]) AND NOT (e."ImmutableTags" ?& A
         var results = await context.Entities
             .Where(e => keys.All(key => e.NullableTags!.ContainsKey(key))
                 && keys.Any(key => e.NullableImmutableTags!.ContainsKey(key)))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 4], results);
@@ -1277,8 +1368,10 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Contains_keys_composed_hstore()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Keys.Any(key => e.ImmutableTags.Remove("Variant").ContainsKey(key)))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Keys.Any(key => e.ImmutableTags.Remove("Variant").ContainsKey(key)))
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2], results);
@@ -1295,7 +1388,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task Contains_keys_hstore_depends_on_key()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 All = e.Keys.All(key => e.ImmutableTags.Remove(key).ContainsKey(key)),
@@ -1327,7 +1421,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task ContainsValue()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags.ContainsValue("SD") && e.ImmutableTags.ContainsValue("SD")).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags.ContainsValue("SD") && e.ImmutableTags.ContainsValue("SD"))
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1], results);
@@ -1354,7 +1450,8 @@ WHERE array_position(avals(e."Tags"), 'SD') IS NOT NULL AND array_position(avals
     private async Task AssertContainsValueParameterProjection(string? value)
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new { Mutable = e.Tags.ContainsValue(value), Immutable = e.ImmutableTags.ContainsValue(value) })
             .ToArrayAsync();
 
@@ -1386,7 +1483,9 @@ ORDER BY e."Id" NULLS FIRST
     public async Task ContainsValue_null()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags.ContainsValue(null) && e.ImmutableTags.ContainsValue(null)).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => e.Tags.ContainsValue(null) && e.ImmutableTags.ContainsValue(null))
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([4], results);
@@ -1402,8 +1501,10 @@ WHERE array_position(avals(e."Tags"), NULL) IS NOT NULL AND array_position(avals
     public async Task ContainsValue_negated()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => !e.Tags.ContainsValue(null) && !e.ImmutableTags.ContainsValue(null))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+        var results = await context.Entities
+            .Where(e => !e.Tags.ContainsValue(null) && !e.ImmutableTags.ContainsValue(null))
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2, 3], results);
@@ -1420,9 +1521,11 @@ ORDER BY e."Id" NULLS FIRST
     public async Task ContainsValue_computed_value()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.Where(e => e.Tags.ContainsValue(e.Tags["Variant"]!.ToUpper())
+        var results = await context.Entities
+            .Where(e => e.Tags.ContainsValue(e.Tags["Variant"]!.ToUpper())
                 && e.ImmutableTags.ContainsValue(e.ImmutableTags["Variant"]!.ToUpper()))
-            .OrderBy(e => e.Id).Select(e => e.Id)
+            .OrderBy(e => e.Id)
+            .Select(e => e.Id)
             .ToArrayAsync();
 
         Assert.Equal([1, 2, 4], results);
@@ -1439,7 +1542,8 @@ ORDER BY e."Id" NULLS FIRST
     public async Task ContainsValue_nullable_hstore_projection()
     {
         using var context = Fixture.CreateContext();
-        var results = await context.Entities.OrderBy(e => e.Id)
+        var results = await context.Entities
+            .OrderBy(e => e.Id)
             .Select(e => new
             {
                 Mutable = e.NullableTags!.ContainsValue("SD"),
