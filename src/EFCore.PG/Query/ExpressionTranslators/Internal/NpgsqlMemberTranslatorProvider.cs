@@ -38,6 +38,7 @@ public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
         [
             new NpgsqlBigIntegerMemberTranslator(sqlExpressionFactory),
                 new NpgsqlDateTimeMemberTranslator(typeMappingSource, sqlExpressionFactory),
+                new NpgsqlHstoreTranslator(sqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory, model),
                 new NpgsqlLTreeTranslator(typeMappingSource, sqlExpressionFactory, model),
                 JsonPocoTranslator,

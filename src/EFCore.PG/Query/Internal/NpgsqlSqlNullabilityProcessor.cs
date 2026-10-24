@@ -386,6 +386,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
 
         nullable = binaryExpression.OperatorType switch
         {
+            // Missing keys and stored null values produce null even for non-null operands.
+            PgExpressionType.HstoreGetValue => true,
+
             // The following LTree search methods return null for "not found"
             PgExpressionType.LTreeFirstAncestor => true,
             PgExpressionType.LTreeFirstDescendent => true,

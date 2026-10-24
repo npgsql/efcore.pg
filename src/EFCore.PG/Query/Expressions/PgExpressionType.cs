@@ -10,7 +10,7 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL contains operator.
     /// </summary>
-    Contains, // >> (inet/cidr), @>
+    Contains, // >> (inet/cidr), ? or ?& (hstore), @>
 
     /// <summary>
     ///     Represents a PostgreSQL contained-by operator.
@@ -20,7 +20,7 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL overlap operator.
     /// </summary>
-    Overlaps, // &&
+    Overlaps, // ?| (hstore), &&
 
     /// <summary>
     ///     Represents a PostgreSQL operator for finding the distance between two things (e.g. 2D distance between two geometries,
@@ -183,4 +183,13 @@ public enum PgExpressionType
     CubeDistanceChebyshev, // <=>
 
     #endregion Cube
+
+    #region Hstore
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for retrieving an hstore value by key.
+    /// </summary>
+    HstoreGetValue, // ->
+
+    #endregion Hstore
 }

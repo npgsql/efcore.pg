@@ -313,6 +313,10 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.Distance:
                 returnType = typeof(double);
                 break;
+
+            case PgExpressionType.HstoreGetValue:
+                returnType = typeof(string);
+                break;
         }
 
         return (PgBinaryExpression)ApplyTypeMapping(
@@ -434,6 +438,22 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
 
         switch (binary.OperatorType)
         {
+            case ExpressionType.Add or ExpressionType.Subtract when left.TypeMapping is NpgsqlHstoreTypeMapping:
+                left = ApplyDefaultTypeMapping(left);
+                right = ApplyDefaultTypeMapping(right);
+                if (binary.OperatorType == ExpressionType.Subtract && right is SqlConstantExpression && right.Type == typeof(string))
+                {
+                    // Otherwise PostgreSQL resolves an untyped string literal as hstore - hstore.
+                    right = Convert(right, typeof(string), right.TypeMapping);
+                }
+
+                return new SqlBinaryExpression(
+                    binary.OperatorType,
+                    left,
+                    right,
+                    left.Type,
+                    typeMapping ?? left.TypeMapping);
+
             // DateTime + TimeSpan => DateTime
             // DateTimeOffset + TimeSpan => DateTimeOffset
             // TimeOnly + TimeSpan => TimeOnly
@@ -750,6 +770,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         var operatorType = pgBinaryExpression.OperatorType;
         switch (operatorType)
         {
+            case PgExpressionType.HstoreGetValue:
+                return new PgBinaryExpression(
+                    operatorType,
+                    ApplyDefaultTypeMapping(left),
+                    ApplyDefaultTypeMapping(right),
+                    typeof(string),
+                    typeMapping ?? _typeMappingSource.FindMapping(typeof(string), Dependencies.Model));
+
             case PgExpressionType.Overlaps:
             case PgExpressionType.Contains:
             case PgExpressionType.ContainedBy:
