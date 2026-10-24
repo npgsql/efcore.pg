@@ -119,7 +119,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         {
             // PostgreSQL has a special string concatenation operator: ||
             // We switch to it if the expression itself has type string, or if one of the sides has a string type mapping.
-            // Same for full-text search's TsVector, arrays and bytea.
+            // Same for full-text search's TsVector, arrays, bytea and hstore.
             ExpressionType.Add when
                 e.Type == typeof(string)
                 || e.Left.TypeMapping?.ClrType == typeof(string)
@@ -129,6 +129,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 || e.Right.TypeMapping?.ClrType == typeof(NpgsqlTsVector)
                 || e.Left.TypeMapping is NpgsqlArrayTypeMapping && e.Right.TypeMapping is NpgsqlArrayTypeMapping
                 || e.Left.TypeMapping is NpgsqlByteArrayTypeMapping && e.Right.TypeMapping is NpgsqlByteArrayTypeMapping
+                || e.Left.TypeMapping is NpgsqlHstoreTypeMapping && e.Right.TypeMapping is NpgsqlHstoreTypeMapping
                 => " || ",
 
             ExpressionType.And when e.Type == typeof(bool) => " AND ",
@@ -505,6 +506,15 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                         when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping or NpgsqlCidrTypeMapping or NpgsqlLegacyCidrTypeMapping
                         => "<<",
 
+                    PgExpressionType.Contains
+                        when binaryExpression.Left.TypeMapping is NpgsqlHstoreTypeMapping && binaryExpression.Right.Type == typeof(string)
+                        => "?",
+                    PgExpressionType.Contains
+                        when binaryExpression.Left.TypeMapping is NpgsqlHstoreTypeMapping
+                        && binaryExpression.Right.TypeMapping is NpgsqlArrayTypeMapping
+                        => "?&",
+                    PgExpressionType.Overlaps when binaryExpression.Left.TypeMapping is NpgsqlHstoreTypeMapping => "?|",
+
                     PgExpressionType.Contains => "@>",
                     PgExpressionType.ContainedBy => "<@",
                     PgExpressionType.Overlaps => "&&",
@@ -547,11 +557,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     PgExpressionType.Distance => "<->",
 
                     PgExpressionType.HstoreGetValue => "->",
-                    PgExpressionType.HstoreContainsKey => "?",
-                    PgExpressionType.HstoreRemove => "-",
-                    PgExpressionType.HstoreConcat => "||",
-                    PgExpressionType.HstoreContainsAnyKey => "?|",
-                    PgExpressionType.HstoreContainsAllKeys => "?&",
 
                     PgExpressionType.CubeNthCoordinate => "->",
                     PgExpressionType.CubeNthCoordinateKnn => "~>",
@@ -1577,7 +1582,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                 ExpressionType.Divide => (1200, false),
                 ExpressionType.Modulo => (1200, false),
 
-                // String, array and tsvector concatenation
+                // String, array, tsvector and hstore concatenation
                 ExpressionType.Add when GetOperator(sqlBinaryExpression) == " || " => (1000, true),
 
                 // Addition, subtraction (binary)
@@ -1618,8 +1623,6 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                 _ => default,
             },
-
-            PgBinaryExpression { OperatorType: PgExpressionType.HstoreRemove } => (1100, false),
 
             // There's an "any other operator" category in the PG operator precedence table, we assign that a numeric value of 1000.
             // TODO: Some operators here may be associative

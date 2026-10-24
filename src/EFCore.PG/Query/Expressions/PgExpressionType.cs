@@ -10,7 +10,7 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL contains operator.
     /// </summary>
-    Contains, // >> (inet/cidr), @>
+    Contains, // >> (inet/cidr), ? or ?& (hstore), @>
 
     /// <summary>
     ///     Represents a PostgreSQL contained-by operator.
@@ -20,7 +20,7 @@ public enum PgExpressionType
     /// <summary>
     ///     Represents a PostgreSQL overlap operator.
     /// </summary>
-    Overlaps, // &&
+    Overlaps, // ?| (hstore), &&
 
     /// <summary>
     ///     Represents a PostgreSQL operator for finding the distance between two things (e.g. 2D distance between two geometries,
@@ -190,31 +190,6 @@ public enum PgExpressionType
     ///     Represents a PostgreSQL operator for retrieving an hstore value by key.
     /// </summary>
     HstoreGetValue, // ->
-
-    /// <summary>
-    ///     Represents a PostgreSQL operator for checking whether a key exists in an hstore.
-    /// </summary>
-    HstoreContainsKey, // ?
-
-    /// <summary>
-    ///     Represents a PostgreSQL operator for removing one or more keys from an hstore.
-    /// </summary>
-    HstoreRemove, // -
-
-    /// <summary>
-    ///     Represents a PostgreSQL operator for concatenating hstores, overwriting duplicate keys with values from the right operand.
-    /// </summary>
-    HstoreConcat, // ||
-
-    /// <summary>
-    ///     Represents a PostgreSQL operator for checking whether any of the specified keys exists in an hstore.
-    /// </summary>
-    HstoreContainsAnyKey, // ?|
-
-    /// <summary>
-    ///     Represents a PostgreSQL operator for checking whether all the specified keys exist in an hstore.
-    /// </summary>
-    HstoreContainsAllKeys, // ?&
 
     #endregion Hstore
 }

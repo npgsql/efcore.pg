@@ -111,6 +111,11 @@ public class PgBinaryExpression : SqlExpression
             .Append(
                 OperatorType switch
                 {
+                    PgExpressionType.Contains when Left.TypeMapping is NpgsqlHstoreTypeMapping && Right.Type == typeof(string) => "?",
+                    PgExpressionType.Contains when Left.TypeMapping is NpgsqlHstoreTypeMapping && Right.TypeMapping is NpgsqlArrayTypeMapping
+                        => "?&",
+                    PgExpressionType.Overlaps when Left.TypeMapping is NpgsqlHstoreTypeMapping => "?|",
+
                     PgExpressionType.Contains => "@>",
                     PgExpressionType.ContainedBy => "<@",
                     PgExpressionType.Overlaps => "&&",
@@ -152,11 +157,6 @@ public class PgBinaryExpression : SqlExpression
                     PgExpressionType.Distance => "<->",
 
                     PgExpressionType.HstoreGetValue => "->",
-                    PgExpressionType.HstoreContainsKey => "?",
-                    PgExpressionType.HstoreRemove => "-",
-                    PgExpressionType.HstoreConcat => "||",
-                    PgExpressionType.HstoreContainsAnyKey => "?|",
-                    PgExpressionType.HstoreContainsAllKeys => "?&",
 
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })

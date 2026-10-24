@@ -357,15 +357,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             {
                 case PgBinaryExpression
                     {
-                        OperatorType: PgExpressionType.HstoreContainsKey,
-                        Left: var hstore,
+                        OperatorType: PgExpressionType.Contains,
+                        Left: { TypeMapping: NpgsqlHstoreTypeMapping } hstore,
                         Right: ColumnExpression key
                     }
                     when key.TableAlias == tableAlias
                         && !new OuterReferenceFindingExpressionVisitor(tableAlias).ContainsReferenceToMainTable(hstore):
                     return BuildSimplifiedShapedQuery(
                         source,
-                        _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsAllKeys, hstore, array));
+                        _sqlExpressionFactory.Contains(hstore, array));
 
                 // Pattern match for: new[] { "a", "b", "c" }.All(p => EF.Functions.Like(e.SomeText, p)),
                 // which we translate to WHERE s.""SomeText"" LIKE ALL (ARRAY['a','b','c'])
@@ -514,15 +514,15 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 
                     case PgBinaryExpression
                     {
-                        OperatorType: PgExpressionType.HstoreContainsKey,
-                        Left: var hstore,
+                        OperatorType: PgExpressionType.Contains,
+                        Left: { TypeMapping: NpgsqlHstoreTypeMapping } hstore,
                         Right: ColumnExpression key
                     }
                         when key.TableAlias == tableAlias
                             && !new OuterReferenceFindingExpressionVisitor(tableAlias).ContainsReferenceToMainTable(hstore):
                         return BuildSimplifiedShapedQuery(
                             source,
-                            _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsAnyKey, hstore, array));
+                            _sqlExpressionFactory.Overlaps(hstore, array));
 
                     // Array overlap over non-column
                     // Pattern match: e.SomeArray.Any(p => ints.Contains(p))

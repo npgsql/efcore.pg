@@ -36,7 +36,7 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
                 ? value
                 : sqlExpressionFactory.Case(
                     [new CaseWhenClause(
-                        sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsKey, hstore, arguments[1]),
+                        sqlExpressionFactory.Contains(hstore, arguments[1]),
                         value)],
                     arguments[2]);
         }
@@ -48,7 +48,7 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
                 {
                     "get_Item" => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreGetValue, instance, arguments[0]),
                     nameof(Dictionary<string, string>.ContainsKey)
-                        => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreContainsKey, instance, arguments[0]),
+                        => sqlExpressionFactory.Contains(instance, arguments[0]),
                     nameof(Dictionary<string, string>.ContainsValue)
                         => sqlExpressionFactory.IsNotNull(
                             sqlExpressionFactory.Function(
@@ -68,11 +68,11 @@ public class NpgsqlHstoreTranslator(NpgsqlSqlExpressionFactory sqlExpressionFact
                                 typeof(int))),
                     nameof(ImmutableDictionary<string, string>.Remove) or nameof(ImmutableDictionary<string, string>.RemoveRange)
                         when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
-                        => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreRemove, instance, arguments[0]),
+                        => sqlExpressionFactory.Subtract(instance, arguments[0]),
                     nameof(ImmutableDictionary<string, string>.SetItems)
                         when method.DeclaringType == typeof(ImmutableDictionary<string, string>)
                         && sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) is { TypeMapping: NpgsqlHstoreTypeMapping } items
-                        => sqlExpressionFactory.MakePostgresBinary(PgExpressionType.HstoreConcat, instance, items),
+                        => sqlExpressionFactory.Add(instance, items),
                     _ => null
                 }
                 : null;
