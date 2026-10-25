@@ -108,8 +108,46 @@ WHERE make_interval(days => n."LocalDate2" - DATE '2018-04-20') = INTERVAL 'P1D'
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE date_part('year', n."LocalDate")::int = 2018
+WHERE CASE
+    WHEN date_part('year', n."LocalDate")::int < 0 THEN date_part('year', n."LocalDate")::int + 1
+    ELSE date_part('year', n."LocalDate")::int
+END = 2018
 """);
+    }
+
+    [ConditionalTheory]
+    [InlineData(false, -100)]
+    [InlineData(true, -100)]
+    [InlineData(false, 0)]
+    [InlineData(true, 0)]
+    [InlineData(false, 1)]
+    [InlineData(true, 1)]
+    public async Task Year_astronomical(bool async, int year)
+    {
+        await using var context = CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.NodaTimeTypes.SingleAsync();
+                entity.LocalDate = new LocalDate(year, 12, 31);
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = context.NodaTimeTypes.Select(t => t.LocalDate.Year);
+                Assert.Equal(year, async ? await query.SingleAsync() : query.Single());
+
+                AssertSql(
+                    """
+SELECT CASE
+    WHEN date_part('year', n."LocalDate")::int < 0 THEN date_part('year', n."LocalDate")::int + 1
+    ELSE date_part('year', n."LocalDate")::int
+END
+FROM "NodaTimeTypes" AS n
+LIMIT 2
+""");
+            });
     }
 
     [ConditionalTheory]
