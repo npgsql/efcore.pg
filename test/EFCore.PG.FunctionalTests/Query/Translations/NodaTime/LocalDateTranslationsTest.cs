@@ -41,7 +41,7 @@ WHERE n."LocalDate" + INTERVAL 'P1M' > n."LocalDate"
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE make_interval(days => n."LocalDate2" - n."LocalDate") = INTERVAL 'P1D'
+WHERE age(n."LocalDate2"::timestamp, n."LocalDate"::timestamp) = INTERVAL 'P1D'
 """);
     }
 
@@ -60,7 +60,7 @@ WHERE make_interval(days => n."LocalDate2" - n."LocalDate") = INTERVAL 'P1D'
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE make_interval(days => n."LocalDate2" - @date) = INTERVAL 'P1D'
+WHERE age(n."LocalDate2"::timestamp, @date::timestamp) = INTERVAL 'P1D'
 """);
     }
 
@@ -92,7 +92,57 @@ WHERE n."LocalDate" < DATE '2018-04-21'
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE make_interval(days => n."LocalDate2" - DATE '2018-04-20') = INTERVAL 'P1D'
+WHERE age(n."LocalDate2"::timestamp, DATE '2018-04-20'::timestamp) = INTERVAL 'P1D'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Subtract_LocalDate_years_months_days(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>()
+                .Select(t => t.LocalDate - new LocalDate(2017, 3, 19))
+                .Where(p => p.Years == 1 && p.Months == 1 && p.Days == 1));
+
+        AssertSql(
+            """
+SELECT age(n."LocalDate"::timestamp, DATE '2017-03-19'::timestamp)
+FROM "NodaTimeTypes" AS n
+WHERE date_part('year', age(n."LocalDate"::timestamp, DATE '2017-03-19'::timestamp))::int = 1 AND date_part('month', age(n."LocalDate"::timestamp, DATE '2017-03-19'::timestamp))::int = 1 AND date_part('day', age(n."LocalDate"::timestamp, DATE '2017-03-19'::timestamp))::int = 1
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Subtract_LocalDate_negative(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Select(t => new LocalDate(2017, 3, 19) - t.LocalDate));
+
+        AssertSql(
+            """
+SELECT age(DATE '2017-03-19'::timestamp, n."LocalDate"::timestamp)
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Subtract_LocalDate_month_end(bool async)
+    {
+        // PostgreSQL age() returns 30 days for March 31 to April 30, whereas NodaTime returns one month.
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Select(t => t.LocalDate + Period.FromDays(10) - new LocalDate(2018, 3, 31)),
+            expectedQuery: ss => ss.Set<NodaTimeTypes>().Select(t => Period.FromDays(30)));
+
+        AssertSql(
+            """
+SELECT age(CAST(n."LocalDate" + INTERVAL 'P10D' AS timestamp without time zone), DATE '2018-03-31'::timestamp)
+FROM "NodaTimeTypes" AS n
 """);
     }
 
@@ -108,8 +158,40 @@ WHERE make_interval(days => n."LocalDate2" - DATE '2018-04-20') = INTERVAL 'P1D'
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE date_part('year', n."LocalDate")::int = 2018
+WHERE trunc(date_part('year', n."LocalDate") - 0.5)::int + 1 = 2018
 """);
+    }
+
+    [ConditionalTheory]
+    [InlineData(false, -100)]
+    [InlineData(true, -100)]
+    [InlineData(false, 0)]
+    [InlineData(true, 0)]
+    [InlineData(false, 1)]
+    [InlineData(true, 1)]
+    public async Task Year_astronomical(bool async, int year)
+    {
+        await using var context = CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.NodaTimeTypes.SingleAsync();
+                entity.LocalDate = new LocalDate(year, 12, 31);
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = context.NodaTimeTypes.Select(t => t.LocalDate.Year);
+                Assert.Equal(year, async ? await query.SingleAsync() : query.Single());
+
+                AssertSql(
+                    """
+SELECT trunc(date_part('year', n."LocalDate") - 0.5)::int + 1
+FROM "NodaTimeTypes" AS n
+LIMIT 2
+""");
+            });
     }
 
     [ConditionalTheory]

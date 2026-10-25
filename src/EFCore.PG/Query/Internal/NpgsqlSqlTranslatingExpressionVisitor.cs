@@ -33,8 +33,6 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
     private readonly RelationalTypeMapping _timestampMapping = dependencies.TypeMappingSource.FindMapping("timestamp without time zone")!;
     private readonly RelationalTypeMapping _timestampTzMapping = dependencies.TypeMappingSource.FindMapping("timestamp with time zone")!;
 
-    private static Type? _nodaTimePeriodType;
-
     private static readonly MethodInfo EscapeLikePatternParameterMethod =
         typeof(NpgsqlSqlTranslatingExpressionVisitor).GetTypeInfo().GetDeclaredMethod(nameof(ConstructLikePatternParameter))!;
 
@@ -228,9 +226,8 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
             binaryExpression.NodeType != ExpressionType.ArrayIndex,
             "During preprocessing, ArrayIndex and List[] get normalized to ElementAt; see NpgsqlArrayTranslator. Should never see ArrayIndex.");
 
-        // We pattern match date subtraction before calling base.VisitBinary() as that would produce the default a - b translation, but that
-        // yields the number of days as an integer; this is incompatible with the .NET side, where LocalDate - LocalDate = Period, and Period
-        // is mapped to PG interval. So we override subtraction to add make_interval.
+        // PostgreSQL date subtraction returns an integer number of days; age() returns a calendar period instead.
+        // Its month-end handling differs from NodaTime's. Cast to timestamp to avoid time zone-dependent arithmetic.
         if (binaryExpression.NodeType is ExpressionType.Subtract
             && binaryExpression.Left.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate"
                 && binaryExpression.Right.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate")
@@ -241,18 +238,15 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 return QueryCompilationContext.NotTranslatedExpression;
             }
 
-            var subtraction = _sqlExpressionFactory.MakeBinary(
-                ExpressionType.Subtract, sqlLeft!, sqlRight!, _typeMappingSource.FindMapping(typeof(int)))!;
-
-            return PgFunctionExpression.CreateWithNamedArguments(
-                "make_interval",
-                [subtraction],
-                ["days"],
+            return _sqlExpressionFactory.Function(
+                "age",
+                [
+                    _sqlExpressionFactory.Convert(sqlLeft!, typeof(DateTime), _timestampMapping),
+                    _sqlExpressionFactory.Convert(sqlRight!, typeof(DateTime), _timestampMapping)
+                ],
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
-                builtIn: true,
-                _nodaTimePeriodType ??= binaryExpression.Left.Type.Assembly.GetType("NodaTime.Period")!,
-                typeMapping: null);
+                argumentsPropagateNullability: TrueArrays[2],
+                binaryExpression.Type);
 
             // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
         }

@@ -225,7 +225,19 @@ public class NpgsqlNodaTimeMemberTranslator(
     private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member)
         => member.Name switch
         {
-            "Year" or "Years" => GetDatePartExpression(instance, "year"),
+            // PostgreSQL has no year zero. trunc(year - 0.5) + 1 preserves positive years and increments negative years,
+            // matching NodaTime's astronomical numbering without evaluating the date expression more than once.
+            "Year" => _sqlExpressionFactory.Add(
+                _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Function(
+                        "trunc",
+                        [_sqlExpressionFactory.Subtract(GetDatePartExpressionDouble(instance, "year"), _sqlExpressionFactory.Constant(0.5))],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(double)),
+                    typeof(int)),
+                _sqlExpressionFactory.Constant(1)),
+            "Years" => GetDatePartExpression(instance, "year"),
             "Month" or "Months" => GetDatePartExpression(instance, "month"),
             "DayOfYear" => GetDatePartExpression(instance, "doy"),
             "Day" or "Days" => GetDatePartExpression(instance, "day"),

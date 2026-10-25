@@ -40,8 +40,47 @@ WHERE (n."ZonedDateTime" + INTERVAL '1 00:00:00') - n."ZonedDateTime" = INTERVAL
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int = 2018
+WHERE trunc(date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC') - 0.5)::int + 1 = 2018
 """);
+    }
+
+    [ConditionalTheory]
+    [InlineData(false, -100)]
+    [InlineData(true, -100)]
+    [InlineData(false, 0)]
+    [InlineData(true, 0)]
+    [InlineData(false, 1)]
+    [InlineData(true, 1)]
+    public async Task Year_astronomical(bool async, int year)
+    {
+        await using var context = CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.NodaTimeTypes.SingleAsync();
+                entity.ZonedDateTime = new LocalDateTime(year, 12, 31, 12, 0).InUtc();
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = context.NodaTimeTypes.Select(
+                    t => new
+                    {
+                        t.ZonedDateTime.Year,
+                        YearInZone = t.ZonedDateTime.ToInstant().InZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).Year
+                    });
+                var result = async ? await query.SingleAsync() : query.Single();
+                Assert.Equal(year, result.Year);
+                Assert.Equal(entity.ZonedDateTime.WithZone(DateTimeZoneProviders.Tzdb["Europe/Berlin"]).Year, result.YearInZone);
+
+                AssertSql(
+                    """
+SELECT trunc(date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC') - 0.5)::int + 1 AS "Year", trunc(date_part('year', n."ZonedDateTime" AT TIME ZONE 'Europe/Berlin') - 0.5)::int + 1 AS "YearInZone"
+FROM "NodaTimeTypes" AS n
+LIMIT 2
+""");
+            });
     }
 
     [ConditionalTheory]
