@@ -225,7 +225,16 @@ public class NpgsqlNodaTimeMemberTranslator(
     private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member)
         => member.Name switch
         {
-            "Year" or "Years" => GetDatePartExpression(instance, "year"),
+            // PostgreSQL has no year zero, whereas NodaTime uses astronomical year numbering.
+            "Year" when GetDatePartExpression(instance, "year") is var year
+                => _sqlExpressionFactory.Case(
+                    [
+                        new CaseWhenClause(
+                            _sqlExpressionFactory.LessThan(year, _sqlExpressionFactory.Constant(0)),
+                            _sqlExpressionFactory.Add(year, _sqlExpressionFactory.Constant(1)))
+                    ],
+                    year),
+            "Years" => GetDatePartExpression(instance, "year"),
             "Month" or "Months" => GetDatePartExpression(instance, "month"),
             "DayOfYear" => GetDatePartExpression(instance, "doy"),
             "Day" or "Days" => GetDatePartExpression(instance, "day"),

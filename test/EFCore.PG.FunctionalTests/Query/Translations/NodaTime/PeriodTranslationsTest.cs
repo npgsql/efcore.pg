@@ -30,6 +30,21 @@ WHERE date_part('year', n."Period")::int = 2018
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Years_negative(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Select(t => Period.FromYears(-t.Id).Years));
+
+        AssertSql(
+            """
+SELECT date_part('year', make_interval(years => -n."Id"))::int
+FROM "NodaTimeTypes" AS n
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task Months(bool async)
     {
         await AssertQuery(
