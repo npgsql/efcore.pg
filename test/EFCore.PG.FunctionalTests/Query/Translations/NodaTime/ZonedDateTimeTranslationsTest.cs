@@ -40,10 +40,7 @@ WHERE (n."ZonedDateTime" + INTERVAL '1 00:00:00') - n."ZonedDateTime" = INTERVAL
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE CASE
-    WHEN date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int < 0 THEN date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int + 1
-    ELSE date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int
-END = 2018
+WHERE trunc(date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC') - 0.5)::int + 1 = 2018
 """);
     }
 
@@ -79,13 +76,7 @@ END = 2018
 
                 AssertSql(
                     """
-SELECT CASE
-    WHEN date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int < 0 THEN date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int + 1
-    ELSE date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC')::int
-END AS "Year", CASE
-    WHEN date_part('year', n."ZonedDateTime" AT TIME ZONE 'Europe/Berlin')::int < 0 THEN date_part('year', n."ZonedDateTime" AT TIME ZONE 'Europe/Berlin')::int + 1
-    ELSE date_part('year', n."ZonedDateTime" AT TIME ZONE 'Europe/Berlin')::int
-END AS "YearInZone"
+SELECT trunc(date_part('year', n."ZonedDateTime" AT TIME ZONE 'UTC') - 0.5)::int + 1 AS "Year", trunc(date_part('year', n."ZonedDateTime" AT TIME ZONE 'Europe/Berlin') - 0.5)::int + 1 AS "YearInZone"
 FROM "NodaTimeTypes" AS n
 LIMIT 2
 """);

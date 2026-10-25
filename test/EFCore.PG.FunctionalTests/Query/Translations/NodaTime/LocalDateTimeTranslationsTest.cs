@@ -40,10 +40,7 @@ WHERE (n."LocalDateTime" + INTERVAL 'P1D') - n."LocalDateTime" = INTERVAL 'P1D'
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE CASE
-    WHEN date_part('year', n."LocalDateTime")::int < 0 THEN date_part('year', n."LocalDateTime")::int + 1
-    ELSE date_part('year', n."LocalDateTime")::int
-END = 2018
+WHERE trunc(date_part('year', n."LocalDateTime") - 0.5)::int + 1 = 2018
 """);
     }
 
@@ -72,10 +69,7 @@ END = 2018
 
                 AssertSql(
                     """
-SELECT CASE
-    WHEN date_part('year', n."LocalDateTime")::int < 0 THEN date_part('year', n."LocalDateTime")::int + 1
-    ELSE date_part('year', n."LocalDateTime")::int
-END
+SELECT trunc(date_part('year', n."LocalDateTime") - 0.5)::int + 1
 FROM "NodaTimeTypes" AS n
 LIMIT 2
 """);
