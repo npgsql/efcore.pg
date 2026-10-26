@@ -1,22 +1,24 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>11.0.0-rc.2.26504.105</EFCoreVersion>
-    <MicrosoftExtensionsVersion>11.0.0-rc.2.26504.105</MicrosoftExtensionsVersion>
-    <MicrosoftExtensionsConfigurationVersion>11.0.0-rc.2.26504.105</MicrosoftExtensionsConfigurationVersion>
+    <EFCoreVersion>11.0.0-rc.3.26522.148</EFCoreVersion>
+    <EFCoreNextMajorVersion>12.0.0-a</EFCoreNextMajorVersion>
+    <MicrosoftExtensionsVersion>11.0.0-rc.3.26522.148</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsConfigurationVersion>11.0.0-rc.3.26522.148</MicrosoftExtensionsConfigurationVersion>
     <NpgsqlVersion>10.0.3</NpgsqlVersion>
     <XunitVersion>4.0.1</XunitVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <!--
-      Dependencies on EF preview versions should be locked to a specific version (as provider-facing breaking changes are frequent).
-      For released versions, depend on anything in the current major version to allow users to update to higher patch versions.
+      Depend on anything from the EF version we build against up to (but excluding) the next major version, including its prereleases.
+      This mirrors the ranges EF's own packages use (e.g. >= 11.0.0-rc.3.26522.148 && < 12.0.0-a), and allows users to pick up newer
+      EF previews/RCs/patches (e.g. out-of-band security releases) without waiting for a new EFCore.PG release.
+      The upper bound of 12.0.0-a excludes all 12.0.0 prereleases, since "a" sorts before "alpha", "preview" and "rc".
     -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[$(EFCoreVersion)]" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="[$(EFCoreVersion), $(EFCoreNextMajorVersion))" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="[$(EFCoreVersion), $(EFCoreNextMajorVersion))" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[$(EFCoreVersion), $(EFCoreNextMajorVersion))" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[$(EFCoreVersion), $(EFCoreNextMajorVersion))" />
 
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsConfigurationVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(MicrosoftExtensionsConfigurationVersion)" />
