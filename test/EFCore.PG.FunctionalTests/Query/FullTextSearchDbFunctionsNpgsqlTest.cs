@@ -843,7 +843,7 @@ LIMIT 1
         Assert.True(rank > 0);
         AssertSql(
             """
-SELECT ts_rank(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'))
+SELECT ts_rank(ARRAY[REAL '1',REAL '1',REAL '1',REAL '1']::real[], to_tsvector('a b c'), to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
 """);
@@ -864,7 +864,7 @@ LIMIT 1
         Assert.True(rank > 0);
         AssertSql(
             """
-SELECT ts_rank(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
+SELECT ts_rank(ARRAY[REAL '1',REAL '1',REAL '1',REAL '1']::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM "Customers" AS c
 LIMIT 1
 """);
@@ -921,7 +921,7 @@ LIMIT 1
         Assert.True(rank > 0);
         AssertSql(
             """
-SELECT ts_rank_cd(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'))
+SELECT ts_rank_cd(ARRAY[REAL '1',REAL '1',REAL '1',REAL '1']::real[], to_tsvector('a b c'), to_tsquery('b'))
 FROM "Customers" AS c
 LIMIT 1
 """);
@@ -942,7 +942,7 @@ LIMIT 1
         Assert.True(rank > 0);
         AssertSql(
             """
-SELECT ts_rank_cd(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
+SELECT ts_rank_cd(ARRAY[REAL '1',REAL '1',REAL '1',REAL '1']::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM "Customers" AS c
 LIMIT 1
 """);

@@ -603,6 +603,40 @@ CREATE TABLE public."People" (
         AssertSql("""ALTER TABLE "People" ADD "Birthday" timestamp with time zone NOT NULL DEFAULT TIMESTAMPTZ '2015-04-12T17:05:00Z';""");
     }
 
+    [Fact] // #4086
+    public virtual async Task Add_column_with_defaultValue_negative_interval()
+    {
+        await Test(
+            builder => builder.Entity("People").Property<int>("Id"),
+            _ => { },
+            builder => builder.Entity("People").Property<TimeSpan>("Offset").HasDefaultValue(TimeSpan.FromHours(-25)),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "Offset");
+                Assert.Equal("'-1 days -01:00:00'::interval", column.DefaultValueSql);
+            });
+
+        AssertSql("""ALTER TABLE "People" ADD "Offset" interval NOT NULL DEFAULT INTERVAL '-1 -01:00:00';""");
+    }
+
+    [Fact] // #4086
+    public virtual async Task Add_column_with_defaultValue_real()
+    {
+        await Test(
+            builder => builder.Entity("People").Property<int>("Id"),
+            _ => { },
+            builder => builder.Entity("People").Property<float>("Ratio").HasDefaultValue(0.1f),
+            model =>
+            {
+                var table = Assert.Single(model.Tables);
+                var column = Assert.Single(table.Columns, c => c.Name == "Ratio");
+                Assert.Equal(0.1f, column.DefaultValue);
+            });
+
+        AssertSql("""ALTER TABLE "People" ADD "Ratio" real NOT NULL DEFAULT REAL '0.1';""");
+    }
+
     [Fact]
     public override async Task Add_column_with_defaultValueSql()
     {

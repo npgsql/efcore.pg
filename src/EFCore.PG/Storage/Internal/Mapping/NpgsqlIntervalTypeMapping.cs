@@ -95,8 +95,12 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
         // otherwise a value with only sub-microsecond ticks gets formatted with a trailing decimal separator (e.g. 00:23:00.).
         ts = new TimeSpan(ts.Ticks - ts.Ticks % TimeSpan.TicksPerMicrosecond);
 
+        // PostgreSQL applies a leading minus to the days only (-1 02:00:00 is -22 hours), so negative intervals with days also carry
+        // the sign on the time part (-1 -02:00:00 is -26 hours).
+        var sign = ts < TimeSpan.Zero ? "\\-" : "";
+
         return ts.ToString(
-            $@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}",
+            $@"{sign}{(ts.Days == 0 ? "" : $"d\\ {sign}")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}",
             CultureInfo.InvariantCulture);
     }
 
@@ -138,7 +142,14 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
         if (s[i] == ' ')
         {
             days = int.Parse(s[..i]);
-            s = s[i..];
+            s = s[(i + 1)..];
+
+            // Negative intervals with days carry the sign on the time part as well (-1 -02:00:00, see FormatTimeSpanAsInterval);
+            // we've already extracted it above. Older versions wrote -1 02:00:00 for the same value, so the second sign is optional.
+            if (isNegated && s is ['-', ..])
+            {
+                s = s[1..];
+            }
         }
 
         var timeSpan = TimeSpan.Parse(s, CultureInfo.InvariantCulture);

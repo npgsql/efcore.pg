@@ -525,6 +525,14 @@ ORDER BY attnum
             defaultValueSql = defaultValueSql[1..^1].Trim();
         }
 
+        // Real literals are generated as REAL '0.1', which PostgreSQL stores as '0.1'::real
+        if (systemTypeName is "real" or "float4"
+            && defaultValueSql.StartsWith('\'')
+            && defaultValueSql.EndsWith("'::real", StringComparison.Ordinal))
+        {
+            defaultValueSql = defaultValueSql[1..^"'::real".Length];
+        }
+
         return systemTypeName switch
         {
             "bool" or "boolean" => defaultValueSql switch

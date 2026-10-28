@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
+
 namespace Microsoft.EntityFrameworkCore.Query.Translations.Operators;
 
 public class ComparisonOperatorTranslationsNpgsqlTest : ComparisonOperatorTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
@@ -78,6 +80,19 @@ WHERE b."Int" < 8
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE b."Int" <= 8
+""");
+    }
+
+    [ConditionalFact] // #4086
+    public virtual async Task Equal_float_constant()
+    {
+        await AssertQuery(ss => ss.Set<BasicTypesEntity>().Where(b => b.Float == 8.6f));
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE b."Float" = REAL '8.6'
 """);
     }
 
