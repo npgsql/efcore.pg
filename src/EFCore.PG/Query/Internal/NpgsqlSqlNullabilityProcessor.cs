@@ -415,6 +415,18 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
         // First call the base VisitSqlFunction to visit the arguments
         var visitedBase = base.VisitSqlFunction(sqlFunctionExpression, allowOptimizedExpansion, out nullable);
 
+        // EF.Constant parameters are inlined here, after translation-time casts would be simplified away.
+        if (visitedBase is SqlFunctionExpression
+            {
+                IsBuiltIn: true,
+                Name: "to_json" or "to_jsonb",
+                Arguments: [SqlConstantExpression constant]
+            } toJson)
+        {
+            var typedConstant = new SqlUnaryExpression(ExpressionType.Convert, constant, constant.Type, constant.TypeMapping);
+            return toJson.Update(toJson.Instance, [typedConstant]);
+        }
+
         // base.VisitSqlFunction has some special logic for SUM which wraps it in a COALESCE
         // (see https://github.com/dotnet/efcore/issues/28158), so we need some special handling to properly visit the
         // PostgresFunctionExpression it wraps.

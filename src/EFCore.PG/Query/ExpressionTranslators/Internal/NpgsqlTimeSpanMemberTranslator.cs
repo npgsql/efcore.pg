@@ -1,3 +1,4 @@
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -40,7 +41,7 @@ public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
         Check.NotNull(member, nameof(member));
         Check.NotNull(returnType, nameof(returnType));
 
-        if (member.DeclaringType == typeof(TimeSpan) && instance is not null)
+        if (member.DeclaringType == typeof(TimeSpan) && instance is { TypeMapping: not NpgsqlJsonTypeMapping })
         {
             return member.Name switch
             {

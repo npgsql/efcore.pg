@@ -63,9 +63,9 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
             && method.DeclaringType == typeof(Enumerable)
             && arguments is [var first, var second]
             && first.Type.IsArrayOrGenericList()
-            && !IsMappedToNonArray(first)
             && second.Type.IsArrayOrGenericList()
-            && !IsMappedToNonArray(second))
+            && ((!IsMappedToNonArray(first) && !IsMappedToNonArray(second))
+                || IsJsonbOrUnmappedValue(first) && IsJsonbOrUnmappedValue(second)))
         {
             return _sqlExpressionFactory.Equal(first, second);
         }
@@ -87,7 +87,11 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
         // The array/list CLR type may be mapped to a non-array database type (e.g. byte[] to bytea, or just
         // value converters) - we don't want to translate for those cases.
         static bool IsMappedToNonArray(SqlExpression arrayOrList)
-            => arrayOrList.TypeMapping is { } and not (NpgsqlArrayTypeMapping or NpgsqlJsonTypeMapping);
+            => arrayOrList.TypeMapping is { } and not NpgsqlArrayTypeMapping;
+
+        static bool IsJsonbOrUnmappedValue(SqlExpression expression)
+            => expression.TypeMapping is NpgsqlJsonTypeMapping { IsJsonb: true }
+                || expression is SqlConstantExpression { TypeMapping: null } or SqlParameterExpression { TypeMapping: null };
 
 #pragma warning disable CS8321
         SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
@@ -155,7 +159,8 @@ public class NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressio
 
             if (method is { IsGenericMethod: true, Name: nameof(Enumerable.Concat) }
                 && method.DeclaringType == typeof(Enumerable)
-                && arguments is [var otherArray])
+                && arguments is [var otherArray]
+                && !IsMappedToNonArray(otherArray))
             {
                 var inferredMapping = ExpressionExtensions.InferTypeMapping(arrayOrList, otherArray);
 

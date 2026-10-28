@@ -91,6 +91,272 @@ LIMIT 2
 """);
     }
 
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Serialized_json_native_text_comparison(bool jsonb, bool reversed, bool notEqual)
+    {
+        using var ctx = CreateContext();
+        ctx.Database.CreateExecutionStrategy().Execute(
+            () =>
+            {
+                using var transaction = ctx.Database.BeginTransaction();
+                var serialized = jsonb ? """{"Age": 25}""" : """{"Age":25}""";
+                ctx.Database.ExecuteSql(
+                    $"""UPDATE "JsonEntities" SET "CustomerJsonb" = {serialized}::jsonb, "CustomerJson" = {serialized}::json, "SomeString" = {serialized} WHERE "Id" = 1""");
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var entities = ctx.JsonEntities.Where(e => e.Id <= 2);
+                var query = (jsonb, reversed, notEqual) switch
+                {
+                    (true, false, false) => entities.Where(e => e.CustomerJsonb == e.SomeString),
+                    (false, false, false) => entities.Where(e => e.CustomerJson == e.SomeString),
+                    (true, true, false) => entities.Where(e => e.SomeString == e.CustomerJsonb),
+                    (false, true, false) => entities.Where(e => e.SomeString == e.CustomerJson),
+                    (true, false, true) => entities.Where(e => e.CustomerJsonb != e.SomeString),
+                    (false, false, true) => entities.Where(e => e.CustomerJson != e.SomeString),
+                    (true, true, true) => entities.Where(e => e.SomeString != e.CustomerJsonb),
+                    (false, true, true) => entities.Where(e => e.SomeString != e.CustomerJson)
+                };
+
+                Assert.Equal(notEqual ? 2 : 1, query.Select(e => e.Id).Single());
+
+                var json = $"""j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"::text""";
+                const string text = "j.\"SomeString\"";
+                var left = reversed ? text : json;
+                var right = reversed ? json : text;
+                var predicate = notEqual ? $"({left} <> {right} OR j.\"SomeString\" IS NULL)" : $"{left} = {right}";
+                AssertSql(
+                    $"""
+SELECT j."Id"
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2 AND {predicate}
+LIMIT 2
+""");
+            });
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Conditional_serialized_json(bool jsonb, bool constant)
+    {
+        using var ctx = CreateContext();
+        var serialized = """{"Age":25}""";
+        var query = (jsonb, constant) switch
+        {
+            (true, false) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJsonb : EF.Parameter(serialized)),
+            (false, false) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJson : EF.Parameter(serialized)),
+            (true, true) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJsonb : EF.Constant(serialized)),
+            (false, true) => ctx.JsonEntities.OrderBy(e => e.Id)
+                .Select(e => e.Id == 1 ? e.CustomerJson : EF.Constant(serialized))
+        };
+
+        foreach (var value in query.ToArray())
+        {
+            using var document = JsonDocument.Parse(value);
+            Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        }
+
+        var fallback = $"""{(constant ? """'{"Age":25}'""" : "@serialized")}::{(jsonb ? "jsonb" : "json")}""";
+        AssertSql(
+            (constant ? "" : "@serialized='{\"Age\":25}'\n\n") + $"""
+SELECT CASE
+    WHEN j."Id" = 1 THEN j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"
+    ELSE {fallback}
+END
+FROM "JsonEntities" AS j
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Boxed_serialized_json_composition(bool jsonb, bool coalesce, bool nullable)
+    {
+        using var ctx = CreateContext();
+        var serialized = """{"Age":25}""";
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = (jsonb, coalesce, nullable) switch
+        {
+            (true, false, _) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJsonb : (object)EF.Parameter(serialized)),
+            (false, false, _) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJson : (object)EF.Parameter(serialized)),
+            (true, true, false) => entities.Select(e => (object)e.CustomerJsonb ?? (object)EF.Parameter(serialized)),
+            (false, true, false) => entities.Select(e => (object)e.CustomerJson ?? (object)EF.Parameter(serialized)),
+            (true, true, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJsonb : null) ?? (object)EF.Parameter(serialized)),
+            (false, true, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJson : null) ?? (object)EF.Parameter(serialized))
+        };
+
+        var values = query.ToArray();
+        Assert.All(values, value => Assert.IsType<string>(value));
+        using var first = JsonDocument.Parse((string)values[0]);
+        using var second = JsonDocument.Parse((string)values[1]);
+        Assert.Equal(25, first.RootElement.GetProperty("Age").GetInt32());
+        Assert.Equal(coalesce && !nullable ? 35 : 25, second.RootElement.GetProperty("Age").GetInt32());
+
+        var column = $"j.\"{(jsonb ? "CustomerJsonb" : "CustomerJson")}\"";
+        var fallback = $"@serialized::{(jsonb ? "jsonb" : "json")}";
+        var conditional = $"""
+CASE
+    WHEN j."Id" = 1 THEN {column}
+{(nullable ? "" : $"    ELSE {fallback}\n")}END
+""";
+        var projection = (coalesce, nullable) switch
+        {
+            (false, _) => conditional,
+            (true, false) => column,
+            (true, true) => $"COALESCE({conditional}, @serialized)"
+        };
+        AssertSql(
+            (coalesce && !nullable ? "" : $"@serialized='{{\"Age\":25}}'{(coalesce ? " (DbType = Object)" : "")}\n\n") + $"""
+SELECT {projection}
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Boxed_serialized_json_conditional_null(bool jsonb, bool reversed)
+    {
+        using var ctx = CreateContext();
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = (jsonb, reversed) switch
+        {
+            (true, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJsonb : null),
+            (false, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJson : null),
+            (true, true) => entities.Select(e => e.Id == 2 ? null : (object)e.CustomerJsonb),
+            (false, true) => entities.Select(e => e.Id == 2 ? null : (object)e.CustomerJson)
+        };
+
+        var values = query.ToArray();
+        using var document = JsonDocument.Parse(Assert.IsType<string>(values[0]));
+        Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        Assert.Null(values[1]);
+
+        var column = $"j.\"{(jsonb ? "CustomerJsonb" : "CustomerJson")}\"";
+        AssertSql(
+            $"""
+SELECT CASE
+    WHEN j."Id" = {(reversed ? 2 : 1)} THEN {(reversed ? "NULL" : column)}
+{(reversed ? $"    ELSE {column}\n" : "")}END
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Boxed_serialized_json_coalesce_null(bool jsonb)
+    {
+        using var ctx = CreateContext();
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = jsonb
+            ? entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJsonb : null) ?? null)
+            : entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJson : null) ?? null);
+        var values = query.ToArray();
+        using var document = JsonDocument.Parse(Assert.IsType<string>(values[0]));
+        Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        Assert.Null(values[1]);
+
+        AssertSql(
+            $"""
+SELECT COALESCE(CASE
+    WHEN j."Id" = 1 THEN j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"
+END, NULL)
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void Boxed_serialized_json_native_text_composition(bool jsonb, bool coalesce)
+    {
+        using var ctx = CreateContext();
+        var entities = ctx.JsonEntities.Where(e => e.Id <= 2).OrderBy(e => e.Id);
+        var query = (jsonb, coalesce) switch
+        {
+            (true, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJsonb : (object)e.SomeString!),
+            (false, false) => entities.Select(e => e.Id == 1 ? (object)e.CustomerJson : (object)e.SomeString!),
+            (true, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJsonb : null) ?? e.SomeString),
+            (false, true) => entities.Select(e => (object?)(e.Id == 1 ? e.CustomerJson : null) ?? e.SomeString)
+        };
+        var values = query.ToArray();
+        using var document = JsonDocument.Parse(Assert.IsType<string>(values[0]));
+        Assert.Equal(25, document.RootElement.GetProperty("Age").GetInt32());
+        Assert.Equal("Moe", Assert.IsType<string>(values[1]));
+
+        var column = $"j.\"{(jsonb ? "CustomerJsonb" : "CustomerJson")}\"";
+        AssertSql(
+            $"""
+SELECT {(coalesce ? $"COALESCE(CAST(CASE\n    WHEN j.\"Id\" = 1 THEN {column}\nEND AS text), j.\"SomeString\")" : $"j.\"Id\" = 1, {column}, j.\"SomeString\"")}
+FROM "JsonEntities" AS j
+WHERE j."Id" <= 2
+ORDER BY j."Id" NULLS FIRST
+""");
+    }
+
+    [Theory]
+    [InlineData(false, "\"foo\"")]
+    [InlineData(true, "\"foo\"")]
+    [InlineData(false, "null")]
+    [InlineData(true, "null")]
+    public void Boxed_serialized_json_cast_back(bool jsonb, string serialized)
+    {
+        using var ctx = CreateContext();
+        ctx.Database.CreateExecutionStrategy().Execute(
+            () =>
+            {
+                using var transaction = ctx.Database.BeginTransaction();
+                ctx.Database.ExecuteSql(
+                    $"""UPDATE "JsonEntities" SET "CustomerJsonb" = {serialized}::jsonb, "CustomerJson" = {serialized}::json WHERE "Id" = 1""");
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = jsonb
+                    ? ctx.JsonEntities.Where(e => e.Id == 1).Select(e => (string)(e.Id == 1 ? (object)e.CustomerJsonb : null)!)
+                    : ctx.JsonEntities.Where(e => e.Id == 1).Select(e => (string)(e.Id == 1 ? (object)e.CustomerJson : null)!);
+
+                Assert.Equal(serialized, query.Single());
+
+                AssertSql(
+                    $"""
+SELECT CASE
+    WHEN j."Id" = 1 THEN j."{(jsonb ? "CustomerJsonb" : "CustomerJson")}"
+END
+FROM "JsonEntities" AS j
+WHERE j."Id" = 1
+LIMIT 2
+""");
+            });
+    }
+
     #region Functions
 
     [Fact]
