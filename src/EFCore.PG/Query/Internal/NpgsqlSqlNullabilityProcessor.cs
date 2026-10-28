@@ -429,7 +429,8 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
             if (sqlFunctionExpression.Type == typeof(TimeSpan)
                 || sqlFunctionExpression.Type.FullName is "NodaTime.Period" or "NodaTime.Duration")
             {
-                return coalesceExpression.Arguments[0];
+                nullable = true;
+                return VisitPostgresFunctionComponents(wrappedFunctionExpression);
             }
 
             var visitedArguments = coalesceExpression.Arguments!.ToArray();

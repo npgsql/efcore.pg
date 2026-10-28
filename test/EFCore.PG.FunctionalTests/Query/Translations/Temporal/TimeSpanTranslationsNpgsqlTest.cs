@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
+
 namespace Microsoft.EntityFrameworkCore.Query.Translations.Temporal;
 
 public class TimeSpanTranslationsNpgsqlTest : TimeSpanTranslationsTestBase<BasicTypesQueryNpgsqlFixture>
@@ -62,6 +64,55 @@ WHERE floor(date_part('millisecond', b."TimeSpan"))::int % 1000 = 678
 
     public override Task Nanoseconds()
         => AssertTranslationFailed(() => base.Nanoseconds());
+
+    [ConditionalFact]
+    public virtual async Task GroupBy_Select_Sum_over_TimeSpan_with_null_check_in_filter()
+    {
+        await AssertQuery(
+            ss => ss.Set<NullableBasicTypesEntity>()
+                .GroupBy(b => b.Bool)
+                .Select(g => new { g.Key, Sum = EF.Functions.Sum(g.Where(b => b.TimeSpan != null).Select(b => b.TimeSpan!.Value)) }),
+            ss => ss.Set<NullableBasicTypesEntity>()
+                .GroupBy(b => b.Bool)
+                .Select(g => new
+                {
+                    g.Key,
+                    Sum = g.Any(b => b.TimeSpan != null)
+                        ? new TimeSpan(g.Where(b => b.TimeSpan != null).Sum(b => b.TimeSpan!.Value.Ticks))
+                        : (TimeSpan?)null
+                }),
+            elementSorter: e => e.Key);
+
+        AssertSql(
+            """
+SELECT n."Bool" AS "Key", sum(n."TimeSpan") FILTER (WHERE n."TimeSpan" IS NOT NULL) AS "Sum"
+FROM "NullableBasicTypesEntities" AS n
+GROUP BY n."Bool"
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task GroupBy_Select_Sum_over_TimeSpan_compared_to_null()
+    {
+        await AssertQuery(
+            ss => ss.Set<NullableBasicTypesEntity>()
+                .GroupBy(b => b.Bool)
+                .Select(g => new { g.Key, Sum = EF.Functions.Sum(g.Where(b => b.TimeSpan != null).Select(b => b.TimeSpan!.Value)) })
+                .Where(x => x.Sum == null)
+                .Select(x => x.Key),
+            ss => ss.Set<NullableBasicTypesEntity>()
+                .GroupBy(b => b.Bool)
+                .Where(g => g.All(b => b.TimeSpan == null))
+                .Select(g => g.Key));
+
+        AssertSql(
+            """
+SELECT n."Bool"
+FROM "NullableBasicTypesEntities" AS n
+GROUP BY n."Bool"
+HAVING sum(n."TimeSpan") FILTER (WHERE n."TimeSpan" IS NOT NULL) IS NULL
+""");
+    }
 
     [ConditionalFact]
     public virtual void Check_all_tests_overridden()
