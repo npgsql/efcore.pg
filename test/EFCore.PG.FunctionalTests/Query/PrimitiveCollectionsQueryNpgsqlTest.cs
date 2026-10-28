@@ -1649,6 +1649,73 @@ WHERE 11 = ANY (p."Ints"[2:3])
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Column_collection_Take_Skip()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Take(3).Skip(1).Count() == 2));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE cardinality(p."Ints"[2:3]) = 2
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Skip_Skip()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Skip(1).Skip(1).Count() == 1));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE cardinality((p."Ints"[2:])[2:]) = 1
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Skip_ElementAt()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Skip(1).ElementAt(0) == 1),
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => (c.Ints.Length >= 2 ? c.Ints.Skip(1).ElementAt(0) : -1) == 1));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE (p."Ints"[2:])[1] = 1
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Skip_int_MaxValue()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Skip(int.MaxValue).Count() == 0));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE cardinality(p."Ints"[2147483647:]) = 0
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Skip_Take_int_MaxValue()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Skip(1).Take(int.MaxValue).Count() == 2));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE cardinality(p."Ints"[2:2147483647]) = 2
+""");
+    }
+
     public override async Task Column_collection_Where_Skip()
     {
         await base.Column_collection_Where_Skip();
@@ -2155,6 +2222,32 @@ WHERE EXISTS (
         INTERSECT
         VALUES (NULL::int), (999)
     ) AS i)
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_Parameter_collection_with_null_Any()
+    {
+        var ints = new int?[] { null, 999 };
+
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.NullableInts.Intersect(ints).Any()));
+
+        AssertSql(
+            """
+@ints={ NULL
+'999' } (DbType = Object)
+
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE EXISTS (
+    SELECT 1
+    FROM (
+        SELECT n.value
+        FROM unnest(p."NullableInts") AS n(value)
+        INTERSECT
+        SELECT i.value
+        FROM unnest(@ints) AS i(value)
+    ) AS i0)
 """);
     }
 
@@ -3012,6 +3105,19 @@ WHERE (
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE cardinality(array_remove(p."Ints", 1)) = 1
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Array_remove_Skip()
+    {
+        await AssertQuery(ss => ss.Set<PrimitiveCollectionsEntity>().Where(e => e.Ints.Where(i => i != 11).Skip(1).Count() == 1));
+
+        AssertSql(
+            """
+SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE cardinality((array_remove(p."Ints", 11))[2:]) = 1
 """);
     }
 

@@ -1551,9 +1551,10 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     || outerPrecedence >= innerPrecedence;
             }
 
-            // PG requires function calls to be wrapped in parentheses before indexing on the returned array:
+            // PG requires function calls to be wrapped in parentheses before indexing or slicing the returned array:
             // (string_to_array(c."ContactName", ' '))[1]
-            case SqlFunctionExpression when outerExpression is PgArrayIndexExpression:
+            // A slice must be wrapped as well, since PG reads a[2:][1] or a[:2][2:] as a single two-dimensional slice.
+            case SqlFunctionExpression or PgArraySliceExpression when outerExpression is PgArrayIndexExpression or PgArraySliceExpression:
             case PgUnknownBinaryExpression:
                 return true;
 
