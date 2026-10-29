@@ -1015,7 +1015,8 @@ public class NpgsqlNodaTimeTypeMappingTest
     }
 
     [ConditionalTheory]
-    [InlineData("-10675199:02:48:05.477580", "-10675199 02:48:05.47758")]
+    [InlineData("-10675199:02:48:05.477580", "-10675199 -02:48:05.47758")]
+    [InlineData("-1:02:00:00", "-1 -02:00:00")]
     [InlineData("10675199:02:48:05.477580", "10675199 02:48:05.47758")]
     [InlineData("00:00:00", "00:00:00")]
     [InlineData("12:23:23.801885", "12:23:23.801885")]
@@ -1037,6 +1038,9 @@ public class NpgsqlNodaTimeTypeMappingTest
         var actualDuration =  readerWriter.FromJson(ref readerManager, existingObject: null);
         Assert.Equal(duration, actualDuration);
     }
+
+    // Reading older/ambiguous negative values is tested in NpgsqlIntervalJsonParsingTest, with both values of the
+    // Npgsql.ParseOldEFCoreJsonTimeSpans switch
 
     [ConditionalTheory]
     [InlineData("P2018Y4M20DT4H3M2S")]

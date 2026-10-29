@@ -24,7 +24,7 @@ public class ZonedDateTimeTranslationsTest : QueryTestBase<NodaTimeQueryNpgsqlFi
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (n."ZonedDateTime" + INTERVAL '1 00:00:00') - n."ZonedDateTime" = INTERVAL '1 00:00:00'
+WHERE (((n."ZonedDateTime" AT TIME ZONE 'UTC') + INTERVAL '1 00:00:00') AT TIME ZONE 'UTC') - n."ZonedDateTime" = INTERVAL '1 00:00:00'
 """);
     }
 

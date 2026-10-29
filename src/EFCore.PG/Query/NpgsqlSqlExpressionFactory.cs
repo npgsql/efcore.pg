@@ -113,17 +113,14 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         {
             // PostgreSQL AT TIME ZONE flips the given type from timestamptz to timestamp and vice versa
             // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
-            typeMapping = timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!;
-            var storeType = typeMapping.StoreType;
-
-            typeMapping = storeType.StartsWith("timestamp with time zone", StringComparison.Ordinal)
-                || storeType.StartsWith("timestamptz", StringComparison.Ordinal)
-                    ? _typeMappingSource.FindMapping("timestamp without time zone")!
-                    : storeType.StartsWith("timestamp without time zone", StringComparison.Ordinal)
-                    || storeType.StartsWith("timestamp", StringComparison.Ordinal)
-                        ? _typeMappingSource.FindMapping("timestamp with time zone")!
-                        : throw new ArgumentException(
-                            $"timestamp argument to AtTimeZone had unknown store type {storeType}", nameof(timestamp));
+            // The store type may be an alias (timestamptz) or have a precision (timestamp(3) with time zone), so check the NpgsqlDbType.
+            typeMapping = (timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type, Dependencies.Model)!) switch
+            {
+                INpgsqlTypeMapping { NpgsqlDbType: NpgsqlDbType.TimestampTz } => _typeMappingSource.FindMapping("timestamp without time zone")!,
+                INpgsqlTypeMapping { NpgsqlDbType: NpgsqlDbType.Timestamp } => _typeMappingSource.FindMapping("timestamp with time zone")!,
+                var mapping => throw new ArgumentException(
+                    $"timestamp argument to AtTimeZone had unknown store type {mapping.StoreType}", nameof(timestamp))
+            };
         }
 
         return new AtTimeZoneExpression(
@@ -266,6 +263,15 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 return (SqlBinaryExpression)ApplyTypeMapping(
                     new SqlBinaryExpression(ExpressionType.Subtract, left, right, typeof(int), null), typeMapping);
+            }
+
+            // The arithmetic is rewritten when the timestamp is mapped to timestamptz (see ApplyTypeMappingOnSqlBinary),
+            // which may result in an AtTimeZoneExpression rather than a SqlBinaryExpression.
+            case ExpressionType.Add or ExpressionType.Subtract
+                when left.Type.FullName is "NodaTime.Instant" or "NodaTime.ZonedDateTime" && right.Type.FullName == "NodaTime.Duration"
+                || (left.Type == typeof(DateTime) || left.Type == typeof(DateTimeOffset)) && right.Type == typeof(TimeSpan):
+            {
+                return ApplyTypeMapping(new SqlBinaryExpression(operatorType, left, right, left.Type, null), typeMapping);
             }
         }
 
@@ -427,7 +433,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         return sqlExpression;
     }
 
-    private SqlBinaryExpression ApplyTypeMappingOnSqlBinary(SqlBinaryExpression binary, RelationalTypeMapping? typeMapping)
+    private SqlExpression ApplyTypeMappingOnSqlBinary(SqlBinaryExpression binary, RelationalTypeMapping? typeMapping)
     {
         var (left, right) = (binary.Left, binary.Right);
 
@@ -468,7 +474,34 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             {
                 var newLeft = ApplyTypeMapping(left, typeMapping);
                 var newRight = ApplyDefaultTypeMapping(right);
-                return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type, typeMapping ?? newLeft.TypeMapping);
+                var resultMapping = typeMapping ?? newLeft.TypeMapping;
+
+                // PostgreSQL timestamptz +/- interval adds the interval's days as calendar days in the session time zone
+                // i.e. not necessarily 24 hours across a daylight saving transition.
+                // A Duration/TimeSpan is an exact amount of time and values mapped to timestamptz are UTC.
+                // Perform the arithmetic on UTC timestamps instead, where days are always 24 hours.
+                // This is done only once the mapping is known: an unmapped timestamp (e.g. a parameter) may still be inferred as
+                // timestamp without time zone from the rest of the query, e.g. the other side of a comparison.
+                // With the legacy timestamp behavior, a DateTime mapped to timestamptz is read as a local DateTime,
+                // whose arithmetic (e.g. AddDays) keeps the local time across a daylight saving transition, like PostgreSQL's
+                // in the session time zone; so it's left as-is.
+                // A legacy DateTimeOffset has the local offset too, but its other arithmetic is still exact, so only its
+                // AddMonths/AddYears are left as-is, by NpgsqlDateTimeMethodTranslator (which doesn't come through here).
+                if (IsTimestampTz(resultMapping)
+                    && (right.Type == typeof(TimeSpan) || right.Type.FullName == "NodaTime.Duration")
+                    && !(NpgsqlTypeMappingSource.LegacyTimestampBehavior && binary.Type == typeof(DateTime)))
+                {
+                    var timestampMapping = _typeMappingSource.FindMapping("timestamp without time zone")!;
+                    var utcTimestamp = AtTimeZone(newLeft, Constant("UTC"), timestampMapping.ClrType, timestampMapping);
+
+                    return AtTimeZone(
+                        new SqlBinaryExpression(binary.OperatorType, utcTimestamp, newRight, timestampMapping.ClrType, timestampMapping),
+                        Constant("UTC"),
+                        binary.Type,
+                        resultMapping);
+                }
+
+                return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type, resultMapping);
             }
 
             // DateTime - DateTime => TimeSpan
@@ -555,6 +588,10 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
         }
 
         return (SqlBinaryExpression)base.ApplyTypeMapping(binary, typeMapping);
+
+        // The store type may be an alias (timestamptz) or have a precision (timestamp(3) with time zone), so check the NpgsqlDbType.
+        static bool IsTimestampTz(RelationalTypeMapping? mapping)
+            => mapping is INpgsqlTypeMapping { NpgsqlDbType: NpgsqlDbType.TimestampTz };
 
         static bool IsComparison(ExpressionType expressionType)
         {
