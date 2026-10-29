@@ -162,6 +162,8 @@ EF.Functions.IsWithinDistance(geom1, geom2, d, useSpheriod)      | [ST_DWithin(g
 geom.IsSimple()                                                  | [ST_IsSimple(geom)](https://postgis.net/docs/ST_IsSimple.html)
 geom.IsValid()                                                   | [ST_IsValid(geom)](https://postgis.net/docs/ST_IsValid.html)
 lineString.Length                                                | [ST_Length(lineString)](https://postgis.net/docs/ST_Length.html)
+EF.Functions.LineInterpolatePoint(lineString, fraction)           | [ST_LineInterpolatePoint(lineString, fraction)](https://postgis.net/docs/ST_LineInterpolatePoint.html) | Added in 11.0
+EF.Functions.LineMerge(geom)                                     | [ST_LineMerge(geom)](https://postgis.net/docs/ST_LineMerge.html)                    | Added in 11.0
 geom.Normalized                                                  | [ST_Normalize(geom)](https://postgis.net/docs/ST_Normalize.html)
 geomCollection.NumGeometries                                     | [ST_NumGeometries(geomCollection)](https://postgis.net/docs/ST_NumGeometries.html)
 polygon.NumInteriorRings                                         | [ST_NumInteriorRings(polygon)](https://postgis.net/docs/ST_NumInteriorRings.html)
@@ -170,6 +172,9 @@ geom1.Overlaps(geom2)                                            | [ST_Overlaps(
 geom.PointOnSurface                                              | [ST_PointOnSurface(geom)](https://postgis.net/docs/ST_PointOnSurface.html)
 geom1.Relate(geom2)                                              | [ST_Relate(geom1, geom2)](https://postgis.net/docs/ST_Relate.html)
 geom.Reverse()                                                   | [ST_Reverse(geom)](https://postgis.net/docs/ST_Reverse.html)
+EF.Functions.Scale(geom, xFactor, yFactor)                       | [ST_Scale(geom, xFactor, yFactor)](https://postgis.net/docs/ST_Scale.html)         | Added in 11.0
+EF.Functions.Scale(geom, xFactor, yFactor, zFactor)              | [ST_Scale(geom, xFactor, yFactor, zFactor)](https://postgis.net/docs/ST_Scale.html) | Added in 11.0
+EF.Functions.SetSrid(geom, srid)                                 | [ST_SetSRID(geom, srid)](https://postgis.net/docs/ST_SetSRID.html)                  | Added in 11.0
 geom1.SRID                                                       | [ST_SRID(geom1)](https://postgis.net/docs/ST_SRID.html)
 lineString.StartPoint                                            | [ST_StartPoint(lineString)](https://postgis.net/docs/ST_StartPoint.html)
 geom1.SymmetricDifference(geom2)                                 | [ST_SymDifference(geom1, geom2)](https://postgis.net/docs/ST_SymDifference.html)

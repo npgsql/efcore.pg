@@ -32,6 +32,7 @@ stringValue.Replace(oldValue, newValue)                       | replace(stringVa
 stringValue.StartsWith(value)                                 | stringValue LIKE value \|\| '%' | char overload added in 11.0
 stringValue.Substring(startIndex, length)                     | substr(stringValue, startIndex + 1, @length)
 stringValue.ToLower()                                         | lower(stringValue)
+stringValue.ToString()                                        | stringValue | Null values remain null
 stringValue.ToUpper()                                         | upper(stringValue)
 stringValue.Trim()                                            | btrim(stringValue)
 stringValue.Trim(trimChar)                                    | btrim(stringValue, trimChar)
@@ -71,6 +72,8 @@ EF.Functions.DateTrunc("month", value)                            | [date_trunc(
 EF.Functions.DateTrunc("month", utcDateTime, "Europe/Berlin")     | [date_trunc('month', utcDateTime, 'Europe/Berlin')](https://www.postgresql.org/docs/current/functions-datetime.html)                      | Added in 11.0; timestamp with time zone only
 dateTime.AddDays(1)                                               | [dateTime + INTERVAL '1 days'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)               |
 dateTime.AddHours(value)                                          | [dateTime + INTERVAL '1 hours'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)              |
+dateTime.AddMilliseconds(value) (also DateTimeOffset)             | [dateTime + value * INTERVAL '1 milliseconds'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE) | Added in 11.0
+dateTime.AddMicroseconds(value) (also DateTimeOffset)             | [dateTime + value * INTERVAL '1 microseconds'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE) | Added in 11.0
 dateTime.AddMinutes(1)                                            | [dateTime + INTERVAL '1 minutes'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)            |
 dateTime.AddMonths(1)                                             | [dateTime + INTERVAL '1 months'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)             |
 dateTime.AddSeconds(1)                                            | [dateTime + INTERVAL '1 seconds'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)            |
@@ -80,6 +83,8 @@ dateTime.Day                                                      | [date_part('
 dateTime.DayOfWeek                                                | [floor(date_part('dow', dateTime))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                              |
 dateTime.DayOfYear                                                | [date_part('doy', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                     |
 dateTime.Hour                                                     | [date_part('hour', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                    |
+dateTime.Millisecond (also DateTimeOffset, TimeOnly)              | [floor(date_part('milliseconds', dateTime))::INT % 1000](https://www.postgresql.org/docs/current/functions-datetime.html)               | Added in 11.0
+dateTime.Microsecond (also DateTimeOffset, TimeOnly)              | [date_part('microseconds', dateTime)::INT % 1000](https://www.postgresql.org/docs/current/functions-datetime.html)                      | Added in 11.0
 dateTime.Minute                                                   | [date_part('minute', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                  |
 dateTime.Month                                                    | [date_part('month', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                   |
 dateTime.Second                                                   | [date_part('second', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)                                  |
@@ -129,6 +134,29 @@ EF.Functions.JsonExistAll(json, key1, key2)       | json ?& ARRAY[key1, key2]   
 EF.Functions.JsonTypeof(json)                    | jsonb_typeof(json) or json_typeof(json) | Selected according to the mapped column type
 EF.Functions.JsonPathExists(json, "$.Age")      | JSON_EXISTS(json, '$.Age')            | Added in 11.0; requires PostgreSQL 17 or above
 
+## Hstore translations
+
+The following operations are supported for `Dictionary<string, string>` and `ImmutableDictionary<string, string>` mapped to PostgreSQL [`hstore`](https://www.postgresql.org/docs/current/hstore.html). Operations shown with `immutableDictionary` apply only to `ImmutableDictionary<string, string>`.
+
+| .NET | SQL | Notes |
+| ---- | --- | ----- |
+| dictionary[key] | dictionary -> key | Added in 11.0 |
+| dictionary.GetValueOrDefault(key) | dictionary -> key | Added in 11.0 |
+| dictionary.GetValueOrDefault(key, fallback) | CASE WHEN dictionary ? key THEN dictionary -> key ELSE fallback END | Added in 11.0 |
+| dictionary.ContainsKey(key) | dictionary ? key | Added in 11.0 |
+| dictionary.ContainsValue(value) | array_position(avals(dictionary), value) IS NOT NULL | Added in 11.0 |
+| dictionary.Count | cardinality(akeys(dictionary)) | Added in 11.0 |
+| immutableDictionary.IsEmpty | cardinality(akeys(immutableDictionary)) = 0 | Added in 11.0 |
+| immutableDictionary.Remove(key) | immutableDictionary - key | Added in 11.0 |
+| immutableDictionary.RemoveRange(keys) | immutableDictionary - keys | Added in 11.0 |
+| immutableDictionary.SetItems(otherDictionary) | immutableDictionary \|\| otherDictionary | Added in 11.0 |
+| keys.All(key => dictionary.ContainsKey(key)) | dictionary ?& keys | Added in 11.0 |
+| keys.Any(key => dictionary.ContainsKey(key)) | dictionary ?\| keys | Added in 11.0 |
+
+Lookups return SQL `NULL` for missing keys, stored NULL values and NULL hstores, rather than throwing for a missing key. The explicit `GetValueOrDefault` fallback distinguishes a missing key from a key whose stored value is NULL. Key existence and counts include stored-NULL entries, and `ContainsValue(null)` finds stored NULL values.
+
+`SetItems` accepts another hstore-mapped mutable or immutable dictionary, not arbitrary sequences of key/value pairs.
+
 ## Miscellaneous functions
 
 .NET                                     | SQL                  | Notes
@@ -155,8 +183,11 @@ decimal.Parse(stringValue)               | CAST(stringValue AS numeric) | Added 
 bytes[i]                     | get_byte(bytes, i)              |
 bytes.Contains(value)        | position(value IN bytes) > 0    |
 bytes.Any()                  | length(bytes) > 0               | Added in 11.0
+bytes.Concat(bytes2)         | bytes \|\| bytes2               | Added in 11.0
 bytes.Length                 | length(@bytes)                  |
 bytes1.SequenceEqual(bytes2) | @bytes = @second                |
+bitArray.Get(index)          | get_bit(bitArray, index) = 1    | Added in 11.0
+bitArray[index]              | get_bit(bitArray, index) = 1    | Added in 11.0
 
 ## Math functions
 
