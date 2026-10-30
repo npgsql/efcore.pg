@@ -174,7 +174,7 @@ LIMIT 2
             """
 SELECT o."Id", o."Value"
 FROM "OperatorEntityDateTime" AS o
-WHERE DATE '2020-01-15' > CAST((o."Value" + INTERVAL '1 days') AT TIME ZONE 'UTC' AS date)
+WHERE DATE '2020-01-15' > CAST(((o."Value" AT TIME ZONE 'UTC') + INTERVAL '1 days') AS date)
 LIMIT 2
 """);
     }

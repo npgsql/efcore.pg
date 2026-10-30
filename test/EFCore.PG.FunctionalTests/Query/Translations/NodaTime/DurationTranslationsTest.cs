@@ -104,7 +104,7 @@ WHERE date_part('epoch', n."Duration") / 0.001 = 2365448020.0
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE date_part('day', n."Duration")::int = 27
+WHERE date_part('day', justify_hours(n."Duration"))::int = 27
 """);
     }
 
@@ -120,7 +120,7 @@ WHERE date_part('day', n."Duration")::int = 27
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE date_part('hour', n."Duration")::int = 9
+WHERE date_part('hour', justify_hours(n."Duration"))::int = 9
 """);
     }
 
@@ -136,7 +136,7 @@ WHERE date_part('hour', n."Duration")::int = 9
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE date_part('minute', n."Duration")::int = 4
+WHERE date_part('minute', justify_hours(n."Duration"))::int = 4
 """);
     }
 
@@ -152,7 +152,23 @@ WHERE date_part('minute', n."Duration")::int = 4
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE floor(date_part('second', n."Duration"))::int = 8
+WHERE trunc(date_part('second', justify_hours(n."Duration")))::int = 8
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Milliseconds(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.Duration.Milliseconds == 20));
+
+        AssertSql(
+            """
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE trunc(date_part('millisecond', justify_hours(n."Duration")))::int % 1000 = 20
 """);
     }
 

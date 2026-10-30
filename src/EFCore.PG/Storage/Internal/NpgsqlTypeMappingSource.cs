@@ -27,15 +27,24 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
 
     // ReSharper disable once FieldCanBeMadeReadOnly.Global
     internal static bool DisableDateTimeInfinityConversions;
+
+    // ReSharper disable once FieldCanBeMadeReadOnly.Global
+    internal static bool ParseOldEFCoreJsonTimeSpans;
 #else
     internal static readonly bool LegacyTimestampBehavior;
     internal static readonly bool DisableDateTimeInfinityConversions;
+    internal static readonly bool ParseOldEFCoreJsonTimeSpans;
 #endif
 
     static NpgsqlTypeMappingSource()
     {
         LegacyTimestampBehavior = AppContext.TryGetSwitch("Npgsql.EnableLegacyTimestampBehavior", out var enabled) && enabled;
         DisableDateTimeInfinityConversions = AppContext.TryGetSwitch("Npgsql.DisableDateTimeInfinityConversions", out enabled) && enabled;
+
+        // Older versions of the provider wrote negative intervals with a days component to JSON with a sign on the days only.
+        // They meant the whole value to be negative (-1 02:00:00 for -26 hours), whereas PostgreSQL applies that sign to the days only.
+        // When reading such a value, by default we should read it assuming the old provider wrote it
+        ParseOldEFCoreJsonTimeSpans = !AppContext.TryGetSwitch("Npgsql.ParseOldEFCoreJsonTimeSpans", out enabled) || enabled;
     }
 
     private readonly ISqlGenerationHelper _sqlGenerationHelper;
