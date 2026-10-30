@@ -278,6 +278,33 @@ public class ConnectionSpecificationTest
         adminConnection.Open();
     }
 
+    [Fact]
+    public async Task Can_create_admin_connection_with_connection_set_via_SetDbConnection()
+    {
+        await using var _ = await NpgsqlTestStore.GetNorthwindStoreAsync();
+
+        // Once opened, Npgsql removes the password from the connection's ConnectionString (Persist Security Info=false), so the admin
+        // connection must be cloned from the connection rather than rebuilt from its connection string.
+        await using var connection = new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString);
+        await connection.OpenAsync();
+
+        var optionsBuilder = new DbContextOptionsBuilder<GeneralOptionsContext>();
+        optionsBuilder.UseNpgsql(b => b.ApplyConfiguration());
+        await using var context = new GeneralOptionsContext(optionsBuilder.Options);
+        context.Database.SetDbConnection(connection);
+
+        var relationalConnection = context.GetService<INpgsqlRelationalConnection>();
+        await using (var adminConnection = relationalConnection.CreateAdminConnection())
+        {
+            Assert.Equal("postgres", new NpgsqlConnectionStringBuilder(adminConnection.ConnectionString).Database);
+
+            await adminConnection.OpenAsync(CancellationToken.None);
+        }
+
+        // Disposing the admin connection must not dispose the connection supplied by the user
+        Assert.Equal(System.Data.ConnectionState.Open, connection.State);
+    }
+
     private class GeneralOptionsContext(DbContextOptions<GeneralOptionsContext> options) : NorthwindContextBase(options);
 
     #endregion
