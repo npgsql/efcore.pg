@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore.Storage.Json;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
@@ -37,6 +38,10 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 
     private static readonly MethodInfo MatchesLQuery =
         typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLQuery), [typeof(string)])!;
+
+    private static readonly MethodInfo JsonValueParameterSerializerMethod =
+        typeof(NpgsqlQueryableMethodTranslatingExpressionVisitor).GetTypeInfo()
+            .GetDeclaredMethod(nameof(SerializeJsonValueParameter))!;
 
     #endregion
 
@@ -788,20 +793,31 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 (translatedItem, array) = _sqlExpressionFactory.ApplyTypeMappingsOnItemAndArray(translatedItem, array);
 
                 // TODO: Null semantics - need to coalesce NULL on the item side to 'null'::jsonb.
-                // TODO: For constant/parameter, use JsonValueReaderWriter to produce the JSON value client-side
+                var jsonValueReaderWriter = translatedItem.TypeMapping?.JsonValueReaderWriter;
+                var jsonbTypeMapping = _typeMappingSource.FindMapping("jsonb")!;
+                SqlExpression jsonValue = translatedItem switch
+                {
+                    SqlParameterExpression parameter when jsonValueReaderWriter is not null
+                        => CreateJsonValueParameter(parameter, jsonValueReaderWriter, jsonbTypeMapping),
+
+                    SqlConstantExpression { Value: not null } constant when jsonValueReaderWriter is not null
+                        => _sqlExpressionFactory.Constant(
+                            jsonValueReaderWriter.ToJsonString(constant.Value), jsonbTypeMapping),
+
+                    _ => _sqlExpressionFactory.Function(
+                        "to_jsonb",
+                        [translatedItem is SqlConstantExpression { Value: string }
+                            ? _sqlExpressionFactory.Convert(translatedItem, typeof(string), _typeMappingSource.FindMapping(typeof(string)))
+                            : translatedItem],
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(string),
+                        jsonbTypeMapping)
+                };
+
                 return BuildSimplifiedShapedQuery(
                     source,
-                    _sqlExpressionFactory.Contains(
-                        array,
-                        _sqlExpressionFactory.Function(
-                            "to_jsonb",
-                            [translatedItem is SqlConstantExpression { Value: string }
-                                ? _sqlExpressionFactory.Convert(translatedItem, typeof(string), _typeMappingSource.FindMapping(typeof(string)))
-                                : translatedItem],
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[1],
-                            typeof(string),
-                            _typeMappingSource.FindMapping("jsonb"))));
+                    _sqlExpressionFactory.Contains(array, jsonValue));
             }
         }
 
@@ -865,6 +881,34 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
         }
 
         return base.TranslateCount(source, predicate);
+    }
+
+    private SqlParameterExpression CreateJsonValueParameter(
+        SqlParameterExpression parameter,
+        JsonValueReaderWriter jsonValueReaderWriter,
+        RelationalTypeMapping jsonbTypeMapping)
+    {
+        var runtimeParameter = _queryCompilationContext.RegisterRuntimeParameter(
+            $"__npgsql_json_contains_{parameter.Name}",
+            Expression.Lambda(
+                Expression.Call(
+                    JsonValueParameterSerializerMethod,
+                    QueryCompilationContext.QueryContextParameter,
+                    Expression.Constant(parameter.Name),
+                    Expression.Constant(jsonValueReaderWriter, typeof(JsonValueReaderWriter))),
+                QueryCompilationContext.QueryContextParameter));
+
+        return new SqlParameterExpression(runtimeParameter.Name!, typeof(string), jsonbTypeMapping);
+    }
+
+    private static string? SerializeJsonValueParameter(
+        QueryContext queryContext,
+        string parameterName,
+        JsonValueReaderWriter jsonValueReaderWriter)
+    {
+        var value = queryContext.Parameters[parameterName];
+
+        return value is null ? null : jsonValueReaderWriter.ToJsonString(value);
     }
 
     /// <summary>
