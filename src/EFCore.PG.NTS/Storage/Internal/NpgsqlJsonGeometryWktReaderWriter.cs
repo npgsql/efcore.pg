@@ -30,7 +30,7 @@ public sealed class NpgsqlJsonGeometryWktReaderWriter : JsonValueReaderWriter<Ge
     /// <inheritdoc />
     public override void ToJsonTyped(Utf8JsonWriter writer, Geometry value)
     {
-        var wkt = value.ToText();
+        var wkt = new WKTWriter(4).Write(value);
 
         // If the SRID is defined, prefix the WKT with it (SRID=4326;POINT(-44.3 60.1))
         // Although this is a PostgreSQL extension, NetTopologySuite supports it (see #3236)
