@@ -353,7 +353,15 @@ public class NpgsqlNodaTimeMethodCallTranslator(
 
         if (method.DeclaringType == typeof(DateInterval) && method.Name == nameof(DateInterval.Intersection))
         {
-            return _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIntersect, instance!, arguments[0]);
+            // NodaTime returns null when the two intervals share no day, but PostgreSQL's * operator returns an empty range,
+            // which isn't NULL. Return NULL unless the ranges overlap.
+            return _sqlExpressionFactory.Case(
+                [
+                    new CaseWhenClause(
+                        _sqlExpressionFactory.Overlaps(instance!, arguments[0]),
+                        _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.RangeIntersect, instance!, arguments[0]))
+                ],
+                elseResult: null);
         }
 
         if (method.DeclaringType == typeof(DateInterval) && method.Name == nameof(DateInterval.Union))
