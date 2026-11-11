@@ -22,27 +22,100 @@ public class NavigationsBulkUpdateNpgsqlTest(NavigationsNpgsqlFixture fixture, I
     public override Task Delete_optional_associate()
         => Assert.ThrowsAsync<PostgresException>(base.Delete_optional_associate);
 
-    // PostgreSQL generates valid SQL for these but produces wrong row counts due to self-joins in UPDATE ... FROM
-    public override Task Update_property_inside_associate()
-        => Assert.ThrowsAsync<EqualException>(base.Update_property_inside_associate);
+    public override async Task Update_property_inside_associate()
+    {
+        await base.Update_property_inside_associate();
 
-    public override Task Update_property_inside_associate_with_special_chars()
-        => Assert.ThrowsAsync<EqualException>(base.Update_property_inside_associate_with_special_chars);
+        AssertExecuteUpdateSql(
+            """
+@p='foo_updated'
 
-    public override Task Update_property_on_projected_associate()
-        => Assert.ThrowsAsync<EqualException>(base.Update_property_on_projected_associate);
+UPDATE "AssociateType" AS a
+SET "String" = @p
+FROM "RootEntity" AS r
+WHERE r."RequiredAssociateId" = a."Id"
+""");
+    }
 
+    public override async Task Update_property_inside_associate_with_special_chars()
+    {
+        await base.Update_property_inside_associate_with_special_chars();
+
+        AssertExecuteUpdateSql(
+            """
+UPDATE "AssociateType" AS a0
+SET "String" = '{ Some other/JSON:like text though it [isn''t]: ממש ממש לאéèéè }'
+FROM "RootEntity" AS r
+INNER JOIN "AssociateType" AS a ON r."RequiredAssociateId" = a."Id"
+WHERE r."RequiredAssociateId" = a0."Id" AND a."String" = '{ this may/look:like JSON but it [isn''t]: ממש ממש לאéèéè }'
+""");
+    }
+
+    public override async Task Update_property_on_projected_associate()
+    {
+        await base.Update_property_on_projected_associate();
+
+        AssertExecuteUpdateSql(
+            """
+@p='foo_updated'
+
+UPDATE "AssociateType" AS a
+SET "String" = @p
+FROM "RootEntity" AS r
+WHERE r."RequiredAssociateId" = a."Id"
+""");
+    }
+
+    // PostgreSQL produces wrong row counts due to self-joins in UPDATE ... FROM.
     public override Task Update_property_on_projected_associate_with_OrderBy_Skip()
         => Assert.ThrowsAsync<EqualException>(base.Update_property_on_projected_associate_with_OrderBy_Skip);
 
-    public override Task Update_multiple_properties_inside_same_associate()
-        => Assert.ThrowsAsync<EqualException>(base.Update_multiple_properties_inside_same_associate);
+    public override async Task Update_multiple_properties_inside_same_associate()
+    {
+        await base.Update_multiple_properties_inside_same_associate();
 
-    public override Task Update_primitive_collection_to_constant()
-        => Assert.ThrowsAsync<EqualException>(base.Update_primitive_collection_to_constant);
+        AssertExecuteUpdateSql(
+            """
+@p='foo_updated'
+@p1='20'
 
-    public override Task Update_primitive_collection_to_parameter()
-        => Assert.ThrowsAsync<EqualException>(base.Update_primitive_collection_to_parameter);
+UPDATE "AssociateType" AS a
+SET "String" = @p,
+    "Int" = @p1
+FROM "RootEntity" AS r
+WHERE r."RequiredAssociateId" = a."Id"
+""");
+    }
+
+    public override async Task Update_primitive_collection_to_constant()
+    {
+        await base.Update_primitive_collection_to_constant();
+
+        AssertExecuteUpdateSql(
+            """
+UPDATE "AssociateType" AS a
+SET "Ints" = ARRAY[1,2,4]::integer[]
+FROM "RootEntity" AS r
+WHERE r."RequiredAssociateId" = a."Id"
+""");
+    }
+
+    public override async Task Update_primitive_collection_to_parameter()
+    {
+        await base.Update_primitive_collection_to_parameter();
+
+        AssertExecuteUpdateSql(
+            """
+@ints={ '1'
+'2'
+'4' } (DbType = Object)
+
+UPDATE "AssociateType" AS a
+SET "Ints" = @ints
+FROM "RootEntity" AS r
+WHERE r."RequiredAssociateId" = a."Id"
+""");
+    }
 
     // Translation not yet supported for navigation-mapped associations
     public override Task Update_associate_to_parameter()

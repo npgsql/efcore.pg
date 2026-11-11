@@ -86,12 +86,31 @@ WHERE (v."OptionalAssociate") IS NOT NULL
 
     #endregion Value types
 
-    // https://github.com/dotnet/efcore/issues/34627
     public override async Task FromSql_on_root()
     {
-        await Assert.ThrowsAnyAsync<Exception>(base.FromSql_on_root);
+        await base.FromSql_on_root();
 
-        AssertSql();
+        AssertSql(
+            """
+SELECT m."Id", m."Name", m."AssociateCollection", m."OptionalAssociate", m."RequiredAssociate"
+FROM (
+    SELECT * FROM "RootEntity"
+) AS m
+""");
+    }
+
+    public override async Task FromSql_on_root_composed(bool async)
+    {
+        await base.FromSql_on_root_composed(async);
+
+        AssertSql(
+            """
+SELECT m."Id", m."Name", m."AssociateCollection", m."OptionalAssociate", m."RequiredAssociate"
+FROM (
+    SELECT * FROM "RootEntity"
+) AS m
+WHERE (CAST(m."RequiredAssociate" ->> 'Int' AS integer)) = 8
+""");
     }
 
     [ConditionalFact]

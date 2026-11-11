@@ -2507,7 +2507,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
 
     /// <summary>
     ///     Builds index keys using facets from <paramref name="operation"/>. When supplied, <paramref name="jsonIndex"/>
-    ///     defines the keys and extraction expressions instead of the operation's deduplicated container columns.
+    ///     defines the keys, extraction expressions and sort directions instead of the operation's deduplicated container columns.
     /// </summary>
     private IndexColumn[] GetIndexColumns(CreateIndexOperation operation, RelationalJsonIndex? jsonIndex)
     {
@@ -2528,9 +2528,11 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
             var name = jsonIndex?.Elements[i].ContainingColumn.Name ?? operation.Columns[i];
             var @operator = i < operators?.Length ? operators[i] : null;
             var collation = i < collations?.Length ? collations[i] : null;
-            var isColumnDescending = isDescendingValues is not null
-                ? isDescendingValues.Length == 0 || isDescendingValues[i]
-                : i < legacySortOrders?.Length && legacySortOrders[i] == SortOrder.Descending;
+            var isColumnDescending = jsonIndex is not null
+                ? jsonIndex.IsElementDescending(i)
+                : isDescendingValues is not null
+                    ? isDescendingValues.Length == 0 || isDescendingValues[i]
+                    : i < legacySortOrders?.Length && legacySortOrders[i] == SortOrder.Descending;
             var nullSortOrder = i < nullSortOrders?.Length ? nullSortOrders[i] : NullSortOrder.Unspecified;
 
             columns[i] = new IndexColumn(
