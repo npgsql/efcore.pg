@@ -1,8 +1,8 @@
   <Project>
   <PropertyGroup>
-    <EFCoreVersion>11.0.0-rc.3.26522.148</EFCoreVersion>
-    <MicrosoftExtensionsVersion>11.0.0-rc.3.26522.148</MicrosoftExtensionsVersion>
-    <MicrosoftExtensionsConfigurationVersion>11.0.0-rc.3.26522.148</MicrosoftExtensionsConfigurationVersion>
+    <EFCoreVersion>11.0.0</EFCoreVersion>
+    <MicrosoftExtensionsVersion>11.0.0</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsConfigurationVersion>11.0.0</MicrosoftExtensionsConfigurationVersion>
     <NpgsqlVersion>10.0.3</NpgsqlVersion>
     <XunitVersion>4.0.1</XunitVersion>
   </PropertyGroup>
@@ -12,11 +12,11 @@
       Dependencies on EF preview versions should be locked to a specific version (as provider-facing breaking changes are frequent).
       For released versions, depend on anything in the current major version to allow users to update to higher patch versions.
     -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[$(EFCoreVersion)]" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[$(EFCoreVersion)]" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="[$(EFCoreVersion),12.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="[$(EFCoreVersion),12.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="[$(EFCoreVersion),12.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="[$(EFCoreVersion),12.0.0)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="[$(EFCoreVersion),12.0.0)" />
 
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsConfigurationVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(MicrosoftExtensionsConfigurationVersion)" />

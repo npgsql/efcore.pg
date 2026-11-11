@@ -895,8 +895,7 @@ DROP SEQUENCE "Person_Id_old_seq";
             {
                 Name = "IX_Json",
                 Table = "Blogs",
-                Columns = ["Details"],
-                IsDescending = descending ? [] : null
+                Columns = ["Details"]
             });
 
         var direction = descending ? " DESC" : "";
@@ -911,7 +910,7 @@ DROP SEQUENCE "Person_Id_old_seq";
             b =>
             {
                 BuildJsonIndexModel(b);
-                b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Slug).HasDatabaseName("IX_Json");
+                b.Entity<JsonIndexBlog>().HasIndex(e => e.Details.Slug).HasDatabaseName("IX_Json").IsDescending();
             },
             new CreateIndexOperation
             {
@@ -919,7 +918,6 @@ DROP SEQUENCE "Person_Id_old_seq";
                 Table = "Blogs",
                 Columns = ["Details"],
                 IsUnique = true,
-                IsDescending = [true],
                 Filter = "\"Id\" > 0",
                 [NpgsqlAnnotationNames.CreatedConcurrently] = true,
                 [NpgsqlAnnotationNames.IndexOperators] = new[] { "text_ops" },

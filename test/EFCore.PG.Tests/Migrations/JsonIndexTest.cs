@@ -12,55 +12,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 public class JsonIndexTest
 {
     [Fact]
-    public void Member_index_migration_scaffolding_fails_on_rc2()
+    public void Member_index_migration_scaffolds_and_generates_sql()
     {
-        using var context = new JsonIndexContext(b => b.HasIndex(e => e.Details.Slug));
-        var model = context.GetService<IDesignTimeModel>().Model;
-        var operations = context.GetService<IMigrationsModelDiffer>().GetDifferences(null, model.GetRelationalModel());
-        using var services = CreateDesignTimeServices(context);
-
-        // Replace with successful scaffolding after https://github.com/dotnet/efcore/issues/39064.
-        // Fixed by https://github.com/dotnet/efcore/pull/39089.
-        Assert.Equal(
-            "Cannot scaffold C# literals of type 'Microsoft.EntityFrameworkCore.Metadata.RelationalJsonIndex'. "
-            + "The provider should implement CoreTypeMapping.GenerateCodeLiteral to support using it at design time.",
-            Assert.Throws<InvalidOperationException>(
-                () => services.GetRequiredService<IMigrationsCodeGenerator>()
-                    .GenerateMigration("JsonIndexSnapshot", "Migration", operations, [])).Message);
-    }
-
-    [Theory]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    public void Mixed_composite_directions_fail_on_rc2(bool first, bool second)
-    {
-        using var context = new JsonIndexContext(
-            b => b.HasIndex(e => new { e.Details.Slug, e.Details.Rating }).IsDescending(first, second));
-        var model = context.GetService<IDesignTimeModel>().Model;
-
-        // Replace with successful index generation after https://github.com/dotnet/efcore/issues/39064.
-        // Fixed by https://github.com/dotnet/efcore/pull/39089.
-        Assert.Equal(
-            "2 values were provided in CreateIndexOperations.IsDescending, but the operation has 1 columns.",
-            Assert.Throws<ArgumentException>(
-                () => context.GetService<IMigrationsModelDiffer>().GetDifferences(null, model.GetRelationalModel())).Message);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Uniform_composite_directions_work(bool descending)
-    {
-        using var context = new JsonIndexContext(
-            b => b.HasIndex(e => new { e.Details.Slug, e.Details.Rating }).IsDescending(descending, descending));
+        using var context = new JsonIndexContext(b => b.HasIndex(e => e.Details.Slug).IsUnique());
         var model = context.GetService<IDesignTimeModel>().Model;
         var operation = Assert.Single(
             context.GetService<IMigrationsModelDiffer>().GetDifferences(null, model.GetRelationalModel())
                 .OfType<CreateIndexOperation>());
-        var direction = descending ? " DESC" : "";
+        using var services = CreateDesignTimeServices(context);
+        var generator = services.GetRequiredService<IMigrationsCodeGenerator>();
+        var source = generator.GenerateMigration("JsonIndexSnapshot", "AddJsonIndex", [operation], []);
+        var metadata = generator.GenerateMetadata(
+            "JsonIndexSnapshot", typeof(JsonIndexContext), "AddJsonIndex", "20261111000000_AddJsonIndex", model);
+
+        Assert.DoesNotContain(RelationalAnnotationNames.JsonIndex, source);
+
+        CompileAndAssert(
+            [source, metadata], assembly =>
+            {
+                var migration = (Migration)Activator.CreateInstance(assembly.GetType("JsonIndexSnapshot.AddJsonIndex"));
+                Assert.Null(Assert.Single(migration.UpOperations)[RelationalAnnotationNames.JsonIndex]);
+                var targetModel = context.GetService<IModelRuntimeInitializer>().Initialize(migration.TargetModel, designTime: true);
+                Assert.Equal(
+                    """CREATE UNIQUE INDEX "IX_Blogs_Details_Slug" ON "Blogs" (("Details" ->> 'Slug'));""",
+                    Assert.Single(context.GetService<IMigrationsSqlGenerator>().Generate(migration.UpOperations, targetModel))
+                        .CommandText.TrimEnd());
+            });
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Composite_sort_directions(bool first, bool second)
+    {
+        using var context = new JsonIndexContext(
+            b => b.HasIndex(e => new { e.Details.Slug, e.Details.Rating }).IsDescending(first, second));
+        var model = context.GetService<IDesignTimeModel>().Model;
+        var operation = Assert.Single(
+            context.GetService<IMigrationsModelDiffer>().GetDifferences(null, model.GetRelationalModel())
+                .OfType<CreateIndexOperation>());
+        var firstDirection = first ? " DESC" : "";
+        var secondDirection = second ? " DESC" : "";
 
         Assert.Equal(
-            $"""CREATE INDEX "IX_Blogs_Details_Slug_Details_Rating" ON "Blogs" (("Details" ->> 'Slug'){direction}, (CAST("Details" ->> 'Rating' AS integer)){direction});""",
+            $"""CREATE INDEX "IX_Blogs_Details_Slug_Details_Rating" ON "Blogs" (("Details" ->> 'Slug'){firstDirection}, (CAST("Details" ->> 'Rating' AS integer)){secondDirection});""",
             Assert.Single(context.GetService<IMigrationsSqlGenerator>().Generate([operation], model)).CommandText.TrimEnd());
     }
 
@@ -76,8 +73,6 @@ public class JsonIndexTest
         var operation = Assert.Single(
             context.GetService<IMigrationsModelDiffer>().GetDifferences(null, model.GetRelationalModel())
                 .OfType<CreateIndexOperation>());
-        Assert.Null(operation[RelationalAnnotationNames.JsonIndex]);
-        Assert.Null(operation[NpgsqlAnnotationNames.JsonIndexTypes]);
         using var services = CreateDesignTimeServices(context);
 
         var source = services.GetRequiredService<IMigrationsCodeGenerator>()
@@ -121,16 +116,19 @@ public class JsonIndexTest
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Member_index_snapshot_round_trips(bool composite)
+    [InlineData(false, false, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void Member_index_snapshot_round_trips(bool composite, bool first, bool second)
     {
         using var context = new JsonIndexContext(
             b =>
             {
                 if (composite)
                 {
-                    b.HasIndex(e => new { e.Details.Slug, e.Details.Rating });
+                    b.HasIndex(e => new { e.Details.Slug, e.Details.Rating }).IsDescending(first, second);
                 }
                 else
                 {
@@ -141,33 +139,15 @@ public class JsonIndexTest
         using var services = CreateDesignTimeServices(context);
         var source = services.GetRequiredService<IMigrationsCodeGenerator>()
             .GenerateSnapshot("JsonIndexSnapshot", typeof(JsonIndexContext), "Snapshot", model);
-        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(Path.PathSeparator)
-            .Append(typeof(JsonIndexTest).Assembly.Location)
-            .Distinct()
-            .Select(path => MetadataReference.CreateFromFile(path));
-        var compilation = CSharpCompilation.Create(
-            "JsonIndexSnapshot",
-            [CSharpSyntaxTree.ParseText(source)],
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        using var stream = new MemoryStream();
-        var result = compilation.Emit(stream);
-        Assert.True(result.Success, string.Join(Environment.NewLine, result.Diagnostics));
-        stream.Position = 0;
-        var loadContext = new AssemblyLoadContext("JsonIndexSnapshot", isCollectible: true);
-        try
-        {
-            var snapshot = (ModelSnapshot)Activator.CreateInstance(
-                loadContext.LoadFromStream(stream).GetType("JsonIndexSnapshot.Snapshot")!);
-            var snapshotModel = context.GetService<IModelRuntimeInitializer>().Initialize(snapshot.Model, designTime: true);
-            Assert.Empty(
-                context.GetService<IMigrationsModelDiffer>()
-                    .GetDifferences(model.GetRelationalModel(), snapshotModel.GetRelationalModel()));
-        }
-        finally
-        {
-            loadContext.Unload();
-        }
+        CompileAndAssert(
+            [source], assembly =>
+            {
+                var snapshot = (ModelSnapshot)Activator.CreateInstance(assembly.GetType("JsonIndexSnapshot.Snapshot"));
+                var snapshotModel = context.GetService<IModelRuntimeInitializer>().Initialize(snapshot.Model, designTime: true);
+                Assert.Empty(
+                    context.GetService<IMigrationsModelDiffer>()
+                        .GetDifferences(model.GetRelationalModel(), snapshotModel.GetRelationalModel()));
+            });
     }
 
     [Fact]
@@ -238,6 +218,32 @@ public class JsonIndexTest
         new NpgsqlDesignTimeServices().ConfigureDesignTimeServices(services);
         services.AddEntityFrameworkDesignTimeServices();
         return services.BuildServiceProvider();
+    }
+
+    private static void CompileAndAssert(string[] sources, Action<Assembly> assert)
+    {
+        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(Path.PathSeparator)
+            .Append(typeof(JsonIndexTest).Assembly.Location)
+            .Distinct()
+            .Select(path => MetadataReference.CreateFromFile(path));
+        var compilation = CSharpCompilation.Create(
+            "JsonIndexSnapshot",
+            sources.Select(source => CSharpSyntaxTree.ParseText(source)),
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        using var stream = new MemoryStream();
+        var result = compilation.Emit(stream);
+        Assert.True(result.Success, string.Join(Environment.NewLine, result.Diagnostics));
+        stream.Position = 0;
+        var loadContext = new AssemblyLoadContext("JsonIndexSnapshot", isCollectible: true);
+        try
+        {
+            assert(loadContext.LoadFromStream(stream));
+        }
+        finally
+        {
+            loadContext.Unload();
+        }
     }
 
     public class JsonIndexContext(Action<EntityTypeBuilder<JsonIndexBlog>> configureIndex) : DbContext
