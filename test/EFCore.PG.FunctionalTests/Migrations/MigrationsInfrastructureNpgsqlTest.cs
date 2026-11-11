@@ -36,6 +36,53 @@ public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTe
     public override Task Can_apply_all_migrations_async()
         => base.Can_apply_all_migrations_async();
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Can_generate_script_with_multiline_literals(bool idempotent)
+    {
+        await using var store = NpgsqlTestStore.Create("MultilineLiterals" + idempotent);
+        await using var context = new MultilineContext(store.AddProviderOptions(new DbContextOptionsBuilder()).Options);
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureCreatedAsync();
+        var script = context.GetService<IMigrator>().GenerateScript(
+            options: idempotent ? MigrationsSqlGenerationOptions.Idempotent : MigrationsSqlGenerationOptions.Default);
+
+        await store.ExecuteNonQueryAsync(script);
+        await store.ExecuteNonQueryAsync("""INSERT INTO "Blogs" ("Id") VALUES (2)""");
+
+        Assert.Equal(MultilineContext.Value, await store.ExecuteScalarAsync<string>("""SELECT "Name" FROM "Blogs" WHERE "Id" = 1"""));
+        Assert.Equal(MultilineContext.Value, await store.ExecuteScalarAsync<string>("""SELECT "Name" FROM "Blogs" WHERE "Id" = 2"""));
+        Assert.Equal(MultilineContext.Value, await store.ExecuteScalarAsync<string>("""SELECT obj_description('"Blogs"'::regclass)"""));
+        Assert.Equal(MultilineContext.Value, await store.ExecuteScalarAsync<string>("""SELECT col_description('"Blogs"'::regclass, 2)"""));
+    }
+
+    private class MultilineContext(DbContextOptions options) : DbContext(options)
+    {
+        public const string Value = "Don't\r\nGO\n  this way\\n\rend\r\n";
+    }
+
+    [DbContext(typeof(MultilineContext))]
+    [Migration("00000000000001_Multiline")]
+    public class MultilineMigration : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateTable(
+                "Blogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false),
+                    Name = table.Column<string>(
+                        type: "text", nullable: false, defaultValue: MultilineContext.Value, comment: MultilineContext.Value)
+                },
+                constraints: table => table.PrimaryKey("PK_Blogs", x => x.Id),
+                comment: MultilineContext.Value);
+            migrationBuilder.InsertData(
+                "Blogs", ["Id", "Name"], ["integer", "text"], [1, MultilineContext.Value]);
+        }
+    }
+
     [ConditionalFact]
     public async Task Empty_Migration_Creates_Database()
     {

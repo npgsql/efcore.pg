@@ -78,7 +78,7 @@ public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     private readonly LongTypeMapping _int8 = new("bigint", DbType.Int64);
 
     // Character types
-    private readonly StringTypeMapping _text = new("text", DbType.String);
+    private readonly NpgsqlStringTypeMapping _text = NpgsqlStringTypeMapping.Default;
     private readonly NpgsqlStringTypeMapping _varchar = new("character varying", NpgsqlDbType.Varchar);
     private readonly NpgsqlCharacterStringTypeMapping _char = new("character");
     private readonly NpgsqlCharacterCharTypeMapping _singleChar = new("character(1)");
