@@ -66,6 +66,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
             PgRowValueExpression e => VisitRowValue(e),
             PgUnknownBinaryExpression e => VisitUnknownBinary(e),
             PgTableValuedFunctionExpression e => VisitPgTableValuedFunctionExpression(e),
+            MergeColumnReferenceExpression mergeColumnReference => VisitMergeColumnReference(mergeColumnReference),
 
             _ => base.VisitExtension(extensionExpression)
         };
@@ -308,6 +309,123 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         }
 
         return pgDeleteExpression;
+    }
+
+    /// <summary>
+    ///     Generates SQL for a <see cref="MergeColumnReferenceExpression" /> within an upsert update clause.
+    /// </summary>
+    /// <param name="mergeColumnReference">The merge column reference expression.</param>
+    /// <returns>The expression visited.</returns>
+    [Experimental(EFDiagnostics.ExecuteMergeExperimental)]
+    protected virtual Expression VisitMergeColumnReference(MergeColumnReferenceExpression mergeColumnReference)
+    {
+        if (mergeColumnReference.FromExcluded)
+        {
+            Sql.Append("EXCLUDED.");
+        }
+
+        Sql.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(mergeColumnReference.ColumnName));
+        return mergeColumnReference;
+    }
+
+    /// <summary>
+    ///     Generates SQL for a <see cref="MergeExpression" /> (an upsert) using PostgreSQL's INSERT ... ON CONFLICT syntax.
+    /// </summary>
+    /// <param name="mergeExpression">The merge expression to generate SQL for.</param>
+    [Experimental(EFDiagnostics.ExecuteMergeExperimental)]
+    protected override void VisitMerge(MergeExpression mergeExpression)
+    {
+        var helper = Dependencies.SqlGenerationHelper;
+
+        Sql.Append("INSERT INTO ")
+            .Append(helper.DelimitIdentifier(mergeExpression.Table.Name, mergeExpression.Table.Schema))
+            .Append(" (");
+        AppendDelimitedColumns(mergeExpression.InsertColumns);
+        Sql.AppendLine(")");
+
+        if (mergeExpression.SourceRows.Count == 0)
+        {
+            // SQL VALUES doesn't allow an empty set. With no source rows there is nothing to merge, so emit an
+            // INSERT ... SELECT ... WHERE FALSE that inserts (and returns) nothing, leaving the affected-row count at 0.
+            Sql.Append("SELECT ");
+            for (var i = 0; i < mergeExpression.InsertColumns.Count; i++)
+            {
+                if (i > 0)
+                {
+                    Sql.Append(", ");
+                }
+
+                Sql.Append("NULL");
+            }
+
+            Sql.Append(" WHERE FALSE");
+        }
+        else
+        {
+            Sql.Append("VALUES ");
+            for (var r = 0; r < mergeExpression.SourceRows.Count; r++)
+            {
+                if (r > 0)
+                {
+                    Sql.Append(",").AppendLine();
+                }
+
+                Visit(mergeExpression.SourceRows[r]);
+            }
+
+            Sql.AppendLine().Append("ON CONFLICT (");
+            AppendDelimitedColumns(mergeExpression.ConflictColumns);
+            Sql.Append(")");
+
+            if (mergeExpression.UpdateSetters is null)
+            {
+                Sql.Append(" DO NOTHING");
+            }
+            else
+            {
+                Sql.AppendLine(" DO UPDATE SET");
+                for (var i = 0; i < mergeExpression.UpdateSetters.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        Sql.Append(",").AppendLine();
+                    }
+
+                    var setter = mergeExpression.UpdateSetters[i];
+                    Sql.Append(helper.DelimitIdentifier(setter.ColumnName)).Append(" = ");
+                    Visit(setter.Value);
+                }
+            }
+        }
+
+        if (mergeExpression.Returning is not null)
+        {
+            Sql.AppendLine().Append("RETURNING ");
+            for (var i = 0; i < mergeExpression.Returning.Count; i++)
+            {
+                if (i > 0)
+                {
+                    Sql.Append(", ");
+                }
+
+                Visit(mergeExpression.Returning[i].Expression);
+            }
+        }
+
+        Sql.Append(helper.StatementTerminator);
+
+        void AppendDelimitedColumns(IReadOnlyList<string> columns)
+        {
+            for (var i = 0; i < columns.Count; i++)
+            {
+                if (i > 0)
+                {
+                    Sql.Append(", ");
+                }
+
+                Sql.Append(helper.DelimitIdentifier(columns[i]));
+            }
+        }
     }
 
     /// <summary>
