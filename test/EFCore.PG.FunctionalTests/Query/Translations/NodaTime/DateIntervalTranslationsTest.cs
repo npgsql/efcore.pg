@@ -132,7 +132,54 @@ WHERE n."DateInterval" @> @dateInterval
 
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE n."DateInterval" * @dateInterval = '[2018-04-22,2018-04-24]'::daterange
+WHERE CASE
+    WHEN n."DateInterval" && @dateInterval THEN n."DateInterval" * @dateInterval
+END = '[2018-04-22,2018-04-24]'::daterange
+""");
+    }
+
+    [ConditionalTheory] // #4083
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Intersection_with_disjoint_interval_is_null(bool async)
+    {
+        var dateInterval = new DateInterval(new LocalDate(2018, 5, 1), new LocalDate(2018, 5, 5));
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.DateInterval.Intersection(dateInterval) == null));
+
+        AssertSql(
+            """
+@dateInterval='[2018-05-01, 2018-05-05]' (DbType = Object)
+
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE CASE
+    WHEN n."DateInterval" && @dateInterval THEN n."DateInterval" * @dateInterval
+END IS NULL
+""");
+    }
+
+    [ConditionalTheory] // #4083
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Intersection_with_disjoint_interval_not_null(bool async)
+    {
+        var dateInterval = new DateInterval(new LocalDate(2018, 5, 1), new LocalDate(2018, 5, 5));
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<NodaTimeTypes>().Where(t => t.DateInterval.Intersection(dateInterval) != null),
+            assertEmpty: true);
+
+        AssertSql(
+            """
+@dateInterval='[2018-05-01, 2018-05-05]' (DbType = Object)
+
+SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
+FROM "NodaTimeTypes" AS n
+WHERE CASE
+    WHEN n."DateInterval" && @dateInterval THEN n."DateInterval" * @dateInterval
+END IS NOT NULL
 """);
     }
 
