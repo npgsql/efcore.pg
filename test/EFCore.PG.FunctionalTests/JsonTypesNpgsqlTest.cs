@@ -488,7 +488,7 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
         await Can_read_and_write_JSON_value<PointMType, Point>(
             nameof(PointMType.PointM),
             factory.CreatePoint(new CoordinateM(2, 4, 6)),
-            """{"Prop":"SRID=4326;POINT (2 4)"}""");
+            """{"Prop":"SRID=4326;POINT M(2 4 6)"}""");
     }
 
     public override async Task Can_read_write_point_with_Z()
@@ -508,7 +508,7 @@ public class JsonTypesNpgsqlTest(NonSharedFixture fixture) : JsonTypesRelational
         await Can_read_and_write_JSON_value<PointZMType, Point>(
             nameof(PointZMType.PointZM),
             factory.CreatePoint(new CoordinateZM(1, 2, 3, 4)),
-            """{"Prop":"SRID=4326;POINT Z(1 2 3)"}""");
+            """{"Prop":"SRID=4326;POINT ZM(1 2 3 4)"}""");
     }
 
     public override async Task Can_read_write_line_string()
