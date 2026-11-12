@@ -17,6 +17,9 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     private readonly ProvideClientCertificatesCallback? _provideClientCertificatesCallback;
     private readonly RemoteCertificateValidationCallback? _remoteCertificateValidationCallback;
 
+    // True when a connection was supplied after construction, e.g. via Database.SetDbConnection(). It isn't reflected in the options.
+    private bool _isDbConnectionSet;
+
 #pragma warning disable CS0618 // ProvidePasswordCallback is obsolete
     private readonly ProvidePasswordCallback? _providePasswordCallback;
 #pragma warning restore CS0618
@@ -153,6 +156,19 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
+    public override void SetDbConnection(DbConnection? value, bool contextOwnsConnection)
+    {
+        base.SetDbConnection(value, contextOwnsConnection);
+
+        _isDbConnectionSet = value is not null;
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
     [AllowNull]
     public new virtual NpgsqlConnection DbConnection
     {
@@ -205,7 +221,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         // Cloned connections must be owned so disposing the wrapper also closes and disposes them.
         var adminNpgsqlOptions = DataSource is not null
             ? npgsqlOptions.WithConnection(((NpgsqlConnection)CreateDbConnection()).CloneWith(adminConnectionString), owned: true)
-            : npgsqlOptions.Connection is not null
+            : npgsqlOptions.Connection is not null || _isDbConnectionSet
                 ? npgsqlOptions.WithConnection(DbConnection.CloneWith(adminConnectionString), owned: true)
                 : npgsqlOptions.WithConnectionString(adminConnectionString);
 
