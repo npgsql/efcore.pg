@@ -2286,7 +2286,7 @@ public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
                 {
                     bool b => b ? "true" : "false",
                     string s => $"'{s}'",
-                    _ => a.Value!.ToString()!
+                    _ => Convert.ToString(a.Value, CultureInfo.InvariantCulture)!
                 });
 
     // TODO: Call this for AlterIndexOperation when that's added (https://github.com/dotnet/efcore/issues/20692)
