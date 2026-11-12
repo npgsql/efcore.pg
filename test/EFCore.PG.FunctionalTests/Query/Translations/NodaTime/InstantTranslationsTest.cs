@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.TestModels.NodaTime;
 using NodaTime;
 
@@ -24,8 +25,66 @@ public class InstantTranslationsTest : QueryTestBase<NodaTimeQueryNpgsqlFixture>
             """
 SELECT n."Id", n."DateInterval", n."Duration", n."Instant", n."InstantRange", n."Interval", n."LocalDate", n."LocalDate2", n."LocalDateRange", n."LocalDateTime", n."LocalTime", n."Long", n."OffsetTime", n."Period", n."TimeZoneId", n."ZonedDateTime"
 FROM "NodaTimeTypes" AS n
-WHERE (n."Instant" + INTERVAL '1 00:00:00') - n."Instant" = INTERVAL '1 00:00:00'
+WHERE (((n."Instant" AT TIME ZONE 'UTC') + INTERVAL '1 00:00:00') AT TIME ZONE 'UTC') - n."Instant" = INTERVAL '1 00:00:00'
 """);
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Duration_arithmetic_on_timestamptz_with_precision_or_alias(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        // Europe/Berlin moves to daylight saving time on 2018-03-25, so arithmetic in the session time zone would be an hour off
+        // NodaTime has no Duration + Instant operator, so the Duration is always on the right of the arithmetic.
+        var duration = Duration.FromDays(1);
+        var instant = Instant.FromUtc(2018, 3, 24, 12, 0);
+        var query = ctx.Database.SqlQueryRaw<DurationArithmetic>(
+                """
+SELECT TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "Instant", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "ZonedDateTime", INTERVAL '1 day' AS "Duration"
+""")
+            .Select(
+                a => new
+                {
+                    Instant = a.Instant + a.Duration,
+                    ZonedDateTime = a.ZonedDateTime - a.Duration,
+                    InstantParameter = a.Instant + duration,
+                    ZonedDateTimeParameter = a.ZonedDateTime - duration,
+                    // The parameter's mapping is inferred from the column on the other side of the comparison
+                    InstantComparison = instant + a.Duration == a.ZonedDateTime.ToInstant()
+                        && a.ZonedDateTime.ToInstant() == instant + a.Duration
+                });
+
+        var result = async ? await query.SingleAsync() : query.Single();
+
+        Assert.Equal(Instant.FromUtc(2018, 3, 25, 12, 0), result.Instant);
+        Assert.Equal(Instant.FromUtc(2018, 3, 24, 12, 0).InUtc(), result.ZonedDateTime);
+        Assert.Equal(Instant.FromUtc(2018, 3, 25, 12, 0), result.InstantParameter);
+        Assert.Equal(Instant.FromUtc(2018, 3, 24, 12, 0).InUtc(), result.ZonedDateTimeParameter);
+        Assert.True(result.InstantComparison);
+
+        AssertSql(
+            """
+@duration='1:00:00:00' (DbType = Object)
+@instant='2018-03-24T12:00:00Z' (DbType = DateTime)
+
+SELECT ((m."Instant" AT TIME ZONE 'UTC') + m."Duration") AT TIME ZONE 'UTC' AS "Instant", ((m."ZonedDateTime" AT TIME ZONE 'UTC') - m."Duration") AT TIME ZONE 'UTC' AS "ZonedDateTime", ((m."Instant" AT TIME ZONE 'UTC') + @duration) AT TIME ZONE 'UTC' AS "InstantParameter", ((m."ZonedDateTime" AT TIME ZONE 'UTC') - @duration) AT TIME ZONE 'UTC' AS "ZonedDateTimeParameter", ((@instant AT TIME ZONE 'UTC') + m."Duration") AT TIME ZONE 'UTC' = m."ZonedDateTime" AND m."ZonedDateTime" = ((@instant AT TIME ZONE 'UTC') + m."Duration") AT TIME ZONE 'UTC' AS "InstantComparison"
+FROM (
+    SELECT TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "Instant", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "ZonedDateTime", INTERVAL '1 day' AS "Duration"
+) AS m
+LIMIT 2
+""");
+    }
+
+    private class DurationArithmetic
+    {
+        [Precision(3)]
+        public Instant Instant { get; set; }
+
+        [Column(TypeName = "timestamptz(3)")]
+        public ZonedDateTime ZonedDateTime { get; set; }
+
+        public Duration Duration { get; set; }
     }
 
     [ConditionalTheory]

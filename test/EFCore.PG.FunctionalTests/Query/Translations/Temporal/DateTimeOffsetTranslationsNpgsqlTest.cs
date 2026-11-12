@@ -190,7 +190,7 @@ WHERE b."DateTimeOffset"::timestamp > TIMESTAMP '1999-01-01T00:00:00'
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '1 years'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '1 years') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -201,7 +201,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '1 months'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '1 months') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -212,7 +212,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '1 days'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -223,7 +223,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '1 hours'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '1 hours') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -234,7 +234,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '1 mins'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '1 mins') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -245,7 +245,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + INTERVAL '1 secs'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '1 secs') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -256,7 +256,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + 300.0 * INTERVAL '1 milliseconds'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + 300.0 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -269,7 +269,7 @@ FROM "BasicTypesEntities" AS b
 
         AssertSql(
             """
-SELECT b."DateTimeOffset" + -1500.0 * INTERVAL '1 microseconds'
+SELECT ((b."DateTimeOffset" AT TIME ZONE 'UTC') + -1500.0 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC'
 FROM "BasicTypesEntities" AS b
 """);
     }
@@ -289,7 +289,7 @@ FROM "BasicTypesEntities" AS b
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Id" = 1 AND b."DateTimeOffset" + 2592000000.0 * INTERVAL '1 milliseconds' = b."DateTimeOffset" + INTERVAL '720 hours' AND b."DateTimeOffset" + -2592000000.0 * INTERVAL '1 milliseconds' = b."DateTimeOffset" + INTERVAL '-720 hours' AND b."DateTimeOffset" + 3600000000.0 * INTERVAL '1 microseconds' = b."DateTimeOffset" + INTERVAL '1 hours' AND b."DateTimeOffset" + -3600000000.0 * INTERVAL '1 microseconds' = b."DateTimeOffset" + INTERVAL '-1 hours'
+WHERE b."Id" = 1 AND ((b."DateTimeOffset" AT TIME ZONE 'UTC') + 2592000000.0 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' = ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '720 hours') AT TIME ZONE 'UTC' AND ((b."DateTimeOffset" AT TIME ZONE 'UTC') + -2592000000.0 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' = ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '-720 hours') AT TIME ZONE 'UTC' AND ((b."DateTimeOffset" AT TIME ZONE 'UTC') + 3600000000.0 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' = ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '1 hours') AT TIME ZONE 'UTC' AND ((b."DateTimeOffset" AT TIME ZONE 'UTC') + -3600000000.0 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' = ((b."DateTimeOffset" AT TIME ZONE 'UTC') + INTERVAL '-1 hours') AT TIME ZONE 'UTC'
 """);
     }
 

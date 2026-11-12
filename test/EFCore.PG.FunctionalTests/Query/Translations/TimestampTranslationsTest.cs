@@ -84,6 +84,315 @@ public class TimestampTranslationsTest : QueryTestBase<TimestampTranslationsTest
 
     #endregion Basic mapping
 
+    #region Arithmetic
+
+    // Arithmetic on timestamptz is performed in UTC, since timestamptz + interval follows the session time zone (see the
+    // corresponding timestamptz tests); timestamp has no time zone, so its arithmetic must be left as-is.
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Add_TimeSpan_to_timestamp_column(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Select(e => e.TimestampDateTime + TimeSpan.FromHours(36)));
+
+        AssertSql(
+            """
+SELECT e."TimestampDateTime" + INTERVAL '1 12:00:00'
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Subtract_TimeSpan_from_timestamp_column(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Select(e => e.TimestampDateTime - TimeSpan.FromHours(-26)));
+
+        AssertSql(
+            """
+SELECT e."TimestampDateTime" - INTERVAL '-1 -02:00:00'
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task AddDays_on_timestamp_column(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Select(e => e.TimestampDateTime.AddDays(1)));
+
+        AssertSql(
+            """
+SELECT e."TimestampDateTime" + INTERVAL '1 days'
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Add_TimeSpan_to_timestamptz_column(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Select(e => e.TimestamptzDateTime + TimeSpan.FromHours(36)));
+
+        AssertSql(
+            """
+SELECT ((e."TimestamptzDateTime" AT TIME ZONE 'UTC') + INTERVAL '1 12:00:00') AT TIME ZONE 'UTC'
+FROM "Entities" AS e
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Interval_arithmetic_on_DateTime_parameter_infers_timestamp_from_comparison(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        // The parameter's mapping is inferred from the timestamp column on the other side of the comparison
+        var date = new DateTime(2018, 3, 24, 12, 0, 0, DateTimeKind.Unspecified);
+
+        // .NET has no TimeSpan + DateTime operator, so the TimeSpan is always on the right of the arithmetic;
+        // the arithmetic is on either side of the comparison.
+        var query = Arithmetic(ctx).Where(
+            a => date + a.Interval == a.Later
+                && date - a.Interval == a.Earlier
+                && a.Later == date + a.Interval
+                && a.Earlier == date - a.Interval
+                && EF.Constant(date) + a.Interval == a.Later
+                && EF.Constant(date) - a.Interval == a.Earlier
+                && a.Later == EF.Constant(date) + a.Interval
+                && a.Earlier == EF.Constant(date) - a.Interval);
+
+        Assert.Equal(1, async ? await query.CountAsync() : query.Count());
+
+        AssertSql(
+            """
+@date='2018-03-24T12:00:00.0000000'
+
+SELECT count(*)::int
+FROM (
+    SELECT TIMESTAMP '2018-03-23T12:00:00' AS "Earlier", TIMESTAMP '2018-03-25T12:00:00' AS "Later", INTERVAL '1 day' AS "Interval", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDst", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "AfterDst", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstAlias", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstOffset"
+) AS m
+WHERE @date + m."Interval" = m."Later" AND @date - m."Interval" = m."Earlier" AND m."Later" = @date + m."Interval" AND m."Earlier" = @date - m."Interval" AND TIMESTAMP '2018-03-24T12:00:00' + m."Interval" = m."Later" AND TIMESTAMP '2018-03-24T12:00:00' - m."Interval" = m."Earlier" AND m."Later" = TIMESTAMP '2018-03-24T12:00:00' + m."Interval" AND m."Earlier" = TIMESTAMP '2018-03-24T12:00:00' - m."Interval"
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Interval_arithmetic_on_DateTime_parameter_infers_timestamptz_from_comparison(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        // The parameter's mapping is inferred from the timestamptz column on the other side of the comparison, after which
+        // the arithmetic is performed in UTC (Europe/Berlin moves to daylight saving time on 2018-03-25).
+        var date = new DateTime(2018, 3, 24, 12, 0, 0, DateTimeKind.Utc);
+
+        var query = Arithmetic(ctx).Where(
+            a => date + a.Interval == a.AfterDst
+                && a.AfterDst == date + a.Interval
+                && date + a.Interval - a.Interval == a.BeforeDst
+                && a.BeforeDst == date + a.Interval - a.Interval);
+
+        Assert.Equal(1, async ? await query.CountAsync() : query.Count());
+
+        AssertSql(
+            """
+@date='2018-03-24T12:00:00.0000000Z' (DbType = DateTime)
+
+SELECT count(*)::int
+FROM (
+    SELECT TIMESTAMP '2018-03-23T12:00:00' AS "Earlier", TIMESTAMP '2018-03-25T12:00:00' AS "Later", INTERVAL '1 day' AS "Interval", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDst", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "AfterDst", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstAlias", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstOffset"
+) AS m
+WHERE ((@date AT TIME ZONE 'UTC') + m."Interval") AT TIME ZONE 'UTC' = m."AfterDst" AND m."AfterDst" = ((@date AT TIME ZONE 'UTC') + m."Interval") AT TIME ZONE 'UTC' AND ((((@date AT TIME ZONE 'UTC') + m."Interval")) - m."Interval") AT TIME ZONE 'UTC' = m."BeforeDst" AND m."BeforeDst" = ((((@date AT TIME ZONE 'UTC') + m."Interval")) - m."Interval") AT TIME ZONE 'UTC'
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task AddDays_with_constant_on_DateTime_parameter(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        // The parameter's mapping is only inferred after AddDays() etc. are translated: from the column on the other side of the
+        // comparison, or from the default mapping when projected. The arithmetic must then be performed in UTC for timestamptz
+        // (Europe/Berlin moves to daylight saving time on 2018-03-25), and left as-is for timestamp.
+        var utc = new DateTime(2018, 3, 24, 12, 0, 0, DateTimeKind.Utc);
+        var unspecified = new DateTime(2018, 3, 24, 12, 0, 0, DateTimeKind.Unspecified);
+        var offset = new DateTimeOffset(utc);
+
+        var query = Arithmetic(ctx)
+            .Where(
+                a => EF.Parameter(utc).AddDays(1) == a.AfterDst
+                    && a.AfterDst == EF.Parameter(utc).AddDays(1)
+                    && EF.Parameter(unspecified).AddDays(1) == a.Later
+                    && a.Earlier == EF.Parameter(unspecified).AddDays(-1))
+            .Select(
+                a => new
+                {
+                    AddDays = EF.Parameter(utc).AddDays(1),
+                    AddMonths = EF.Parameter(utc).AddMonths(1),
+                    OffsetAddDays = EF.Parameter(offset).AddDays(1)
+                });
+
+        var result = async ? await query.SingleAsync() : query.Single();
+
+        Assert.Equal(new DateTime(2018, 3, 25, 12, 0, 0, DateTimeKind.Utc), result.AddDays);
+        Assert.Equal(new DateTime(2018, 4, 24, 12, 0, 0, DateTimeKind.Utc), result.AddMonths);
+        Assert.Equal(new DateTimeOffset(2018, 3, 25, 12, 0, 0, TimeSpan.Zero), result.OffsetAddDays);
+
+        AssertSql(
+            """
+@utc='2018-03-24T12:00:00.0000000Z' (DbType = DateTime)
+@offset='2018-03-24T12:00:00.0000000+00:00' (DbType = DateTime)
+@utc0='2018-03-24T12:00:00.0000000Z' (DbType = DateTime)
+@unspecified='2018-03-24T12:00:00.0000000'
+
+SELECT ((@utc AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' AS "AddDays", ((@utc AT TIME ZONE 'UTC') + INTERVAL '1 months') AT TIME ZONE 'UTC' AS "AddMonths", ((@offset AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' AS "OffsetAddDays"
+FROM (
+    SELECT TIMESTAMP '2018-03-23T12:00:00' AS "Earlier", TIMESTAMP '2018-03-25T12:00:00' AS "Later", INTERVAL '1 day' AS "Interval", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDst", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "AfterDst", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstAlias", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstOffset"
+) AS m
+WHERE ((@utc0 AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' = m."AfterDst" AND m."AfterDst" = ((@utc0 AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' AND @unspecified + INTERVAL '1 days' = m."Later" AND m."Earlier" = @unspecified + INTERVAL '-1 days'
+LIMIT 2
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Interval_arithmetic_on_timestamptz_with_precision_or_alias(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        // Europe/Berlin moves to daylight saving time on 2018-03-25, so arithmetic in the session time zone would be an hour off
+        var interval = TimeSpan.FromDays(1);
+        var query = Arithmetic(ctx).Select(
+            a => new
+            {
+                AddDays = a.BeforeDst.AddDays(1),
+                Add = a.BeforeDst + a.Interval,
+                Subtract = a.AfterDst - a.Interval,
+                AddParameter = a.BeforeDst + interval,
+                SubtractParameter = a.AfterDst - interval,
+                AliasAddDays = a.BeforeDstAlias.AddDays(1),
+                AliasAdd = a.BeforeDstAlias + a.Interval,
+                OffsetAddDays = a.BeforeDstOffset.AddDays(1),
+                OffsetAdd = a.BeforeDstOffset + a.Interval
+            });
+
+        var result = async ? await query.SingleAsync() : query.Single();
+
+        var beforeDst = new DateTime(2018, 3, 24, 12, 0, 0, DateTimeKind.Utc);
+        var afterDst = new DateTime(2018, 3, 25, 12, 0, 0, DateTimeKind.Utc);
+        Assert.Equal(afterDst, result.AddDays);
+        Assert.Equal(afterDst, result.Add);
+        Assert.Equal(beforeDst, result.Subtract);
+        Assert.Equal(afterDst, result.AddParameter);
+        Assert.Equal(beforeDst, result.SubtractParameter);
+        Assert.Equal(afterDst, result.AliasAddDays);
+        Assert.Equal(afterDst, result.AliasAdd);
+        Assert.Equal(new DateTimeOffset(afterDst), result.OffsetAddDays);
+        Assert.Equal(new DateTimeOffset(afterDst), result.OffsetAdd);
+
+        AssertSql(
+            """
+@interval='1.00:00:00' (DbType = Object)
+
+SELECT ((m."BeforeDst" AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' AS "AddDays", ((m."BeforeDst" AT TIME ZONE 'UTC') + m."Interval") AT TIME ZONE 'UTC' AS "Add", ((m."AfterDst" AT TIME ZONE 'UTC') - m."Interval") AT TIME ZONE 'UTC' AS "Subtract", ((m."BeforeDst" AT TIME ZONE 'UTC') + @interval) AT TIME ZONE 'UTC' AS "AddParameter", ((m."AfterDst" AT TIME ZONE 'UTC') - @interval) AT TIME ZONE 'UTC' AS "SubtractParameter", ((m."BeforeDstAlias" AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' AS "AliasAddDays", ((m."BeforeDstAlias" AT TIME ZONE 'UTC') + m."Interval") AT TIME ZONE 'UTC' AS "AliasAdd", ((m."BeforeDstOffset" AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' AS "OffsetAddDays", ((m."BeforeDstOffset" AT TIME ZONE 'UTC') + m."Interval") AT TIME ZONE 'UTC' AS "OffsetAdd"
+FROM (
+    SELECT TIMESTAMP '2018-03-23T12:00:00' AS "Earlier", TIMESTAMP '2018-03-25T12:00:00' AS "Later", INTERVAL '1 day' AS "Interval", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDst", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "AfterDst", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstAlias", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstOffset"
+) AS m
+LIMIT 2
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Interval_arithmetic_on_timestamptz_with_precision_compared_to_parameter(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        // The parameters' mappings are inferred from the arithmetic, on either side of the comparison
+        var add = new DateTime(2018, 3, 25, 12, 0, 0, DateTimeKind.Utc);
+        var addDays = add;
+        var subtract = new DateTime(2018, 3, 24, 12, 0, 0, DateTimeKind.Utc);
+
+        var query = Arithmetic(ctx).Where(
+            a => a.BeforeDst + a.Interval == add
+                && a.BeforeDst.AddDays(1) == addDays
+                && subtract == a.AfterDst - a.Interval);
+
+        Assert.Equal(1, async ? await query.CountAsync() : query.Count());
+
+        AssertSql(
+            """
+@add='2018-03-25T12:00:00.0000000Z' (DbType = DateTime)
+@addDays='2018-03-25T12:00:00.0000000Z' (DbType = DateTime)
+@subtract='2018-03-24T12:00:00.0000000Z' (DbType = DateTime)
+
+SELECT count(*)::int
+FROM (
+    SELECT TIMESTAMP '2018-03-23T12:00:00' AS "Earlier", TIMESTAMP '2018-03-25T12:00:00' AS "Later", INTERVAL '1 day' AS "Interval", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDst", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "AfterDst", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstAlias", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstOffset"
+) AS m
+WHERE ((m."BeforeDst" AT TIME ZONE 'UTC') + m."Interval") AT TIME ZONE 'UTC' = @add AND ((m."BeforeDst" AT TIME ZONE 'UTC') + INTERVAL '1 days') AT TIME ZONE 'UTC' = @addDays AND @subtract = ((m."AfterDst" AT TIME ZONE 'UTC') - m."Interval") AT TIME ZONE 'UTC'
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData("timestamp(3) with time zone", "timestamp(3) with time zone", typeof(DateTime))]
+    [InlineData("timestamptz(3)", "timestamp(3) with time zone", typeof(DateTime))]
+    [InlineData("timestamptz", "timestamptz", typeof(DateTime))]
+    [InlineData("timestamp(3) with time zone", "timestamp(3) with time zone", typeof(DateTimeOffset))]
+    public void Interval_arithmetic_on_timestamptz_keeps_store_type(string storeType, string expectedStoreType, Type clrType)
+    {
+        using var ctx = CreateContext();
+
+        var sqlExpressionFactory = ctx.GetService<ISqlExpressionFactory>();
+        var mapping = ctx.GetService<IRelationalTypeMappingSource>().FindMapping(clrType, storeType)!;
+        var instance = new SqlParameterExpression("p", "p", clrType, nullable: false, ParameterTranslationMode.Parameter, mapping);
+        var interval = sqlExpressionFactory.Constant(TimeSpan.FromDays(1));
+
+        // The arithmetic is performed on 'timestamp without time zone' (AT TIME ZONE 'UTC'), and the result converted back
+        // to the instance's 'timestamp with time zone' mapping, including its precision.
+        AssertResult(sqlExpressionFactory.Add(instance, interval));
+        AssertResult(sqlExpressionFactory.Subtract(instance, interval));
+
+        var addDays = ctx.GetService<IMethodCallTranslatorProvider>().Translate(
+            ctx.Model,
+            instance,
+            clrType.GetMethod(nameof(DateTime.AddDays), [typeof(double)])!,
+            [sqlExpressionFactory.Constant(1.0)],
+            ctx.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>());
+        AssertResult(addDays);
+
+        void AssertResult(SqlExpression? result)
+        {
+            var outer = Assert.IsType<AtTimeZoneExpression>(result);
+            Assert.Same(mapping, outer.TypeMapping);
+            Assert.Equal(expectedStoreType, outer.TypeMapping!.StoreType);
+            Assert.Equal(clrType, outer.Type);
+
+            var arithmetic = Assert.IsType<SqlBinaryExpression>(outer.Operand);
+            Assert.Equal("timestamp without time zone", arithmetic.TypeMapping!.StoreType);
+            var utc = Assert.IsType<AtTimeZoneExpression>(arithmetic.Left);
+            Assert.Equal("timestamp without time zone", utc.TypeMapping!.StoreType);
+            Assert.Same(instance, utc.Operand);
+        }
+    }
+
+    private static IQueryable<IntervalArithmetic> Arithmetic(TimestampQueryContext ctx)
+        => ctx.Database.SqlQueryRaw<IntervalArithmetic>(
+            """
+SELECT TIMESTAMP '2018-03-23T12:00:00' AS "Earlier", TIMESTAMP '2018-03-25T12:00:00' AS "Later", INTERVAL '1 day' AS "Interval", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDst", TIMESTAMPTZ '2018-03-25T12:00:00Z' AS "AfterDst", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstAlias", TIMESTAMPTZ '2018-03-24T12:00:00Z' AS "BeforeDstOffset"
+""");
+
+    #endregion Arithmetic
+
     #region Comparisons
 
     [ConditionalTheory]
@@ -790,7 +1099,7 @@ WHERE (e."TimestampDateTime" AT TIME ZONE 'Europe/Berlin') AT TIME ZONE 'UTC' = 
 
         AssertSql(
             """
-SELECT ((e."TimestampDateTime" AT TIME ZONE 'Europe/Berlin') AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
+SELECT (e."TimestampDateTime" AT TIME ZONE 'Europe/Berlin')
 FROM "Entities" AS e
 WHERE e."Id" = 1
 LIMIT 2
@@ -1004,7 +1313,38 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) - DATE '0001-01-0
             """
 SELECT e."Id", e."TimestampDateTime", e."TimestampDateTimeArray", e."TimestampDateTimeOffset", e."TimestampDateTimeOffsetArray", e."TimestampDateTimeRange", e."TimestamptzDateTime", e."TimestamptzDateTimeArray", e."TimestamptzDateTimeRange"
 FROM "Entities" AS e
-WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) - CAST((e."TimestamptzDateTime" - INTERVAL '3 00:00:00') AT TIME ZONE 'UTC' AS date) = 3
+WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS date) - CAST(((e."TimestamptzDateTime" AT TIME ZONE 'UTC') - INTERVAL '3 00:00:00') AS date) = 3
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public virtual async Task DateOnly_AddMonths_and_AddYears_on_parameter(bool async)
+    {
+        await using var ctx = CreateContext();
+
+        // The parameter must be mapped to date, rather than inferred from the interval
+        var monthEnd = new DateOnly(2018, 1, 31);
+        var leapDay = new DateOnly(2016, 2, 29);
+
+        var query = ctx.Entities
+            .Where(e => e.Id == 1 && EF.Parameter(monthEnd).AddMonths(1) == new DateOnly(2018, 2, 28))
+            .Select(e => new { AddMonths = EF.Parameter(monthEnd).AddMonths(1), AddYears = EF.Parameter(leapDay).AddYears(1) });
+
+        var result = async ? await query.SingleAsync() : query.Single();
+
+        Assert.Equal(new DateOnly(2018, 2, 28), result.AddMonths);
+        Assert.Equal(new DateOnly(2017, 2, 28), result.AddYears);
+
+        AssertSql(
+            """
+@monthEnd='01/31/2018' (DbType = Date)
+@leapDay='02/29/2016' (DbType = Date)
+
+SELECT CAST(@monthEnd + INTERVAL '1 months' AS date) AS "AddMonths", CAST(@leapDay + INTERVAL '1 years' AS date) AS "AddYears"
+FROM "Entities" AS e
+WHERE e."Id" = 1 AND CAST(@monthEnd + INTERVAL '1 months' AS date) = DATE '2018-02-28'
+LIMIT 2
 """);
     }
 
@@ -1025,6 +1365,41 @@ WHERE DATE '0001-01-01' + e."Id" = DATE '0001-01-03'
     }
 
     #endregion DateOnly
+
+    #region TimeOfDay
+
+    // TimeOfDay is a TimeSpan mapped to PostgreSQL time, which justify_hours() (used for intervals) doesn't accept
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task TimeOfDay_components(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>()
+                .Where(e => e.TimestamptzDateTime.TimeOfDay.Hours == 13 || e.TimestampDateTime.TimeOfDay.Milliseconds == 345)
+                .Select(
+                    e => new
+                    {
+                        e.Id,
+                        e.TimestamptzDateTime.TimeOfDay.Days,
+                        e.TimestamptzDateTime.TimeOfDay.Hours,
+                        e.TimestamptzDateTime.TimeOfDay.Minutes,
+                        e.TimestamptzDateTime.TimeOfDay.Seconds,
+                        e.TimestamptzDateTime.TimeOfDay.Milliseconds,
+                        TimestampHours = e.TimestampDateTime.TimeOfDay.Hours,
+                        TimestampMilliseconds = e.TimestampDateTime.TimeOfDay.Milliseconds
+                    }),
+            elementSorter: e => e.Id);
+
+        AssertSql(
+            """
+SELECT e."Id", date_part('hour', CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time))::int / 24 AS "Days", date_part('hour', CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time))::int % 24 AS "Hours", date_part('minute', CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time))::int AS "Minutes", trunc(date_part('second', CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time)))::int AS "Seconds", trunc(date_part('millisecond', CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time)))::int % 1000 AS "Milliseconds", date_part('hour', e."TimestampDateTime"::time)::int % 24 AS "TimestampHours", trunc(date_part('millisecond', e."TimestampDateTime"::time))::int % 1000 AS "TimestampMilliseconds"
+FROM "Entities" AS e
+WHERE date_part('hour', CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time))::int % 24 = 13 OR trunc(date_part('millisecond', e."TimestampDateTime"::time))::int % 1000 = 345
+""");
+    }
+
+    #endregion TimeOfDay
 
     #region TimeOnly
 
@@ -1150,6 +1525,29 @@ WHERE CAST(e."TimestamptzDateTime" AT TIME ZONE 'UTC' AS time without time zone)
         public string SourceTimeZoneId { get; set; } = null!;
 
         public string DestinationTimeZoneId { get; set; } = null!;
+    }
+
+    private class IntervalArithmetic
+    {
+        [Column(TypeName = "timestamp without time zone")]
+        public DateTime Earlier { get; set; }
+
+        [Column(TypeName = "timestamp without time zone")]
+        public DateTime Later { get; set; }
+
+        public TimeSpan Interval { get; set; }
+
+        [Precision(3)]
+        public DateTime BeforeDst { get; set; }
+
+        [Precision(3)]
+        public DateTime AfterDst { get; set; }
+
+        [Column(TypeName = "timestamptz")]
+        public DateTime BeforeDstAlias { get; set; }
+
+        [Precision(3)]
+        public DateTimeOffset BeforeDstOffset { get; set; }
     }
 
     public class TimestampQueryFixture : QueryFixtureBase<TimestampQueryContext>, ITestSqlLoggerFactory

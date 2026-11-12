@@ -17,7 +17,7 @@ public class TimeSpanTranslationsNpgsqlTest : TimeSpanTranslationsTestBase<Basic
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE floor(date_part('hour', b."TimeSpan"))::int = 3
+WHERE date_part('hour', justify_hours(b."TimeSpan"))::int = 3
 """);
     }
 
@@ -29,7 +29,7 @@ WHERE floor(date_part('hour', b."TimeSpan"))::int = 3
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE floor(date_part('minute', b."TimeSpan"))::int = 4
+WHERE date_part('minute', justify_hours(b."TimeSpan"))::int = 4
 """);
     }
 
@@ -41,7 +41,7 @@ WHERE floor(date_part('minute', b."TimeSpan"))::int = 4
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE floor(date_part('second', b."TimeSpan"))::int = 5
+WHERE trunc(date_part('second', justify_hours(b."TimeSpan")))::int = 5
 """);
     }
 
@@ -53,7 +53,7 @@ WHERE floor(date_part('second', b."TimeSpan"))::int = 5
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE floor(date_part('millisecond', b."TimeSpan"))::int % 1000 = 678
+WHERE trunc(date_part('millisecond', justify_hours(b."TimeSpan")))::int % 1000 = 678
 """);
     }
 

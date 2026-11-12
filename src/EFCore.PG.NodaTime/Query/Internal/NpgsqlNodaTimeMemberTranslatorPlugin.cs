@@ -1,4 +1,5 @@
 ﻿using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal;
@@ -107,26 +108,12 @@ public class NpgsqlNodaTimeMemberTranslator(
         return null;
     }
 
+    // Duration has the same component (e.g. Hours) and total (e.g. TotalHours) members as TimeSpan
+    // with the same semantics, so we can reuse the translation.
+#pragma warning disable EF1001
     private SqlExpression? TranslateDuration(SqlExpression instance, MemberInfo member)
-    {
-        return member.Name switch
-        {
-            nameof(Duration.TotalDays) => TranslateDurationTotalMember(instance, 86400),
-            nameof(Duration.TotalHours) => TranslateDurationTotalMember(instance, 3600),
-            nameof(Duration.TotalMinutes) => TranslateDurationTotalMember(instance, 60),
-            nameof(Duration.TotalSeconds) => GetDatePartExpressionDouble(instance, "epoch"),
-            nameof(Duration.TotalMilliseconds) => TranslateDurationTotalMember(instance, 0.001),
-            nameof(Duration.Days) => GetDatePartExpression(instance, "day"),
-            nameof(Duration.Hours) => GetDatePartExpression(instance, "hour"),
-            nameof(Duration.Minutes) => GetDatePartExpression(instance, "minute"),
-            nameof(Duration.Seconds) => GetDatePartExpression(instance, "second", true),
-            nameof(Duration.Milliseconds) => null, // Too annoying, floating point and sub-millisecond handling
-            _ => null,
-        };
-
-        SqlExpression TranslateDurationTotalMember(SqlExpression instance, double divisor)
-            => _sqlExpressionFactory.Divide(GetDatePartExpressionDouble(instance, "epoch"), _sqlExpressionFactory.Constant(divisor));
-    }
+        => NpgsqlTimeSpanMemberTranslator.TranslateIntervalMember(_sqlExpressionFactory, instance, member.Name);
+#pragma warning restore EF1001
 
     private SqlExpression? TranslateInterval(SqlExpression instance, MemberInfo member)
     {

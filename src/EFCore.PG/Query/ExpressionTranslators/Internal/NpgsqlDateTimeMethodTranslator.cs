@@ -1,5 +1,6 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -113,9 +114,29 @@ public class NpgsqlDateTimeMethodTranslator(
             _ => null
         };
 
-        return datePart is not null && CreateIntervalExpression(arguments[0], datePart) is SqlExpression interval
-            ? _sqlExpressionFactory.Add(instance, interval, instance.TypeMapping)
-            : null;
+        if (datePart is null || CreateIntervalExpression(arguments[0], datePart) is not { } interval)
+        {
+            return null;
+        }
+
+        // With the legacy timestamp behavior, a DateTimeOffset has the local offset, and AddMonths/AddYears add calendar months in that
+        // offset, like PostgreSQL's timestamptz + interval in the session time zone; so that arithmetic is left as-is (the SQL binary
+        // expression is created with its type mapping, so NpgsqlSqlExpressionFactory doesn't perform it in UTC).
+        // AddDays etc. add an exact amount of time, so they're performed in UTC like other DateTimeOffset arithmetic.
+        if (NpgsqlTypeMappingSource.LegacyTimestampBehavior
+            && instance.Type == typeof(DateTimeOffset)
+            && datePart is "years" or "months")
+        {
+            var dateTimeOffset = _sqlExpressionFactory.ApplyDefaultTypeMapping(instance);
+            return new SqlBinaryExpression(
+                ExpressionType.Add, dateTimeOffset, interval, typeof(DateTimeOffset), dateTimeOffset.TypeMapping);
+        }
+
+        // PostgreSQL timestamptz + interval adds days and months in the session time zone,
+        // whereas DateTime/DateTimeOffset values mapped to timestamptz are UTC.
+        // The arithmetic is performed on a UTC timestamp instead by NpgsqlSqlExpressionFactory,
+        // once the instance's type mapping is known (e.g. a parameter's is inferred from the rest of the query).
+        return _sqlExpressionFactory.Add(instance, interval, instance.TypeMapping);
     }
 
     private SqlExpression? TranslateDateTime(
@@ -241,19 +262,16 @@ public class NpgsqlDateTimeMethodTranslator(
             }
 
             // For months and years, date + interval yields a timestamp (since interval could have a time component), so we need to cast
-            // the results back to date
-            if (method.DeclaringType == typeof(DateOnly) && method.Name == nameof(DateOnly.AddMonths)
-                && CreateIntervalExpression(arguments[0], "months") is SqlExpression interval1)
+            // the results back to date.
+            // DateOnly is always mapped to date: apply that mapping to an unmapped instance (e.g. a parameter), as it would otherwise be
+            // inferred from the interval.
+            if (method.DeclaringType == typeof(DateOnly)
+                && method.Name is nameof(DateOnly.AddMonths) or nameof(DateOnly.AddYears)
+                && CreateIntervalExpression(arguments[0], method.Name == nameof(DateOnly.AddMonths) ? "months" : "years") is { } interval)
             {
+                var date = _sqlExpressionFactory.ApplyDefaultTypeMapping(instance);
                 return _sqlExpressionFactory.Convert(
-                    _sqlExpressionFactory.Add(instance, interval1, instance.TypeMapping), typeof(DateOnly));
-            }
-
-            if (method.DeclaringType == typeof(DateOnly) && method.Name == nameof(DateOnly.AddYears)
-                && CreateIntervalExpression(arguments[0], "years") is SqlExpression interval2)
-            {
-                return _sqlExpressionFactory.Convert(
-                    _sqlExpressionFactory.Add(instance, interval2, instance.TypeMapping), typeof(DateOnly));
+                    _sqlExpressionFactory.Add(date, interval, _timestampMapping), typeof(DateOnly), date.TypeMapping);
             }
         }
 
@@ -380,7 +398,10 @@ public class NpgsqlDateTimeMethodTranslator(
                 return null;
             }
 
-            return _sqlExpressionFactory.Fragment(FormattableString.Invariant($"INTERVAL '{constantExpression.Value} {datePart}'"));
+            // The fragment is typed as an interval, so that e.g. timestamptz + interval is recognized as such (see
+            // NpgsqlSqlExpressionFactory), including when the timestamp's type mapping is only inferred later (e.g. a parameter).
+            return new SqlFragmentExpression(
+                FormattableString.Invariant($"INTERVAL '{constantExpression.Value} {datePart}'"), typeof(TimeSpan), _intervalMapping);
         }
 
         // For non-constants, we can't parameterize INTERVAL '1 days'. Instead, we use CAST($1 || ' days' AS interval).
