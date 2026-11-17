@@ -212,6 +212,34 @@ WHERE date_part('month', n."LocalDate")::int = 4
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Month_infinite_date_not_equal(bool async)
+    {
+        await using var context = CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.NodaTimeTypes.SingleAsync();
+                entity.LocalDate = LocalDate.MaxIsoValue;
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = context.NodaTimeTypes.Where(e => e.LocalDate.Month != 6).Select(e => e.Id);
+                Assert.Equal(entity.Id, async ? await query.SingleAsync() : query.Single());
+
+                AssertSql(
+                    """
+SELECT n."Id"
+FROM "NodaTimeTypes" AS n
+WHERE date_part('month', n."LocalDate")::int <> 6 OR date_part('month', n."LocalDate") IS NULL
+LIMIT 2
+""");
+            });
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task DayOrYear(bool async)
     {
         await AssertQuery(

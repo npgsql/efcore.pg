@@ -208,7 +208,7 @@ public class NpgsqlNodaTimeMemberTranslator(
                 "lower",
                 [instance],
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
+                argumentsPropagateNullability: [false],
                 typeof(LocalDate),
                 _dateTypeMapping);
 
@@ -217,7 +217,7 @@ public class NpgsqlNodaTimeMemberTranslator(
                 "upper",
                 [instance],
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
+                argumentsPropagateNullability: [false],
                 typeof(LocalDate),
                 _dateTypeMapping);
     }
@@ -300,7 +300,7 @@ public class NpgsqlNodaTimeMemberTranslator(
             "date_part",
             [_sqlExpressionFactory.Constant(partName), instance],
             nullable: true,
-            argumentsPropagateNullability: TrueArrays[2],
+            argumentsPropagateNullability: [false, false],
             typeof(double));
 
         if (floor)

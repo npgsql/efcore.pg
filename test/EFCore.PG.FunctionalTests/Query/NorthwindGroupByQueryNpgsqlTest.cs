@@ -1618,7 +1618,7 @@ GROUP BY s."Key"
 SELECT o0."Key" AS "Month", COALESCE(sum(o0."OrderID"), 0)::int AS "Total", (
     SELECT COALESCE(sum(o1."OrderID"), 0)::int
     FROM "Orders" AS o1
-    WHERE date_part('month', o1."OrderDate")::int = o0."Key" OR (o1."OrderDate" IS NULL AND o0."Key" IS NULL)) AS "Payment"
+    WHERE date_part('month', o1."OrderDate")::int = o0."Key" OR (date_part('month', o1."OrderDate") IS NULL AND o0."Key" IS NULL)) AS "Payment"
 FROM (
     SELECT o."OrderID", date_part('month', o."OrderDate")::int AS "Key"
     FROM "Orders" AS o

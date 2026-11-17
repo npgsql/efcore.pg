@@ -192,4 +192,13 @@ public enum PgExpressionType
     HstoreGetValue, // ->
 
     #endregion Hstore
+
+    #region Array
+
+    /// <summary>
+    ///     Represents a PostgreSQL operator for concatenating arrays.
+    /// </summary>
+    ArrayConcat, // ||
+
+    #endregion Array
 }

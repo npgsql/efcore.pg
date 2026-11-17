@@ -2680,7 +2680,7 @@ FROM "PrimitiveCollectionsEntity" AS p
 LEFT JOIN LATERAL (
     SELECT d.value, d.ordinality
     FROM unnest(p."DateTimes") WITH ORDINALITY AS d(value)
-    WHERE date_part('day', d.value AT TIME ZONE 'UTC')::int <> 1
+    WHERE date_part('day', d.value AT TIME ZONE 'UTC')::int <> 1 OR date_part('day', d.value AT TIME ZONE 'UTC') IS NULL
 ) AS d0 ON TRUE
 ORDER BY p."Id" NULLS FIRST, d0.ordinality NULLS FIRST
 """);
@@ -2823,7 +2823,7 @@ LEFT JOIN LATERAL unnest(p."Ints") WITH ORDINALITY AS i0(value) ON TRUE
 LEFT JOIN LATERAL (
     SELECT d.value, d.ordinality
     FROM unnest(p."DateTimes") WITH ORDINALITY AS d(value)
-    WHERE date_part('day', d.value AT TIME ZONE 'UTC')::int <> 1
+    WHERE date_part('day', d.value AT TIME ZONE 'UTC')::int <> 1 OR date_part('day', d.value AT TIME ZONE 'UTC') IS NULL
 ) AS d1 ON TRUE
 LEFT JOIN LATERAL (
     SELECT d0.value, d0.ordinality
@@ -3012,6 +3012,77 @@ WHERE (
 SELECT p."Id", p."Bool", p."Bools", p."DateTime", p."DateTimes", p."Enum", p."Enums", p."Int", p."Ints", p."NullableInt", p."NullableInts", p."NullableString", p."NullableStrings", p."NullableWrappedId", p."NullableWrappedIdWithNullableComparer", p."String", p."Strings", p."WrappedId"
 FROM "PrimitiveCollectionsEntity" AS p
 WHERE cardinality(array_remove(p."Ints", 1)) = 1
+""");
+    }
+
+    [ConditionalFact]
+    public async Task Array_remove_with_nullable_item()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Select(e => new
+            {
+                e.Id,
+                NotEqual = e.Strings.Where(s => s != e.NullableString).Count() != e.Strings.Length
+            }));
+
+        AssertSql(
+            """
+SELECT p."Id", cardinality(array_remove(p."Strings", p."NullableString")) <> cardinality(p."Strings") AS "NotEqual"
+FROM "PrimitiveCollectionsEntity" AS p
+""");
+    }
+
+    [ConditionalFact]
+    public async Task Concat_nullable_arrays()
+    {
+        var contextFactory = await InitializeNonSharedTest<TestContext>(
+            seed: context =>
+            {
+                context.AddRange(new TestEntity { Id = 1 }, new TestEntity { Id = 2, Ints = [7, 8] });
+                return context.SaveChangesAsync();
+            });
+
+        await using var context = contextFactory.CreateDbContext();
+
+        int[] ints = [7, 8];
+
+        var query =
+            from left in context.Set<TestEntity>()
+            from right in context.Set<TestEntity>()
+            orderby left.Id, right.Id
+            select new
+            {
+                Count = (int?)left.Ints!.Concat(right.Ints!).Count(),
+                LeftNotEqual = left.Ints!.Concat(ints).Count() != 2,
+                RightNotEqual = ints.Concat(right.Ints!).Count() != 2
+            };
+
+        var results = await query.Select(e => new
+        {
+            e.Count,
+            e.LeftNotEqual,
+            e.RightNotEqual,
+            IsNull = e.Count == null,
+            Equal = e.Count == 2,
+            NotEqual = e.Count != 2
+        }).ToListAsync();
+
+        Assert.Equal([null, 2, 2, 4], results.Select(e => e.Count));
+        Assert.Equal([false, false, true, true], results.Select(e => e.LeftNotEqual));
+        Assert.Equal([false, true, false, true], results.Select(e => e.RightNotEqual));
+        Assert.Equal([true, false, false, false], results.Select(e => e.IsNull));
+        Assert.Equal([false, true, true, false], results.Select(e => e.Equal));
+        Assert.Equal([true, false, false, true], results.Select(e => e.NotEqual));
+
+        AssertSql(
+            """
+@ints={ '7'
+'8' } (DbType = Object)
+
+SELECT cardinality(t."Ints" || t0."Ints") AS "Count", cardinality(t."Ints" || @ints) <> 2 AS "LeftNotEqual", cardinality(@ints || t0."Ints") <> 2 AS "RightNotEqual", t."Ints" || t0."Ints" IS NULL AS "IsNull", cardinality(t."Ints" || t0."Ints") = 2 AND t."Ints" || t0."Ints" IS NOT NULL AS "Equal", cardinality(t."Ints" || t0."Ints") <> 2 OR t."Ints" || t0."Ints" IS NULL AS "NotEqual"
+FROM "TestEntity" AS t
+CROSS JOIN "TestEntity" AS t0
+ORDER BY t."Id" NULLS FIRST, t0."Id" NULLS FIRST
 """);
     }
 

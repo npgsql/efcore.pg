@@ -151,7 +151,7 @@ public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
                 member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper",
                 [instance],
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[1],
+                argumentsPropagateNullability: FalseArrays[1],
                 returnType,
                 typeMapping);
         }

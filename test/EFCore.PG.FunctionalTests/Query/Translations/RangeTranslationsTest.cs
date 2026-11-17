@@ -374,6 +374,56 @@ LIMIT 2
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task Bounds_of_empty_or_unbounded_range(bool async, bool empty)
+    {
+        await using var context = CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.RangeTestEntities.SingleAsync(e => e.Id == 1);
+                entity.IntRange = empty ? NpgsqlRange<int>.Empty : new NpgsqlRange<int>(0, false, true, 0, false, true);
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var bounds = context.RangeTestEntities
+                    .Where(e => e.Id == 1)
+                    .Select(e => new { Lower = (int?)e.IntRange.LowerBound, Upper = (int?)e.IntRange.UpperBound })
+                    .Where(e => e.Lower == null && e.Upper == null);
+
+                var result = async ? await bounds.SingleAsync() : bounds.Single();
+                Assert.Null(result.Lower);
+                Assert.Null(result.Upper);
+
+                var query = context.RangeTestEntities
+                    .Where(e => e.Id == 1 && e.IntRange.LowerBound != 5 && e.IntRange.UpperBound != 5)
+                    .Select(e => e.Id);
+
+                Assert.Equal(1, async ? await query.SingleAsync() : query.Single());
+
+                AssertSql(
+                    """
+SELECT lower(r."IntRange") AS "Lower", upper(r."IntRange") AS "Upper"
+FROM "RangeTestEntities" AS r
+WHERE r."Id" = 1 AND lower(r."IntRange") IS NULL AND upper(r."IntRange") IS NULL
+LIMIT 2
+""",
+                    //
+                    """
+SELECT r."Id"
+FROM "RangeTestEntities" AS r
+WHERE r."Id" = 1 AND (lower(r."IntRange") <> 5 OR lower(r."IntRange") IS NULL) AND (upper(r."IntRange") <> 5 OR upper(r."IntRange") IS NULL)
+LIMIT 2
+""");
+            });
+    }
+
     [ConditionalFact]
     public void IsEmpty()
     {

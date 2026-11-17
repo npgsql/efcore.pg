@@ -840,6 +840,7 @@ public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
             case PgExpressionType.RangeExcept:
             case PgExpressionType.TextSearchAnd:
             case PgExpressionType.TextSearchOr:
+            case PgExpressionType.ArrayConcat:
             {
                 inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
                 resultType = inferredTypeMapping?.ClrType ?? left.Type;

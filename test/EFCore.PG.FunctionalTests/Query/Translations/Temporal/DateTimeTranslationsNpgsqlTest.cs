@@ -71,6 +71,39 @@ WHERE date_trunc('day', b."DateTime", 'UTC') = @myDatetime
 """);
     }
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Month_infinite_timestamp_not_equal(bool negativeInfinity)
+    {
+        await using var context = Fixture.CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.Set<BasicTypesEntity>().SingleAsync(e => e.Id == 1);
+                entity.DateTime = negativeInfinity ? DateTime.MinValue : DateTime.MaxValue;
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                Assert.Equal(
+                    1,
+                    await context.Set<BasicTypesEntity>()
+                        .Where(e => e.Id == 1 && e.DateTime.Month != 6)
+                        .Select(e => e.Id)
+                        .SingleAsync());
+
+                AssertSql(
+                    """
+SELECT b."Id"
+FROM "BasicTypesEntities" AS b
+WHERE b."Id" = 1 AND (date_part('month', b."DateTime" AT TIME ZONE 'UTC')::int <> 6 OR date_part('month', b."DateTime" AT TIME ZONE 'UTC') IS NULL)
+LIMIT 2
+""");
+            });
+    }
+
     public override async Task AddYear()
     {
         await base.AddYear();

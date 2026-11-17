@@ -891,7 +891,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
 #pragma warning disable EF1001 // SelectExpression constructors are currently internal
             var tableAlias = ((SelectExpression)source1.QueryExpression).Tables.Single().Alias!;
             var selectExpression = new SelectExpression(
-                [new PgUnnestExpression(tableAlias, _sqlExpressionFactory.Add(array1, array2), "value")],
+                [new PgUnnestExpression(
+                    tableAlias, _sqlExpressionFactory.MakePostgresBinary(PgExpressionType.ArrayConcat, array1, array2), "value")],
                 new ColumnExpression("value", tableAlias, projectedColumn1.Type, inferredTypeMapping, projectedColumn1.IsNullable || projectedColumn2.IsNullable),
                 identifier: [GenerateOrdinalityIdentifier(tableAlias)],
                 _queryCompilationContext.SqlAliasManager);
@@ -1203,7 +1204,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
                 "array_remove",
                 [array, translatedItemToFilterOut],
                 nullable: true,
-                argumentsPropagateNullability: TrueArrays[2],
+                argumentsPropagateNullability: [true, false],
                 array.Type,
                 array.TypeMapping);
 
