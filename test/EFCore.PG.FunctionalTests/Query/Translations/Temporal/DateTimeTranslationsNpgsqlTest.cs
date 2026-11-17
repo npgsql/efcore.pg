@@ -79,7 +79,7 @@ WHERE date_trunc('day', b."DateTime", 'UTC') = @myDatetime
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE date_part('year', (b."DateTime" + INTERVAL '1 years') AT TIME ZONE 'UTC')::int = 1999
+WHERE date_part('year', ((b."DateTime" AT TIME ZONE 'UTC') + INTERVAL '1 years'))::int = 1999
 """);
     }
 
@@ -98,7 +98,7 @@ WHERE date_part('year', (b."DateTime" + INTERVAL '1 years') AT TIME ZONE 'UTC'):
 
         AssertSql(
             """
-SELECT b."DateTime" + 1.5 * INTERVAL '1 milliseconds' AS "Milliseconds", b."DateTime" + -0.125 * INTERVAL '1 milliseconds' AS "NegativeMilliseconds", b."DateTime" + 1500.0 * INTERVAL '1 microseconds' AS "Microseconds", b."DateTime" + -1.0 * INTERVAL '1 microseconds' AS "NegativeMicroseconds"
+SELECT ((b."DateTime" AT TIME ZONE 'UTC') + 1.5 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' AS "Milliseconds", ((b."DateTime" AT TIME ZONE 'UTC') + -0.125 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' AS "NegativeMilliseconds", ((b."DateTime" AT TIME ZONE 'UTC') + 1500.0 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "Microseconds", ((b."DateTime" AT TIME ZONE 'UTC') + -1.0 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "NegativeMicroseconds"
 FROM "BasicTypesEntities" AS b
 ORDER BY b."Id" NULLS FIRST
 """);
@@ -119,7 +119,7 @@ ORDER BY b."Id" NULLS FIRST
             """
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."Id" = 1 AND b."DateTime" + 2592000000.0 * INTERVAL '1 milliseconds' = b."DateTime" + INTERVAL '720 hours' AND b."DateTime" + -2592000000.0 * INTERVAL '1 milliseconds' = b."DateTime" + INTERVAL '-720 hours' AND b."DateTime" + 3600000000.0 * INTERVAL '1 microseconds' = b."DateTime" + INTERVAL '1 hours' AND b."DateTime" + -3600000000.0 * INTERVAL '1 microseconds' = b."DateTime" + INTERVAL '-1 hours'
+WHERE b."Id" = 1 AND ((b."DateTime" AT TIME ZONE 'UTC') + 2592000000.0 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' = ((b."DateTime" AT TIME ZONE 'UTC') + INTERVAL '720 hours') AT TIME ZONE 'UTC' AND ((b."DateTime" AT TIME ZONE 'UTC') + -2592000000.0 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' = ((b."DateTime" AT TIME ZONE 'UTC') + INTERVAL '-720 hours') AT TIME ZONE 'UTC' AND ((b."DateTime" AT TIME ZONE 'UTC') + 3600000000.0 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' = ((b."DateTime" AT TIME ZONE 'UTC') + INTERVAL '1 hours') AT TIME ZONE 'UTC' AND ((b."DateTime" AT TIME ZONE 'UTC') + -3600000000.0 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' = ((b."DateTime" AT TIME ZONE 'UTC') + INTERVAL '-1 hours') AT TIME ZONE 'UTC'
 """);
     }
 
@@ -141,7 +141,7 @@ WHERE b."Id" = 1 AND b."DateTime" + 2592000000.0 * INTERVAL '1 milliseconds' = b
 
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
-WHERE b."DateTime" + @value * INTERVAL '1 milliseconds' = b."DateTime" + @microseconds * INTERVAL '1 microseconds'
+WHERE ((b."DateTime" AT TIME ZONE 'UTC') + @value * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' = ((b."DateTime" AT TIME ZONE 'UTC') + @microseconds * INTERVAL '1 microseconds') AT TIME ZONE 'UTC'
 """);
     }
 
@@ -158,7 +158,7 @@ WHERE b."DateTime" + @value * INTERVAL '1 milliseconds' = b."DateTime" + @micros
 
         AssertSql(
             """
-SELECT b."DateTime" + 1.0000000000000001E-05 * INTERVAL '1 milliseconds' AS "Milliseconds", b."DateTime" + 1.0000000000000001E-05 * INTERVAL '1 microseconds' AS "Microseconds", b."DateTime" + 1E+17 * INTERVAL '1 microseconds' AS "LargeMicroseconds"
+SELECT ((b."DateTime" AT TIME ZONE 'UTC') + 1.0000000000000001E-05 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' AS "Milliseconds", ((b."DateTime" AT TIME ZONE 'UTC') + 1.0000000000000001E-05 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "Microseconds", ((b."DateTime" AT TIME ZONE 'UTC') + 1E+17 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "LargeMicroseconds"
 FROM "BasicTypesEntities" AS b
 WHERE b."Id" = 1
 """);
@@ -183,7 +183,7 @@ WHERE b."Id" = 1
 @milliseconds='{milliseconds}'
 @microseconds='{microseconds}'
 
-SELECT b."DateTime" + @milliseconds * INTERVAL '1 milliseconds' AS "Milliseconds", b."DateTime" + @microseconds * INTERVAL '1 microseconds' AS "Microseconds"
+SELECT ((b."DateTime" AT TIME ZONE 'UTC') + @milliseconds * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' AS "Milliseconds", ((b."DateTime" AT TIME ZONE 'UTC') + @microseconds * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "Microseconds"
 FROM "BasicTypesEntities" AS b
 WHERE b."Id" = 1
 """);
@@ -216,7 +216,7 @@ WHERE b."Id" = 1
 @date='2000-01-01T00:00:00.0000000Z' (DbType = DateTime)
 @id='{id}'
 
-SELECT @date + n."Int"::double precision * INTERVAL '1 milliseconds' AS "Milliseconds", @date + n."Int"::double precision * INTERVAL '1 microseconds' AS "Microseconds"
+SELECT ((@date AT TIME ZONE 'UTC') + n."Int"::double precision * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' AS "Milliseconds", ((@date AT TIME ZONE 'UTC') + n."Int"::double precision * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "Microseconds"
 FROM "NullableBasicTypesEntities" AS n
 WHERE n."Id" = @id
 LIMIT 2
@@ -246,7 +246,7 @@ LIMIT 2
 
         AssertSql(
             """
-SELECT b."DateTime" + 0.00075000000000000002 * INTERVAL '1 milliseconds' AS "Milliseconds", b."DateTime" + -0.00025000000000000001 * INTERVAL '1 milliseconds' AS "NegativeMilliseconds", b."DateTime" + 0.25 * INTERVAL '1 microseconds' AS "Microseconds", b."DateTime" + -0.75 * INTERVAL '1 microseconds' AS "NegativeMicroseconds"
+SELECT ((b."DateTime" AT TIME ZONE 'UTC') + 0.00075000000000000002 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' AS "Milliseconds", ((b."DateTime" AT TIME ZONE 'UTC') + -0.00025000000000000001 * INTERVAL '1 milliseconds') AT TIME ZONE 'UTC' AS "NegativeMilliseconds", ((b."DateTime" AT TIME ZONE 'UTC') + 0.25 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "Microseconds", ((b."DateTime" AT TIME ZONE 'UTC') + -0.75 * INTERVAL '1 microseconds') AT TIME ZONE 'UTC' AS "NegativeMicroseconds"
 FROM "BasicTypesEntities" AS b
 ORDER BY b."Id" NULLS FIRST
 """);
@@ -274,7 +274,7 @@ ORDER BY b."Id" NULLS FIRST
 @date='2000-01-01T00:00:00.0000000Z' (DbType = DateTime)
 @id='{id}'
 
-SELECT @date + CAST((n."Int"::double precision::text || ' days') AS interval)
+SELECT ((@date AT TIME ZONE 'UTC') + CAST((n."Int"::double precision::text || ' days') AS interval)) AT TIME ZONE 'UTC'
 FROM "NullableBasicTypesEntities" AS n
 WHERE n."Id" = @id
 LIMIT 2
@@ -405,7 +405,7 @@ WHERE floor(date_part('milliseconds', b."DateTime" AT TIME ZONE 'UTC'))::int % 1
             $"""
 @fraction='{fraction:c}' (DbType = Object)
 
-SELECT floor(date_part('milliseconds', (b."DateTime" + @fraction) AT TIME ZONE 'UTC'))::int % 1000 AS "DateTime", floor(date_part('milliseconds', (b."DateTimeOffset" + @fraction) AT TIME ZONE 'UTC'))::int % 1000 AS "DateTimeOffset", floor(date_part('milliseconds', b."TimeOnly" + @fraction))::int % 1000 AS "TimeOnly"
+SELECT floor(date_part('milliseconds', ((b."DateTime" AT TIME ZONE 'UTC') + @fraction)))::int % 1000 AS "DateTime", floor(date_part('milliseconds', ((b."DateTimeOffset" AT TIME ZONE 'UTC') + @fraction)))::int % 1000 AS "DateTimeOffset", floor(date_part('milliseconds', b."TimeOnly" + @fraction))::int % 1000 AS "TimeOnly"
 FROM "BasicTypesEntities" AS b
 WHERE b."Id" = 1
 LIMIT 2

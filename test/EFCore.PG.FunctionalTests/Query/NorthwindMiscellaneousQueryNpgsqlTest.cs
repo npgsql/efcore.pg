@@ -92,7 +92,7 @@ WHERE o."OrderDate" - INTERVAL '1 00:00:00' = TIMESTAMP '1997-10-08T00:00:00'
 
         AssertSql(
             """
-SELECT floor(date_part('day', date_trunc('day', now()::timestamp) - date_trunc('day', o."OrderDate")))::int AS "Elapsed"
+SELECT date_part('day', justify_hours(date_trunc('day', now()::timestamp) - date_trunc('day', o."OrderDate")))::int AS "Elapsed"
 FROM "Orders" AS o
 WHERE o."OrderDate" IS NOT NULL
 LIMIT 1

@@ -95,9 +95,17 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
         // otherwise a value with only sub-microsecond ticks gets formatted with a trailing decimal separator (e.g. 00:23:00.).
         ts = new TimeSpan(ts.Ticks - ts.Ticks % TimeSpan.TicksPerMicrosecond);
 
-        return ts.ToString(
-            $@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}",
+        // TimeSpan's custom format specifiers output absolute values, so the sign is added explicitly.
+        // PostgreSQL applies a sign to the field it precedes only ('-1 02:00:00' is -1 day +2 hours, i.e. -22 hours),
+        // so a negative value with a days component needs a sign on both the days and the time ('-1 -02:00:00').
+        var sign = ts < TimeSpan.Zero ? "-" : "";
+        var time = ts.ToString(
+            $@"hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}",
             CultureInfo.InvariantCulture);
+
+        return ts.Days == 0
+            ? sign + time
+            : FormattableString.Invariant($"{sign}{Math.Abs(ts.Days)} {sign}{time}");
     }
 
     /// <summary>
@@ -111,7 +119,7 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
         // We store the a PG-compatible interval representation in JSON so it can be queried out, but unfortunately this isn't
         // compatible with TimeSpan, so we have to parse manually.
 
-        // Note
+        // A leading sign applies to the days if there are any, otherwise to the time
         var isNegated = false;
         if (s[0] == '-')
         {
@@ -135,32 +143,45 @@ public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
 
         // Space is the separator between the days and the hours:minutes:seconds components
         var days = 0;
+        var isTimeNegated = isNegated;
         if (s[i] == ' ')
         {
             days = int.Parse(s[..i]);
-            s = s[i..];
+            s = s[(i + 1)..];
+
+            // PostgreSQL applies a sign to the field it precedes only
+            // i.e. negative values are written with a sign on both the days and the time (-1 -02:00:00 for -26 hours).
+            // Older versions of the provider wrote a sign on the days only (-1 02:00:00),
+            // which to PostgreSQL is -1 day +2 hours, i.e. -22 hours.
+            // The Npgsql.ParseOldEFCoreJsonTimeSpans AppContext switch (on by default) determines which meaning such a value is given.
+            if (s.Length > 0 && s[0] == '-')
+            {
+                isTimeNegated = true;
+                s = s[1..];
+            }
+            else
+            {
+                isTimeNegated = isNegated && NpgsqlTypeMappingSource.ParseOldEFCoreJsonTimeSpans;
+            }
         }
 
-        var timeSpan = TimeSpan.Parse(s, CultureInfo.InvariantCulture);
+        var time = TimeSpan.Parse(s, CultureInfo.InvariantCulture);
 
         // We've already extracted the days, so there shouldn't be a days component in the rest (indicates an incompatible/malformed string)
-        if (timeSpan.Days != 0)
+        if (time.Days != 0 || time < TimeSpan.Zero)
         {
-            throw new FormatException();
+            throw new FormatException("Error parsing interval: invalid format");
         }
 
-        if (days > 0)
+        // The days and the time can have opposite signs, so only the combined value is range-checked
+        // (e.g. 10675200 -23:00:00 fits in a TimeSpan, but 10675200 days don't)
+        var ticks = (Int128)(isNegated ? -days : days) * TimeSpan.TicksPerDay + (isTimeNegated ? -time.Ticks : time.Ticks);
+        if (ticks < TimeSpan.MinValue.Ticks || ticks > TimeSpan.MaxValue.Ticks)
         {
-            timeSpan = new TimeSpan(
-                days, timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds, timeSpan.Milliseconds, timeSpan.Microseconds);
+            throw new OverflowException("Error parsing interval: the value is out of range for a TimeSpan");
         }
 
-        if (isNegated)
-        {
-            timeSpan = -timeSpan;
-        }
-
-        return timeSpan;
+        return new TimeSpan((long)ticks);
     }
 
     /// <summary>
