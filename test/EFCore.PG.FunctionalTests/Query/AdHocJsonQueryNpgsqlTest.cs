@@ -76,6 +76,52 @@ LIMIT 2
         }
     }
 
+    [ConditionalTheory, MemberData(nameof(IsAsyncData))]
+    public async Task Json_primitive_collection_contains_temporal_values(bool async)
+    {
+        var dateTime = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc);
+        var timeOnly = new TimeOnly(10, 0);
+
+        var contextFactory = await InitializeNonSharedTest<TemporalJsonDbContext>(
+            seed: async context =>
+            {
+                context.Rows.Add(
+                    new TemporalJsonEntity
+                    {
+                        Document = new TemporalJsonDocument
+                        {
+                            Dates = [dateTime],
+                            Times = [timeOnly]
+                        }
+                    });
+                await context.SaveChangesAsync();
+            });
+
+        await using var queryContext = contextFactory.CreateDbContext();
+
+        var dateTimeCount = async
+            ? await queryContext.Rows.CountAsync(e => e.Document.Dates.Contains(dateTime))
+            : queryContext.Rows.Count(e => e.Document.Dates.Contains(dateTime));
+        var timeOnlyCount = async
+            ? await queryContext.Rows.CountAsync(e => e.Document.Times.Contains(timeOnly))
+            : queryContext.Rows.Count(e => e.Document.Times.Contains(timeOnly));
+
+        Assert.Equal(1, dateTimeCount);
+        Assert.Equal(1, timeOnlyCount);
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "Rows" AS r
+WHERE (r."Document" -> 'Dates') @> @__npgsql_json_contains_dateTime
+""",
+            """
+SELECT count(*)::int
+FROM "Rows" AS r
+WHERE (r."Document" -> 'Times') @> @__npgsql_json_contains_timeOnly
+""");
+    }
+
     protected class TypesDbContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<TypesContainerEntity> Entities { get; set; }
@@ -94,6 +140,26 @@ LIMIT 2
     {
         public byte[] Bytea { get; set; }
         public TimeSpan Interval { get; set; }
+    }
+
+    protected class TemporalJsonDbContext(DbContextOptions options) : DbContext(options)
+    {
+        public DbSet<TemporalJsonEntity> Rows { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            => modelBuilder.Entity<TemporalJsonEntity>().ComplexProperty(e => e.Document, d => d.ToJson());
+    }
+
+    public class TemporalJsonEntity
+    {
+        public int Id { get; set; }
+        public TemporalJsonDocument Document { get; set; }
+    }
+
+    public class TemporalJsonDocument
+    {
+        public List<DateTime> Dates { get; set; }
+        public List<TimeOnly> Times { get; set; }
     }
 
     protected void AssertSql(params string[] expected)
