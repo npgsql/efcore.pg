@@ -2,6 +2,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
+using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 
@@ -299,9 +300,28 @@ public class NpgsqlDateTimeMethodTranslator(
 
             if (method.DeclaringType == typeof(TimeOnly) && method.Name == nameof(TimeOnly.IsBetween))
             {
-                return _sqlExpressionFactory.And(
-                    _sqlExpressionFactory.GreaterThanOrEqual(instance, arguments[0]),
-                    _sqlExpressionFactory.LessThan(instance, arguments[1]));
+                var typeMapping = ExpressionExtensions.InferTypeMapping(instance, arguments[0], arguments[1]);
+                instance = _sqlExpressionFactory.ApplyTypeMapping(instance, typeMapping);
+                var start = _sqlExpressionFactory.ApplyTypeMapping(arguments[0], typeMapping);
+                var end = _sqlExpressionFactory.ApplyTypeMapping(arguments[1], typeMapping);
+
+                var isAfterStart = _sqlExpressionFactory.GreaterThanOrEqual(instance, start);
+                var isBeforeEnd = _sqlExpressionFactory.LessThan(instance, end);
+
+                if (arguments is [SqlConstantExpression { Value: TimeOnly startValue }, SqlConstantExpression { Value: TimeOnly endValue }])
+                {
+                    return startValue > endValue
+                        ? _sqlExpressionFactory.OrElse(isAfterStart, isBeforeEnd)
+                        : _sqlExpressionFactory.AndAlso(isAfterStart, isBeforeEnd);
+                }
+
+                return _sqlExpressionFactory.OrElse(
+                    _sqlExpressionFactory.AndAlso(
+                        _sqlExpressionFactory.LessThanOrEqual(start, end),
+                        _sqlExpressionFactory.AndAlso(isAfterStart, isBeforeEnd)),
+                    _sqlExpressionFactory.AndAlso(
+                        _sqlExpressionFactory.GreaterThan(start, end),
+                        _sqlExpressionFactory.OrElse(isAfterStart, isBeforeEnd)));
             }
 
             if (method.DeclaringType == typeof(TimeOnly) && method.Name == nameof(TimeOnly.Add)
