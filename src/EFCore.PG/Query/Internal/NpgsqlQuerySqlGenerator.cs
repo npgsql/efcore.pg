@@ -1569,6 +1569,10 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
                     || outerPrecedence >= innerPrecedence;
             }
 
+            // Consecutive subscripts access multiple dimensions rather than the result of the slice.
+            case PgArraySliceExpression when outerExpression is PgArrayIndexExpression or PgArraySliceExpression:
+                return true;
+
             // PG requires function calls to be wrapped in parentheses before indexing on the returned array:
             // (string_to_array(c."ContactName", ' '))[1]
             case SqlFunctionExpression when outerExpression is PgArrayIndexExpression:

@@ -691,6 +691,7 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             && projectedColumn1.TableAlias == table1.Alias
             && projectedColumn2.TableAlias == table2.Alias
             // Unlike INTERSECT, array overlap doesn't match null elements.
+            && (!projectedColumn1.IsNullable || !projectedColumn2.IsNullable)
             && (table1 is PgUnnestExpression { Array: { TypeMapping: not NpgsqlMultirangeTypeMapping } array1 }
                 || (projectedColumn1 is { Name: "Value", IsNullable: false }
                     && source1.TryConvertToArray(out array1, ignoreOrderings: true)))

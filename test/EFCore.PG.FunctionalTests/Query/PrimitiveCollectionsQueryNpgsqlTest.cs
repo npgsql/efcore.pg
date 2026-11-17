@@ -1649,6 +1649,46 @@ WHERE 11 = ANY (p."Ints"[2:3])
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Column_collection_Take_Skip()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Select(c => new { c.Id, Count = c.Ints.Take(2).Skip(1).Count() }));
+
+        AssertSql(
+            """
+SELECT p."Id", cardinality((p."Ints"[:2])[2:]) AS "Count"
+FROM "PrimitiveCollectionsEntity" AS p
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Skip_Skip()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Select(c => new { c.Id, Count = c.Ints.Skip(1).Skip(1).Count() }));
+
+        AssertSql(
+            """
+SELECT p."Id", cardinality((p."Ints"[2:])[2:]) AS "Count"
+FROM "PrimitiveCollectionsEntity" AS p
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Take_ElementAt()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Where(c => c.Ints.Length > 0).Select(c => c.Ints.Take(2).ElementAt(0)));
+
+        AssertSql(
+            """
+SELECT (p."Ints"[:2])[1]
+FROM "PrimitiveCollectionsEntity" AS p
+WHERE cardinality(p."Ints") > 0
+""");
+    }
+
     public override async Task Column_collection_Where_Skip()
     {
         await base.Column_collection_Where_Skip();
@@ -2155,6 +2195,66 @@ WHERE EXISTS (
         INTERSECT
         VALUES (NULL::int), (999)
     ) AS i)
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_nullable_column_collection_Any()
+    {
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Select(c => new { c.Id, Result = c.NullableInts.Intersect(c.NullableInts).Any() }));
+
+        AssertSql(
+            """
+SELECT p."Id", EXISTS (
+    SELECT 1
+    FROM (
+        SELECT n.value
+        FROM unnest(p."NullableInts") AS n(value)
+        INTERSECT
+        SELECT n0.value
+        FROM unnest(p."NullableInts") AS n0(value)
+    ) AS i) AS "Result"
+FROM "PrimitiveCollectionsEntity" AS p
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task Column_collection_Intersect_nullable_parameter_collection_Any()
+    {
+        int?[] ints = [null, 999];
+
+        await AssertQuery(
+            ss => ss.Set<PrimitiveCollectionsEntity>().Select(c => new
+            {
+                c.Id,
+                Result = c.NullableInts.Intersect(ints).Any(),
+                Reversed = ints.Intersect(c.NullableInts).Any()
+            }));
+
+        AssertSql(
+            """
+@ints={ NULL
+'999' } (DbType = Object)
+
+SELECT p."Id", EXISTS (
+    SELECT 1
+    FROM (
+        SELECT n.value
+        FROM unnest(p."NullableInts") AS n(value)
+        INTERSECT
+        SELECT i.value
+        FROM unnest(@ints) AS i(value)
+    ) AS i0) AS "Result", EXISTS (
+    SELECT 1
+    FROM (
+        SELECT i1.value
+        FROM unnest(@ints) AS i1(value)
+        INTERSECT
+        SELECT n0.value
+        FROM unnest(p."NullableInts") AS n0(value)
+    ) AS i2) AS "Reversed"
+FROM "PrimitiveCollectionsEntity" AS p
 """);
     }
 
