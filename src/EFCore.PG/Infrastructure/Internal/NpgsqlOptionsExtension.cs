@@ -267,10 +267,25 @@ public class NpgsqlOptionsExtension : RelationalOptionsExtension
         nameTranslator ??= NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
 #pragma warning restore CS0618
 
-        clone._enumDefinitions.Add(new EnumDefinition(clrType, enumName, schemaName, nameTranslator));
+        var enumDefinition = new EnumDefinition(clrType, enumName, schemaName, nameTranslator);
+
+        // The same mapping is frequently configured more than once, e.g. when both a context and a context factory are registered
+        // in DI with the same configuration lambda (both lambdas configure the same options). Ignore such duplicates; definitions
+        // which actually differ are kept, and are reported when the mapping is looked up.
+        if (!clone._enumDefinitions.Any(d => IsSameEnumMapping(d, enumDefinition)))
+        {
+            clone._enumDefinitions.Add(enumDefinition);
+        }
 
         return clone;
     }
+
+    private static bool IsSameEnumMapping(EnumDefinition existing, EnumDefinition added)
+        => existing.ClrType == added.ClrType
+            && existing.StoreTypeName == added.StoreTypeName
+            && existing.StoreTypeSchema == added.StoreTypeSchema
+            && existing.Labels.Count == added.Labels.Count
+            && existing.Labels.All(l => added.Labels.TryGetValue(l.Key, out var label) && label == l.Value);
 
     /// <summary>
     ///     Returns a copy of the current instance configured to use the specified administrative database.

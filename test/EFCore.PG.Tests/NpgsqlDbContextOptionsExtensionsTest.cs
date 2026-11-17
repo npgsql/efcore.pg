@@ -145,5 +145,63 @@ public class NpgsqlDbContextOptionsExtensionsTest
         }
     }
 
+    [ConditionalTheory] // #3375
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MapEnum_configured_twice_by_context_and_factory_registrations(bool pooled)
+    {
+        // Registering both a context and a context factory runs both configuration lambdas against the same options,
+        // so the same MapEnum call is applied twice.
+        var serviceCollection = new ServiceCollection();
+        if (pooled)
+        {
+            serviceCollection.AddDbContextPool<EnumDbContext>(b => b.UseNpgsql("Host=localhost", o => o.MapEnum<Mood>()));
+            serviceCollection.AddPooledDbContextFactory<EnumDbContext>(b => b.UseNpgsql("Host=localhost", o => o.MapEnum<Mood>()));
+        }
+        else
+        {
+            serviceCollection.AddDbContext<EnumDbContext>(b => b.UseNpgsql("Host=localhost", o => o.MapEnum<Mood>()));
+            serviceCollection.AddDbContextFactory<EnumDbContext>(b => b.UseNpgsql("Host=localhost", o => o.MapEnum<Mood>()));
+        }
+
+        using var services = serviceCollection.BuildServiceProvider();
+
+        using (var scope = services.CreateScope())
+        {
+            AssertMoodMapped(scope.ServiceProvider.GetRequiredService<EnumDbContext>());
+        }
+
+        using var factoryContext = services.GetRequiredService<IDbContextFactory<EnumDbContext>>().CreateDbContext();
+        AssertMoodMapped(factoryContext);
+
+        static void AssertMoodMapped(EnumDbContext context)
+        {
+            var npgsqlOptions = context.GetService<IDbContextOptions>().FindExtension<NpgsqlOptionsExtension>()!;
+            var enumDefinition = Assert.Single(npgsqlOptions.EnumDefinitions);
+            Assert.Same(typeof(Mood), enumDefinition.ClrType);
+
+            var property = context.Model.FindEntityType(typeof(Person))!.FindProperty(nameof(Person.Mood))!;
+            Assert.Equal("mood", property.GetRelationalTypeMapping().StoreType);
+            Assert.Equal("mood", Assert.Single(context.GetService<IDesignTimeModel>().Model.GetPostgresEnums()).Name);
+        }
+    }
+
     private class ApplicationDbContext(DbContextOptions options) : DbContext(options);
+
+    private class EnumDbContext(DbContextOptions<EnumDbContext> options) : DbContext(options)
+    {
+        public DbSet<Person> People { get; set; }
+    }
+
+    private class Person
+    {
+        public int Id { get; set; }
+        public Mood Mood { get; set; }
+    }
+
+    private enum Mood
+    {
+        Happy,
+        Sad
+    }
 }

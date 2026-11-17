@@ -7,6 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.NameTranslation;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 
@@ -348,7 +349,6 @@ public class NpgsqlTypeMappingSourceTest
     }
 
     [Theory]
-    [InlineData("dummy_enum", null)]
     [InlineData("other_enum", null)]
     [InlineData("dummy_enum", "other")]
     public void Enum_with_multiple_definitions_for_clr_type(string secondName, string secondSchema)
@@ -361,10 +361,48 @@ public class NpgsqlTypeMappingSourceTest
             Assert.Throws<InvalidOperationException>(() => source.FindMapping(typeof(DummyEnum))).Message);
     }
 
+    [Theory] // #3375
+    [InlineData(null)]
+    [InlineData("some_schema")]
+    public void Enum_mapped_twice_with_same_definition(string schema)
+    {
+        var source = CreateTypeMappingSource(
+            configure: b => b.MapEnum<DummyEnum>("dummy_enum", schema).MapEnum<DummyEnum>("dummy_enum", schema));
+        var storeType = schema is null ? "dummy_enum" : schema + ".dummy_enum";
+
+        Assert.Equal(storeType, source.FindMapping(typeof(DummyEnum)).StoreType);
+        Assert.Same(typeof(DummyEnum), source.FindMapping(storeType).ClrType);
+        Assert.Same(typeof(DummyEnum), source.FindMapping(typeof(DummyEnum), storeType).ClrType);
+    }
+
+    [Fact] // #3375
+    public void Enum_mapped_twice_with_equivalent_name_translators()
+    {
+        var source = CreateTypeMappingSource(
+            configure: b => b
+                .MapEnum<DummyEnum>(nameTranslator: new NpgsqlSnakeCaseNameTranslator())
+                .MapEnum<DummyEnum>(nameTranslator: new NpgsqlSnakeCaseNameTranslator()));
+
+        Assert.Equal("dummy_enum", source.FindMapping(typeof(DummyEnum)).StoreType);
+    }
+
+    [Fact]
+    public void Enum_mapped_twice_with_different_labels()
+    {
+        // Same CLR type and store type, but the name translators produce different labels ("value" vs. "Value"): this is a real
+        // conflict, so both definitions are kept and the lookup reports it.
+        var source = CreateTypeMappingSource(
+            configure: b => b
+                .MapEnum<DummyEnum>("dummy_enum", nameTranslator: new NpgsqlSnakeCaseNameTranslator())
+                .MapEnum<DummyEnum>("dummy_enum", nameTranslator: new NpgsqlNullNameTranslator()));
+
+        Assert.Equal(
+            $"Multiple enum definitions registered for CLR type '{typeof(DummyEnum).FullName}'.",
+            Assert.Throws<InvalidOperationException>(() => source.FindMapping(typeof(DummyEnum))).Message);
+    }
+
     [Theory]
-    [InlineData(null, null, "dummy_enum", typeof(DummyEnum))]
     [InlineData(null, null, "dummy_enum", typeof(OtherDummyEnum))]
-    [InlineData("test", "test", "test.dummy_enum", typeof(DummyEnum))]
     [InlineData("test", "test", "\"test\".\"dummy_enum\"", typeof(OtherDummyEnum))]
     [InlineData("one", "two", "dummy_enum", typeof(OtherDummyEnum))]
     public void Enum_with_multiple_definitions_for_store_type(
