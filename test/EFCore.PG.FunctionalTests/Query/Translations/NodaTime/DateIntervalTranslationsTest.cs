@@ -77,6 +77,37 @@ FROM "NodaTimeTypes" AS n
 
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
+    public async Task Bounds_of_unbounded_daterange_are_null(bool async)
+    {
+        await using var context = Fixture.CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                await context.Database.ExecuteSqlRawAsync("""UPDATE "NodaTimeTypes" SET "DateInterval" = '(,)'::daterange""");
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = context.NodaTimeTypes
+                    .Select(e => new { Start = (LocalDate?)e.DateInterval.Start, End = (LocalDate?)e.DateInterval.End })
+                    .Where(e => e.Start == null && e.End == null);
+
+                var result = async ? await query.SingleAsync() : query.Single();
+                Assert.Null(result.Start);
+                Assert.Null(result.End);
+
+                AssertSql(
+                    """
+SELECT lower(n."DateInterval") AS "Start", CAST(upper(n."DateInterval") - INTERVAL 'P1D' AS date) AS "End"
+FROM "NodaTimeTypes" AS n
+WHERE lower(n."DateInterval") IS NULL AND upper(n."DateInterval") IS NULL
+LIMIT 2
+""");
+            });
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
     public async Task Contains_LocalDate(bool async)
     {
         var dateInterval = new DateInterval(new LocalDate(2018, 01, 01), new LocalDate(2020, 12, 25));

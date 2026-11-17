@@ -502,6 +502,23 @@ WHERE lca(ARRAY[l."LTree",'Top.Hobbies']::ltree[]) = 'Top'
 """);
     }
 
+    [ConditionalFact]
+    public void LongestCommonAncestor_is_null()
+    {
+        using var context = CreateContext();
+
+        Assert.Equal(
+            7,
+            context.LTreeEntities.Select(l => (LTree?)LTree.LongestCommonAncestor(l.LTree, "")).Count(l => l == null));
+
+        AssertSql(
+            """
+SELECT count(*)::int
+FROM "LTreeEntities" AS l
+WHERE lca(ARRAY[l."LTree",'']::ltree[]) IS NULL
+""");
+    }
+
     #region Support
 
     protected LTreeQueryContext CreateContext()

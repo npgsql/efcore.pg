@@ -94,7 +94,7 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
                         "ST_GeometryN",
                         [collection, OneBased(index)],
                         nullable: true,
-                        argumentsPropagateNullability: TrueArrays[2],
+                        argumentsPropagateNullability: [false, false],
                         method.ReturnType,
                         geometryTypeMapping),
 
@@ -260,7 +260,10 @@ public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
         SqlExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
             => _sqlExpressionFactory.Function(
                 name, arguments,
-                nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],
+                nullable: true,
+                argumentsPropagateNullability: name is "ST_GeometryN" or "ST_InteriorRingN" or "ST_PointN"
+                    ? [false, false]
+                    : TrueArrays[arguments.Length],
                 returnType, typeMapping);
 
         RelationalTypeMapping ResultGeometryMapping()

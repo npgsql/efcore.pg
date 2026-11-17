@@ -558,6 +558,8 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
                     PgExpressionType.HstoreGetValue => "->",
 
+                    PgExpressionType.ArrayConcat => "||",
+
                     PgExpressionType.CubeNthCoordinate => "->",
                     PgExpressionType.CubeNthCoordinateKnn => "~>",
                     PgExpressionType.CubeDistanceTaxicab => "<#>",
@@ -1644,6 +1646,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
             // There's an "any other operator" category in the PG operator precedence table, we assign that a numeric value of 1000.
             // TODO: Some operators here may be associative
+            PgBinaryExpression { OperatorType: PgExpressionType.ArrayConcat } => (1000, true),
             PgBinaryExpression or PgRegexMatchExpression => (1000, false),
 
             CollateExpression => (1000, false),

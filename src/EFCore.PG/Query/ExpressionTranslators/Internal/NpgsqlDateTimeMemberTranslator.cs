@@ -186,7 +186,7 @@ public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
             "date_part",
             [_sqlExpressionFactory.Constant(partName), instance],
             nullable: true,
-            argumentsPropagateNullability: TrueArrays[2],
+            argumentsPropagateNullability: FalseArrays[2],
             typeof(double));
 
         if (floor)

@@ -1078,6 +1078,93 @@ FROM "LineStringEntity" AS l
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Missing_point_ordinates_not_equal(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<PointEntity>()
+                .Where(e => e.Point != null && e.Point.Z != 0 && e.Point.M != 0)
+                .Select(e => e.Id));
+
+        AssertSql(
+            """
+SELECT p."Id"
+FROM "PointEntity" AS p
+WHERE p."Point" IS NOT NULL AND (ST_Z(p."Point") <> 0.0 OR ST_Z(p."Point") IS NULL) AND (ST_M(p."Point") <> 0.0 OR ST_M(p."Point") IS NULL)
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Empty_line_endpoints_are_null(bool async)
+    {
+        await using var context = Fixture.CreateContext();
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(
+            async () =>
+            {
+                await using var transaction = await context.Database.BeginTransactionAsync();
+
+                var entity = await context.Set<LineStringEntity>().AsTracking().SingleAsync(e => e.Id == 1);
+                entity.LineString = Fixture.GeometryFactory.CreateLineString();
+                await context.SaveChangesAsync();
+                Fixture.TestSqlLoggerFactory.Clear();
+
+                var query = context.Set<LineStringEntity>()
+                    .Where(e => e.LineString != null && e.LineString.StartPoint == null && e.LineString.EndPoint == null)
+                    .Select(e => e.Id);
+
+                Assert.Equal(1, async ? await query.SingleAsync() : query.Single());
+
+                AssertSql(
+                    """
+SELECT l."Id"
+FROM "LineStringEntity" AS l
+WHERE l."LineString" IS NOT NULL AND ST_StartPoint(l."LineString") IS NULL AND ST_EndPoint(l."LineString") IS NULL
+LIMIT 2
+""");
+            });
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task GetGeometryN_out_of_range_is_null(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<MultiLineStringEntity>()
+                .Where(e => e.MultiLineString != null && e.MultiLineString.GetGeometryN(99) == null)
+                .Select(e => e.Id),
+            expectedQuery: ss => ss.Set<MultiLineStringEntity>().Where(e => e.MultiLineString != null).Select(e => e.Id));
+
+        AssertSql(
+            """
+SELECT m."Id"
+FROM "MultiLineStringEntity" AS m
+WHERE m."MultiLineString" IS NOT NULL AND ST_GeometryN(m."MultiLineString", 100) IS NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Geometry_collection_indexer_out_of_range_is_null(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<MultiLineStringEntity>()
+                .Where(e => e.MultiLineString != null && e.MultiLineString[99] == null)
+                .Select(e => e.Id),
+            expectedQuery: ss => ss.Set<MultiLineStringEntity>().Where(e => e.MultiLineString != null).Select(e => e.Id));
+
+        AssertSql(
+            """
+SELECT m."Id"
+FROM "MultiLineStringEntity" AS m
+WHERE m."MultiLineString" IS NOT NULL AND ST_GeometryN(m."MultiLineString", 100) IS NULL
+""");
+    }
+
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

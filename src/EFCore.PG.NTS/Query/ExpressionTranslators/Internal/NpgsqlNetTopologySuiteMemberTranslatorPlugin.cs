@@ -175,7 +175,10 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
         SqlExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping? typeMapping = null)
             => _sqlExpressionFactory.Function(
                 name, arguments,
-                nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],
+                nullable: true,
+                argumentsPropagateNullability: name is "ST_X" or "ST_Y" or "ST_Z" or "ST_M" or "ST_StartPoint" or "ST_EndPoint"
+                    ? [false]
+                    : TrueArrays[arguments.Length],
                 returnType, typeMapping);
 
         RelationalTypeMapping ResultGeometryMapping()

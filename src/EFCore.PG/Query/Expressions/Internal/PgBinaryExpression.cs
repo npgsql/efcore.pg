@@ -158,6 +158,8 @@ public class PgBinaryExpression : SqlExpression
 
                     PgExpressionType.HstoreGetValue => "->",
 
+                    PgExpressionType.ArrayConcat => "||",
+
                     _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {OperatorType}")
                 })
             .Append(" ");

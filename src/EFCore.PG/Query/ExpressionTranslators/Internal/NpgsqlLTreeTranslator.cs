@@ -114,7 +114,7 @@ public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
                         "lca",
                         [arguments[0]],
                         nullable: true,
-                        TrueArrays[1],
+                        FalseArrays[1],
                         typeof(LTree),
                         _ltreeTypeMapping),
 

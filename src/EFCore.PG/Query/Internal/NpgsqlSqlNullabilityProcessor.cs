@@ -386,6 +386,9 @@ public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
 
         nullable = binaryExpression.OperatorType switch
         {
+            // Array concatenation treats a null operand as an empty array.
+            PgExpressionType.ArrayConcat => leftNullable && rightNullable,
+
             // Missing keys and stored null values produce null even for non-null operands.
             PgExpressionType.HstoreGetValue => true,
 
