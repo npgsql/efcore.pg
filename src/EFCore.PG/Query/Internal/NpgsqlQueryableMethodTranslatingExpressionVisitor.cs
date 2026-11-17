@@ -1525,6 +1525,8 @@ public class NpgsqlQueryableMethodTranslatingExpressionVisitor : RelationalQuery
             SqlParameterExpression { IsNullable: true } => true,
             ColumnExpression { IsNullable: true } => true,
             JsonScalarExpression { IsNullable: true } => true,
+            // An array index that is out of range yields NULL, whatever the nullability of the element
+            JsonScalarExpression { Path: var path } when path.Any(s => s.ArrayIndex is not null) => true,
             PgJsonTraversalExpression => true,
             SqlFunctionExpression { IsNullable: true } => true,
 
