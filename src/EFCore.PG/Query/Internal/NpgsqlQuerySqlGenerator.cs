@@ -859,7 +859,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </summary>
     protected virtual Expression VisitArrayAll(PgAllExpression expression)
     {
-        Visit(expression.Item);
+        VisitArrayOperatorItem(expression, expression.Item);
 
         Sql
             .Append(" ")
@@ -887,7 +887,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     /// </summary>
     protected virtual Expression VisitArrayAny(PgAnyExpression expression)
     {
-        Visit(expression.Item);
+        VisitArrayOperatorItem(expression, expression.Item);
 
         Sql
             .Append(" ")
@@ -914,6 +914,24 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
         Sql.Append(")");
 
         return expression;
+    }
+
+    // The item is the left operand of the operator, e.g. (a AND b) = ANY (array).
+    private void VisitArrayOperatorItem(SqlExpression expression, SqlExpression item)
+    {
+        var requiresParentheses = RequiresParentheses(expression, item);
+
+        if (requiresParentheses)
+        {
+            Sql.Append("(");
+        }
+
+        Visit(item);
+
+        if (requiresParentheses)
+        {
+            Sql.Append(")");
+        }
     }
 
     /// <summary>

@@ -351,6 +351,23 @@ WHERE s."Id" = ANY (@array)
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Array_param_Contains_logical_expression()
+    {
+        var array = new List<bool> { false };
+
+        await AssertQuery(ss => ss.Set<ArrayEntity>().Where(e => array.Contains(e.Id == 1 && e.NonNullableText == "foo")));
+
+        AssertSql(
+            """
+@array={ 'False' } (DbType = Object)
+
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE (s."Id" = 1 AND s."NonNullableText" = 'foo') = ANY (@array)
+""");
+    }
+
     public void Array_param_with_null_Contains_non_nullable_not_found()
     {
         using var ctx = CreateContext();
