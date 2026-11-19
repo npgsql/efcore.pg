@@ -188,6 +188,61 @@ LIMIT 2
             ]);
     }
 
+    [Theory]
+    [InlineData('e')]
+    [InlineData(' ')]
+    public void Text_conversions_with_char(char character)
+    {
+        Fixture.ClearEntities();
+
+        using var context = CreateContext();
+        context.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678", Character = character });
+        context.SaveChanges();
+        Fixture.TestSqlLoggerFactory.Clear();
+
+        var result = context.CharacterTestEntities.Select(e => new
+        {
+            Text = e.Character.ToString(),
+            PadLeft = e.Character8!.PadLeft(10, e.Character),
+            PadRight = e.Character8!.PadRight(10, e.Character),
+            PadRightParameter = e.Character8!.PadRight(10, character),
+            Join = string.Join(e.Character, new[] { e.Character8, e.Character8 }),
+            JoinParameter = string.Join(character, new[] { e.Character8, e.Character8 })
+        }).Single();
+
+        Assert.Equal(
+            new
+            {
+                Text = character.ToString(),
+                PadLeft = "12345678".PadLeft(10, character),
+                PadRight = "12345678".PadRight(10, character),
+                PadRightParameter = "12345678".PadRight(10, character),
+                Join = string.Join(character, "12345678", "12345678"),
+                JoinParameter = string.Join(character, "12345678", "12345678")
+            },
+            result);
+
+        Fixture.TestSqlLoggerFactory.AssertBaseline(
+            [
+                $$"""
+@character='{{character}}' (DbType = String)
+
+SELECT rpad(c."Character", 1) AS "Text", CASE
+    WHEN length(c."Character8") >= 10 THEN c."Character8"
+    ELSE lpad(c."Character8", 10, rpad(c."Character", 1))
+END AS "PadLeft", CASE
+    WHEN length(c."Character8") >= 10 THEN c."Character8"
+    ELSE rpad(c."Character8", 10, rpad(c."Character", 1))
+END AS "PadRight", CASE
+    WHEN length(c."Character8") >= 10 THEN c."Character8"
+    ELSE rpad(c."Character8", 10, @character)
+END AS "PadRightParameter", concat_ws(rpad(c."Character", 1), c."Character8", c."Character8") AS "Join", concat_ws(@character, c."Character8", c."Character8") AS "JoinParameter"
+FROM "CharacterTestEntities" AS c
+LIMIT 2
+"""
+            ]);
+    }
+
     #region Fixture
 
     // ReSharper disable once ClassNeverInstantiated.Global

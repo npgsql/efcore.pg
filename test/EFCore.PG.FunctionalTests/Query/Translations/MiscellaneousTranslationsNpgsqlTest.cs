@@ -180,6 +180,23 @@ WHERE b."Int" = 12
     public override Task Convert_ToString()
         => AssertTranslationFailed(() => base.Convert_ToString());
 
+    [ConditionalFact]
+    public virtual async Task Convert_ToString_bool()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>().Where(b => Convert.ToString(b.Bool) == "True"));
+
+        AssertSql(
+            """
+SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
+FROM "BasicTypesEntities" AS b
+WHERE CASE
+    WHEN b."Bool" THEN 'True'
+    WHEN NOT (b."Bool") THEN 'False'
+END = 'True'
+""");
+    }
+
     #endregion Convert
 
     #region Parse
