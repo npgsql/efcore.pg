@@ -219,7 +219,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
                 var args =
                     arguments is [var padCount]
                         ? new SqlExpression[] { instance!, padCount }
-                        : new[] { instance!, arguments[0], arguments[1] };
+                        : new[] { instance!, arguments[0], TranslateCharArgument(arguments[1], _sqlExpressionFactory) };
 
                 var padFunc = _sqlExpressionFactory.Function(
                     method.Name is nameof(string.PadLeft) ? "lpad" : "rpad",
@@ -237,12 +237,20 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
             case nameof(string.Join)
                 when arguments is [_, var joinArray] && joinArray.TypeMapping is NpgsqlArrayTypeMapping:
             {
+                // string.Join treats a null separator as an empty string, whereas concat_ws and array_to_string return NULL for it.
+                var separator = arguments[0] switch
+                {
+                    { } s when s.Type == typeof(char) => TranslateCharArgument(s, _sqlExpressionFactory),
+                    SqlConstantExpression { Value: not null } or ColumnExpression { IsNullable: false } => arguments[0],
+                    _ => _sqlExpressionFactory.Coalesce(arguments[0], _sqlExpressionFactory.Constant(string.Empty, typeof(string)))
+                };
+
                 // If the array of strings to be joined is a constant (NewArrayExpression), we translate to concat_ws.
                 // Otherwise we translate to array_to_string, which also supports array columns and parameters.
                 if (arguments[1] is PgNewArrayExpression newArrayExpression)
                 {
                     var rewrittenArguments = new SqlExpression[newArrayExpression.Expressions.Count + 1];
-                    rewrittenArguments[0] = arguments[0];
+                    rewrittenArguments[0] = separator;
 
                     for (var i = 0; i < newArrayExpression.Expressions.Count; i++)
                     {
@@ -273,7 +281,7 @@ public class NpgsqlStringMethodTranslator : IMethodCallTranslator
 
                 return _sqlExpressionFactory.Function(
                     "array_to_string",
-                    [arguments[1], arguments[0], _sqlExpressionFactory.Constant("")],
+                    [arguments[1], separator, _sqlExpressionFactory.Constant("")],
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[3],
                     typeof(string));

@@ -1027,6 +1027,57 @@ WHERE array_to_string(s."StringArray", ', ', '') = '3, 4'
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task String_Join_with_space_char_separator_parameter()
+    {
+        var separator = ' ';
+
+        await AssertQuery(
+            ss => ss.Set<ArrayEntity>()
+                .Where(e => string.Join(separator, e.StringArray) == "3 4"));
+
+        AssertSql(
+            """
+@separator=' ' (DbType = String)
+
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE array_to_string(s."StringArray", @separator, '') = '3 4'
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task String_Join_with_null_separator_parameter()
+    {
+        string? separator = null;
+
+        await AssertQuery(
+            ss => ss.Set<ArrayEntity>()
+                .Where(e => string.Join(separator, e.StringArray) == "34"));
+
+        AssertSql(
+            """
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE array_to_string(s."StringArray", COALESCE(NULL, ''), '') = '34'
+""");
+    }
+
+    [ConditionalFact]
+    public virtual async Task String_Join_with_nullable_separator_column()
+    {
+        await AssertQuery(
+            ss => ss.Set<ArrayEntity>()
+                .Where(e => string.Join(e.NullableText, e.StringArray) == "3foo4"));
+
+        AssertSql(
+            """
+SELECT s."Id", s."ArrayContainerEntityId", s."ArrayOfStringConvertedToDelimitedString", s."Byte", s."ByteArray", s."Bytea", s."EnumConvertedToInt", s."EnumConvertedToString", s."IList", s."IntArray", s."IntList", s."ListOfStringConvertedToDelimitedString", s."NonNullableText", s."NullableEnumConvertedToString", s."NullableEnumConvertedToStringWithNonNullableLambda", s."NullableIntArray", s."NullableIntList", s."NullableStringArray", s."NullableStringList", s."NullableText", s."StringArray", s."StringList", s."ValueConvertedArrayOfEnum", s."ValueConvertedListOfEnum", s."Varchar10", s."Varchar15"
+FROM "SomeEntities" AS s
+WHERE array_to_string(s."StringArray", COALESCE(s."NullableText", ''), '') = '3foo4'
+""");
+    }
+
     [ConditionalTheory]
     [MemberData(nameof(IsAsyncData))]
     public virtual async Task String_Join_disallow_non_array_type_mapped_parameter(bool async)
