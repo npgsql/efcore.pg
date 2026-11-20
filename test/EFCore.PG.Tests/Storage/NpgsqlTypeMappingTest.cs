@@ -557,6 +557,21 @@ public class NpgsqlTypeMappingTest
 
     #region Misc
 
+    [Theory]
+    [InlineData("", "''")]
+    [InlineData("Don't", "'Don''t'")]
+    [InlineData(@"C:\new\test", @"'C:\new\test'")]
+    [InlineData("\r", @"E'\r'")]
+    [InlineData("\n", @"E'\n'")]
+    [InlineData("\r\n", @"E'\r\n'")]
+    [InlineData("Don't\r\nGO\n  this way\\n\rend\r\n", @"E'Don''t\r\nGO\n  this way\\n\rend\r\n'")]
+    public void GenerateSqlLiteral_returns_string_literal(string value, string literal)
+    {
+        Assert.Equal(literal, GetMapping(typeof(string)).GenerateSqlLiteral(value));
+        Assert.Equal(literal, GetMapping("character varying").GenerateSqlLiteral(value));
+        Assert.Equal(literal, GetMapping(typeof(string), "character").GenerateSqlLiteral(value));
+    }
+
     [Fact]
     public void GenerateSqlLiteral_returns_bool_literal()
         => Assert.Equal("TRUE", GetMapping("bool").GenerateSqlLiteral(true));
