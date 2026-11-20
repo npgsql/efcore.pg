@@ -25,33 +25,28 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-26.04]
-        pg_major: [18, 17, 16, 15, 14]
+        pg_major: [19, 18, 17, 16, 15]
         config: [Release]
         include:
           - os: windows-2022
-            pg_major: 17
+            pg_major: 19
             config: Release
-          - os: ubuntu-26.04
-            pg_major: 18
-            config: Debug
           - os: ubuntu-26.04
             pg_major: 19
             config: Debug
-            pg_prerelease: rc1
 
     outputs:
       is_release: ${{ steps.analyze_tag.outputs.is_release }}
       is_prerelease: ${{ steps.analyze_tag.outputs.is_prerelease }}
 
-    # Installing PostGIS on Windows is complicated/unreliable, so we don't test on it.
-    # The NPGSQL_TEST_POSTGIS environment variable ensures that if PostGIS isn't installed,
-    # the PostGIS tests fail and therefore fail the build.
+    # Windows doesn't run spatial tests, and PostgreSQL 19 doesn't have a stable PostGIS image yet.
+    # On the remaining jobs, fail the build if PostGIS is missing rather than skipping spatial tests.
     env:
-      NPGSQL_TEST_POSTGIS: ${{ !startsWith(matrix.os, 'windows') && !matrix.pg_prerelease }}
+      NPGSQL_TEST_POSTGIS: ${{ startsWith(matrix.os, 'ubuntu') && matrix.pg_major != 19 }}
 
     services:
       postgres:
-        image: ${{ startsWith(matrix.os, 'ubuntu') && (matrix.pg_prerelease && format('postgres:{0}{1}', matrix.pg_major, matrix.pg_prerelease) || format('postgis/postgis:{0}-3.6', matrix.pg_major)) || '' }}
+        image: ${{ startsWith(matrix.os, 'ubuntu') && (matrix.pg_major == 19 && 'postgres:19' || format('postgis/postgis:{0}-3.6', matrix.pg_major)) || '' }}
         command: postgres -c max_connections=200
         env:
           POSTGRES_USER: npgsql_tests
