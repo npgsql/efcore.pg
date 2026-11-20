@@ -321,7 +321,7 @@ public class NpgsqlRelationalConnectionTest
         using var master = connection.CreateAdminConnection();
 
         Assert.Equal(
-            @"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False",
+            @"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False",
             master.ConnectionString);
     }
 
@@ -338,7 +338,7 @@ public class NpgsqlRelationalConnectionTest
         using var master = connection.CreateAdminConnection();
 
         Assert.Equal(
-            @"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False",
+            @"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False",
             master.ConnectionString);
     }
 

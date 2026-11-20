@@ -198,8 +198,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         var adminConnectionString = new NpgsqlConnectionStringBuilder(ConnectionString)
         {
             Database = npgsqlOptions.AdminDatabase ?? "postgres",
-            Pooling = false,
-            Multiplexing = false
+            Pooling = false
         }.ToString();
 
         // Cloned connections must be owned so disposing the wrapper also closes and disposes them.

@@ -25,7 +25,7 @@ public class NpgsqlApiConsistencyTest(NpgsqlApiConsistencyTest.NpgsqlApiConsiste
             typeof(NpgsqlModelBuilderExtensions),
             typeof(NpgsqlPropertyBuilderExtensions),
             typeof(NpgsqlEntityTypeBuilderExtensions),
-            typeof(NpgsqlServiceCollectionExtensions)
+            typeof(NpgsqlEntityFrameworkServiceCollectionExtensions)
         ];
 
         public override HashSet<MethodInfo> UnmatchedMetadataMethods { get; } =

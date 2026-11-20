@@ -3,8 +3,8 @@
     <EFCoreVersion>11.0.0</EFCoreVersion>
     <MicrosoftExtensionsVersion>11.0.0</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsConfigurationVersion>11.0.0</MicrosoftExtensionsConfigurationVersion>
-    <NpgsqlVersion>10.0.3</NpgsqlVersion>
-    <XunitVersion>4.0.1</XunitVersion>
+    <NpgsqlVersion>11.0.0</NpgsqlVersion>
+    <XunitVersion>4.0.3</XunitVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,14 +25,13 @@
     <PackageVersion Include="Npgsql" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.NodaTime" Version="$(NpgsqlVersion)" />
     <PackageVersion Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
-    <PackageVersion Include="Npgsql.DependencyInjection" Version="$(NpgsqlVersion)" />
 
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
-    <PackageVersion Include="Microsoft.DotNet.XUnitV3Extensions" Version="11.0.0-beta.26526.3" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="11.0.100" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <PackageVersion Include="Microsoft.DotNet.XUnitV3Extensions" Version="11.0.0-beta.26569.5" />
     <PackageVersion Include="xunit.v3" Version="$(XunitVersion)" />
     <PackageVersion Include="xunit.v3.runner.inproc.console" Version="$(XunitVersion)" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.16.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.17.0" />
   </ItemGroup>
 </Project>
