@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 ///     Provides extension methods to configure Entity Framework Core for Npgsql.
 /// </summary>
 // ReSharper disable once UnusedMember.Global
-public static class NpgsqlServiceCollectionExtensions
+public static class NpgsqlEntityFrameworkServiceCollectionExtensions
 {
     /// <summary>
     ///     <para>

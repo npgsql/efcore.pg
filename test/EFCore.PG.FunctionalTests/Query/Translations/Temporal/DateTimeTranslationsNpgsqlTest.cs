@@ -546,8 +546,11 @@ WHERE date_part('epoch', b."DateTime" - @date) / 86400.0 > 365.0
 
     // DateTime.Parse() returns either a Local or Unspecified DateTime, which can't be compared with timestamptz
     // (see TemporalTranslationsNpgsqlTimestampWithoutTimeZoneTest for a working version of this test)
-    public override Task Parse_with_parameter()
-        => Assert.ThrowsAsync<ArgumentException>(() => base.Parse_with_parameter());
+    public override async Task Parse_with_parameter()
+    {
+        var exception = await Assert.ThrowsAsync<InvalidCastException>(() => base.Parse_with_parameter());
+        Assert.IsType<ArgumentException>(exception.InnerException);
+    }
 
     public override async Task New_with_constant()
     {

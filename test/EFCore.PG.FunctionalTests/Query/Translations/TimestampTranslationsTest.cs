@@ -59,7 +59,7 @@ public class TimestampTranslationsTest : QueryTestBase<TimestampTranslationsTest
 
         ctx.Entities.Add(new Entity { TimestampDateTime = DateTime.UtcNow });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
-        Assert.IsType<ArgumentException>(exception.InnerException);
+        Assert.IsType<ArgumentException>(Assert.IsType<InvalidCastException>(exception.InnerException).InnerException);
     }
 
     [ConditionalFact]
@@ -69,7 +69,7 @@ public class TimestampTranslationsTest : QueryTestBase<TimestampTranslationsTest
 
         ctx.Entities.Add(new Entity { TimestamptzDateTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified) });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
-        Assert.IsType<ArgumentException>(exception.InnerException);
+        Assert.IsType<ArgumentException>(Assert.IsType<InvalidCastException>(exception.InnerException).InnerException);
     }
 
     [ConditionalFact]
@@ -79,7 +79,7 @@ public class TimestampTranslationsTest : QueryTestBase<TimestampTranslationsTest
 
         ctx.Entities.Add(new Entity { TimestamptzDateTime = DateTime.Now });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
-        Assert.IsType<ArgumentException>(exception.InnerException);
+        Assert.IsType<ArgumentException>(Assert.IsType<InvalidCastException>(exception.InnerException).InnerException);
     }
 
     #endregion Basic mapping
@@ -163,9 +163,10 @@ WHERE e."TimestampDateTime" = @dateTime
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Utc);
 
-        await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<InvalidCastException>(
             () => ctx.Entities.Where(e => e.TimestampDateTime == dateTime)
                 .ToListAsync());
+        Assert.IsType<ArgumentException>(exception.InnerException);
     }
 
     [ConditionalTheory]
@@ -221,9 +222,10 @@ WHERE e."TimestamptzDateTime" = @dateTime
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Local);
 
-        await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<InvalidCastException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == dateTime)
                 .ToListAsync());
+        Assert.IsType<ArgumentException>(exception.InnerException);
     }
 
     [ConditionalFact]
@@ -243,9 +245,10 @@ WHERE e."TimestamptzDateTime" = @dateTime
 
         var dateTime = new DateTime(1998, 4, 12, 13, 26, 38, DateTimeKind.Unspecified);
 
-        await Assert.ThrowsAsync<ArgumentException>(
+        var exception = await Assert.ThrowsAsync<InvalidCastException>(
             () => ctx.Entities.Where(e => e.TimestamptzDateTime == dateTime)
                 .ToListAsync());
+        Assert.IsType<ArgumentException>(exception.InnerException);
     }
 
     [ConditionalFact]
