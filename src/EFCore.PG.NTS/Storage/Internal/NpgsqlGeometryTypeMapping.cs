@@ -91,7 +91,7 @@ public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMappin
         }
 
         builder
-            .Append(geometry.AsText())
+            .Append(new WKTWriter(4).Write(geometry))
             .Append('\'');
 
         return builder.ToString();
