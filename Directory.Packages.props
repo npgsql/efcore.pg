@@ -4,7 +4,7 @@
     <MicrosoftExtensionsVersion>11.0.0</MicrosoftExtensionsVersion>
     <MicrosoftExtensionsConfigurationVersion>11.0.0</MicrosoftExtensionsConfigurationVersion>
     <NpgsqlVersion>11.0.0</NpgsqlVersion>
-    <XunitVersion>4.0.3</XunitVersion>
+    <XunitVersion>4.0.1</XunitVersion>
   </PropertyGroup>
 
   <ItemGroup>
