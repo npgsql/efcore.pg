@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions.Internal;
@@ -190,6 +191,32 @@ public class NpgsqlSqlTranslatingExpressionVisitor(
                 binaryExpression.Type);
 
             // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
+        }
+
+        // PostgreSQL division over numeric returns a fractional result, but .NET BigInteger division truncates towards zero.
+        // div() performs integer division with the same truncation semantics.
+        if (binaryExpression.NodeType is ExpressionType.Divide
+            && binaryExpression.Left.Type.UnwrapNullableType() == typeof(BigInteger)
+            && binaryExpression.Right.Type.UnwrapNullableType() == typeof(BigInteger))
+        {
+            if (TranslationFailed(binaryExpression.Left, Visit(binaryExpression.Left), out var sqlLeft)
+                || TranslationFailed(binaryExpression.Right, Visit(binaryExpression.Right), out var sqlRight))
+            {
+                return QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            var typeMapping = ExpressionExtensions.InferTypeMapping(sqlLeft!, sqlRight!);
+
+            return _sqlExpressionFactory.Function(
+                "div",
+                [
+                    _sqlExpressionFactory.ApplyTypeMapping(sqlLeft!, typeMapping),
+                    _sqlExpressionFactory.ApplyTypeMapping(sqlRight!, typeMapping)
+                ],
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                binaryExpression.Type,
+                typeMapping);
         }
 
         return base.VisitBinary(binaryExpression) switch
