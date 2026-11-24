@@ -77,6 +77,83 @@ public class MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlTe
         }
     }
 
+    [ConditionalTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Can_apply_several_migrations_in_parallel(bool async)
+    {
+        // Each instance plans its whole run from the history it reads under the first lock. The lock must therefore be held
+        // until the run ends; a lock released with each migration's transaction lets another instance apply the next migration
+        // in between, and the first instance then applies it again (#4162).
+        await using var store = NpgsqlTestStore.Create("MigrationsInParallel");
+        await using (var db = CreateParallelContext(store))
+        {
+            await db.Database.EnsureDeletedAsync();
+            await db.GetService<IRelationalDatabaseCreator>().CreateAsync();
+        }
+
+        await Task.WhenAll(
+            Enumerable.Range(0, 4).Select(
+                _ => Task.Run(
+                    async () =>
+                    {
+                        await using var context = CreateParallelContext(store);
+                        if (async)
+                        {
+                            await context.Database.MigrateAsync();
+                        }
+                        else
+                        {
+                            context.Database.Migrate();
+                        }
+                    })));
+
+        await using var check = CreateParallelContext(store);
+        Assert.Equal(
+            new[] { "00000000000001_People", "00000000000002_SlowEmail", "00000000000003_Phone" },
+            (await check.GetService<IHistoryRepository>().GetAppliedMigrationsAsync()).Select(r => r.MigrationId));
+    }
+
+    private static ParallelMigrationsContext CreateParallelContext(NpgsqlTestStore store)
+        => new(
+            new DbContextOptionsBuilder<ParallelMigrationsContext>()
+                .UseNpgsql(store.ConnectionString)
+                .ConfigureWarnings(e => e.Log(RelationalEventId.PendingModelChangesWarning))
+                .Options);
+
+    private class ParallelMigrationsContext(DbContextOptions options) : DbContext(options);
+
+    [DbContext(typeof(ParallelMigrationsContext))]
+    [Migration("00000000000001_People")]
+    private class ParallelMigration1 : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+            => migrationBuilder.CreateTable(
+                "People",
+                c => new { Id = c.Column<int>() },
+                constraints: t => t.PrimaryKey("PK_People", x => x.Id));
+    }
+
+    [DbContext(typeof(ParallelMigrationsContext))]
+    [Migration("00000000000002_SlowEmail")]
+    private class ParallelMigration2 : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            // A slow migration (a data migration, an index build) keeps the other instances waiting on the lock.
+            migrationBuilder.Sql("SELECT pg_sleep(1)");
+            migrationBuilder.AddColumn<string>("Email", "People", nullable: true);
+        }
+    }
+
+    [DbContext(typeof(ParallelMigrationsContext))]
+    [Migration("00000000000003_Phone")]
+    private class ParallelMigration3 : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+            => migrationBuilder.AddColumn<string>("Phone", "People", nullable: true);
+    }
+
     public override void Can_diff_against_2_2_model()
     {
         using var context = new Migrations.BloggingContext();

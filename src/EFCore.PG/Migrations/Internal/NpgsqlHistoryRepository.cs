@@ -28,7 +28,13 @@ public class NpgsqlHistoryRepository : HistoryRepository
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public override LockReleaseBehavior LockReleaseBehavior => LockReleaseBehavior.Transaction;
+    /// <remarks>
+    ///     A session-level advisory lock, held for the whole migration run like SQL Server's <c>sp_getapplock</c>. A
+    ///     transaction-scoped lock ends with each migration's transaction, and EF's migrator does not re-read the
+    ///     history when it reacquires the lock for the next one, so concurrent instances applied the same migration
+    ///     twice.
+    /// </remarks>
+    public override LockReleaseBehavior LockReleaseBehavior => LockReleaseBehavior.Connection;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -41,7 +47,7 @@ public class NpgsqlHistoryRepository : HistoryRepository
         Dependencies.MigrationsLogger.AcquiringMigrationLock();
 
         Dependencies.RawSqlCommandBuilder
-            .Build($"LOCK TABLE {Dependencies.SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} IN ACCESS EXCLUSIVE MODE")
+            .Build($"SELECT pg_advisory_lock({LockKey})")
             .ExecuteNonQuery(CreateRelationalCommandParameters());
 
         return new NpgsqlMigrationDatabaseLock(this);
@@ -55,12 +61,52 @@ public class NpgsqlHistoryRepository : HistoryRepository
     /// </summary>
     public override async Task<IMigrationsDatabaseLock> AcquireDatabaseLockAsync(CancellationToken cancellationToken = default)
     {
+        Dependencies.MigrationsLogger.AcquiringMigrationLock();
+
         await Dependencies.RawSqlCommandBuilder
-            .Build($"LOCK TABLE {Dependencies.SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} IN ACCESS EXCLUSIVE MODE")
+            .Build($"SELECT pg_advisory_lock({LockKey})")
             .ExecuteNonQueryAsync(CreateRelationalCommandParameters(), cancellationToken)
             .ConfigureAwait(false);
 
         return new NpgsqlMigrationDatabaseLock(this);
+    }
+
+    // Advisory locks are scoped to the current database, so one key per history table is enough. The key is a
+    // number computed here (64-bit FNV-1a of the table's schema-qualified name), spliced as a numeric literal.
+    private long LockKey
+    {
+        get
+        {
+            var hash = 14695981039346656037UL;
+            foreach (var b in System.Text.Encoding.UTF8.GetBytes($"efcore:migrations:{TableSchema}.{TableName}"))
+            {
+                hash = (hash ^ b) * 1099511628211UL;
+            }
+
+            return unchecked((long)hash);
+        }
+    }
+
+    private void ReleaseDatabaseLock()
+    {
+        // A session lock ends with the session, so there is nothing to release once the connection is closed.
+        if (Dependencies.Connection.DbConnection.State == System.Data.ConnectionState.Open)
+        {
+            Dependencies.RawSqlCommandBuilder
+                .Build($"SELECT pg_advisory_unlock({LockKey})")
+                .ExecuteNonQuery(CreateRelationalCommandParameters());
+        }
+    }
+
+    private async ValueTask ReleaseDatabaseLockAsync()
+    {
+        if (Dependencies.Connection.DbConnection.State == System.Data.ConnectionState.Open)
+        {
+            await Dependencies.RawSqlCommandBuilder
+                .Build($"SELECT pg_advisory_unlock({LockKey})")
+                .ExecuteNonQueryAsync(CreateRelationalCommandParameters())
+                .ConfigureAwait(false);
+        }
     }
 
     private RelationalCommandParameterObject CreateRelationalCommandParameters()
@@ -240,7 +286,7 @@ BEGIN
 END $EF$;
 """;
 
-    private sealed class NpgsqlMigrationDatabaseLock(IHistoryRepository historyRepository) : IMigrationsDatabaseLock
+    private sealed class NpgsqlMigrationDatabaseLock(NpgsqlHistoryRepository historyRepository) : IMigrationsDatabaseLock
     {
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -251,10 +297,9 @@ END $EF$;
         public IHistoryRepository HistoryRepository => historyRepository;
 
         public void Dispose()
-        {
-        }
+            => historyRepository.ReleaseDatabaseLock();
 
         public ValueTask DisposeAsync()
-            => default;
+            => historyRepository.ReleaseDatabaseLockAsync();
     }
 }
