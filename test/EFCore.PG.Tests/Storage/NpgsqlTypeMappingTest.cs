@@ -363,7 +363,10 @@ public class NpgsqlTypeMappingTest
         Assert.Equal("INTERVAL '3 04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6, 7)));
         Assert.Equal("INTERVAL '3 04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6)));
         Assert.Equal("INTERVAL '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
-        Assert.Equal("INTERVAL '-3 04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(-3, -4, -5, -6, -7)));
+        // PostgreSQL applies a sign to the field it precedes only, so negative values need a sign on both the days and the time
+        Assert.Equal("INTERVAL '-3 -04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(-3, -4, -5, -6, -7)));
+        Assert.Equal("INTERVAL '-04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(-4, -5, -6)));
+        Assert.Equal("INTERVAL '-1 -02:00:00'", mapping.GenerateSqlLiteral(TimeSpan.FromHours(-26)));
         Assert.Equal(
             "INTERVAL '3 04:05:06'", mapping.GenerateSqlLiteral(
                 new TimeSpan(3, 4, 5, 6)
@@ -393,6 +396,30 @@ public class NpgsqlTypeMappingTest
         readerManager.MoveNext();
         var actualTimeSpan = readerWriter.FromJson(ref readerManager, existingObject: null);
         Assert.Equal(TimeSpan.Parse(json, CultureInfo.InvariantCulture), actualTimeSpan);
+    }
+
+    [Theory]
+    [InlineData("1.02:03:04.5", "1 02:03:04.5")]
+    [InlineData("-1.02:03:04.5", "-1 -02:03:04.5")]
+    [InlineData("-10675199.02:48:05.477580", "-10675199 -02:48:05.47758")]
+    public void TimeSpan_json_with_days(string timeSpanString, string json)
+    {
+        // PostgreSQL applies a sign to the field it precedes only, so negative values need a sign on both the days and the time
+        var readerWriter = GetMapping(typeof(TimeSpan)).JsonValueReaderWriter!;
+        var timeSpan = TimeSpan.Parse(timeSpanString, CultureInfo.InvariantCulture);
+
+        Assert.Equal(json, readerWriter.ToJsonString(timeSpan)[1..^1]);
+        Assert.Equal(timeSpan, ReadJson(readerWriter, json));
+    }
+
+    // Reading older/ambiguous negative values is tested in NpgsqlIntervalJsonParsingTest, with both values of the
+    // Npgsql.ParseOldEFCoreJsonTimeSpans switch
+
+    private static object ReadJson(JsonValueReaderWriter readerWriter, string json)
+    {
+        var readerManager = new Utf8JsonReaderManager(new JsonReaderData(Encoding.UTF8.GetBytes($"\"{json}\"")), null);
+        readerManager.MoveNext();
+        return readerWriter.FromJson(ref readerManager, existingObject: null);
     }
 
     #endregion Date/Time
