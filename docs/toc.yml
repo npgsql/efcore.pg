@@ -50,6 +50,8 @@
       href: mapping/nts.md
     - name: Full text search
       href: mapping/full-text-search.md
+    - name: Vector search
+      href: mapping/vector-search.md
     - name: NodaTime
       href: mapping/nodatime.md
     - name: Arrays
