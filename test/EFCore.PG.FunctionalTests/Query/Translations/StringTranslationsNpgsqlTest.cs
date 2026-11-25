@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.TestModels.BasicTypesModel;
 
 namespace Microsoft.EntityFrameworkCore.Query.Translations;
@@ -1767,6 +1768,80 @@ WHERE b."String" ~ '(?p)^S'
 SELECT b."Id", b."Bool", b."Byte", b."ByteArray", b."DateOnly", b."DateTime", b."DateTimeOffset", b."Decimal", b."Double", b."Enum", b."FlagsEnum", b."Float", b."Guid", b."Int", b."Long", b."Short", b."String", b."TimeOnly", b."TimeSpan"
 FROM "BasicTypesEntities" AS b
 WHERE 'Seattle' ~ ('(?p)' || b."String")
+""");
+    }
+
+    [ConditionalFact]
+    public async Task Regex_IsMatch_with_Singleline_and_Multiline()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>()
+                .Select(b => Regex.IsMatch(b.String + "\na\nb\n", "^a.b$", RegexOptions.Singleline | RegexOptions.Multiline)));
+
+        AssertSql(
+            """
+SELECT (b."String" || '
+a
+b
+') ~ '(?w)^a.b$'
+FROM "BasicTypesEntities" AS b
+""");
+    }
+
+    [ConditionalFact]
+    public async Task Regex_IsMatch_with_Singleline_and_Multiline_and_IgnoreCase_parameter_pattern()
+    {
+        var pattern = "^A.B$";
+
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>()
+                .Select(b => Regex.IsMatch(
+                    b.String + "\na\nb\n", pattern, RegexOptions.Singleline | RegexOptions.Multiline | RegexOptions.IgnoreCase)));
+
+        AssertSql(
+            """
+@pattern='^A.B$'
+
+SELECT (b."String" || '
+a
+b
+') ~* ('(?w)' || @pattern)
+FROM "BasicTypesEntities" AS b
+""");
+    }
+
+    [ConditionalFact]
+    public async Task Regex_Replace_with_Singleline_and_Multiline()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>()
+                .Select(b => Regex.Replace(b.String + "\na\nb\n", "^a.b$", "x", RegexOptions.Singleline | RegexOptions.Multiline)));
+
+        AssertSql(
+            """
+SELECT regexp_replace(b."String" || '
+a
+b
+', '^a.b$', 'x', 'wg')
+FROM "BasicTypesEntities" AS b
+""");
+    }
+
+    [ConditionalFact]
+    [MinimumPostgresVersion(15, 0)]
+    public async Task Regex_Count_with_Singleline_and_Multiline()
+    {
+        await AssertQuery(
+            ss => ss.Set<BasicTypesEntity>()
+                .Select(b => Regex.Count(b.String + "\na\nb\n", "^a.b$", RegexOptions.Singleline | RegexOptions.Multiline)));
+
+        AssertSql(
+            """
+SELECT regexp_count(b."String" || '
+a
+b
+', '^a.b$', 1, 'w')
+FROM "BasicTypesEntities" AS b
 """);
     }
 
