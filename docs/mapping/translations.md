@@ -41,13 +41,21 @@ stringValue.TrimEnd(trimChar)                                 | rtrim(stringValu
 stringValue.TrimStart()                                       | ltrim(stringValue)
 stringValue.TrimStart(trimChar)                               | ltrim(stringValue, trimChar)
 EF.Functions.Reverse(value)                                   | reverse(value)
-Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
-Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
+Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options) | <sup>[1](#regex-note)</sup>
+Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options) | <sup>[1](#regex-note)</sup>
+Regex.Replace(stringValue, pattern, replacement)              | [regexp_replace(stringValue, pattern, replacement, 'pg')](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP) | <sup>[1](#regex-note)</sup>
+Regex.Replace(stringValue, pattern, replacement, regexOptions) | [regexp_replace(stringValue, pattern, replacement, flags)](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP) | <sup>[1](#regex-note)</sup>
+Regex.Count(stringValue, pattern)                            | [regexp_count(stringValue, pattern, 1, 'p')](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP) | <sup>[1](#regex-note)</sup> Requires PostgreSQL 15+
+Regex.Count(stringValue, pattern, regexOptions)              | [regexp_count(stringValue, pattern, 1, flags)](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP) | <sup>[1](#regex-note)</sup> Requires PostgreSQL 15+
 string.Join(", ", a, b)                                       | [concat_ws(', ', a, b)](https://www.postgresql.org/docs/current/functions-string.html#FUNCTIONS-STRING-OTHER)
 string.Join(", ", array)                                      | [array_to_string(array, ', ', '')](https://www.postgresql.org/docs/current/functions-array.html#ARRAY-FUNCTIONS-TABLE)
 string.Join(", ", agg_strings)                                | [string_agg(agg_strings, ', ')](https://www.postgresql.org/docs/current/functions-aggregate.html#FUNCTIONS-AGGREGATE-TABLE) | See [Aggregate functions](#aggregate-functions).
 EF.Functions.StringToArray(s, "\|")                           | [string_agg(s, '\|')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY)
 EF.Functions.StringToArray(s, "\|", "FOO")                    | [string_agg(s, '\|', 'FOO')](https://www.postgresql.org/docs/current/functions-string.html#FUNCTION-STRING-TO-ARRAY)
+
+<sup id="regex-note">1</sup> These translations use [PostgreSQL's regular expression syntax and semantics](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP), not .NET's. In particular, unless `RegexOptions.Singleline` is specified, negated character classes such as `[^x]` do not match LF (`\n`), unlike in .NET: `a[^x]b` matches `"a\nb"` in .NET but not in PostgreSQL. Use client-side evaluation when exact .NET semantics are required.
+
+`RegexOptions` arguments must be constant, and `RightToLeft` and `ECMAScript` are not supported. Only `IgnoreCase`, `Multiline`, `Singleline` and `IgnorePatternWhitespace` affect the generated SQL. Only the listed static overloads are translated; instance methods, overloads accepting a match timeout or `MatchEvaluator`, and other `Regex` methods are not translated.
 
 ## Date and time functions
 
