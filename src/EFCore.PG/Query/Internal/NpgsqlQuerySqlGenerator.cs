@@ -1029,7 +1029,7 @@ public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
 
         if (options.HasFlag(RegexOptions.Multiline))
         {
-            Sql.Append("n");
+            Sql.Append(options.HasFlag(RegexOptions.Singleline) ? "w" : "n");
         }
         else if (!options.HasFlag(RegexOptions.Singleline))
         {

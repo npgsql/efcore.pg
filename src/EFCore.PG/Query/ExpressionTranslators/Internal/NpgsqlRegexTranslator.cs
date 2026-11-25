@@ -164,7 +164,7 @@ public class NpgsqlRegexTranslator : IMethodCallTranslator
             case RegexOptions.Singleline:
                 return string.Empty;
             case var _ when options.HasFlag(RegexOptions.Multiline):
-                result = "n";
+                result = options.HasFlag(RegexOptions.Singleline) ? "w" : "n";
                 break;
             case var _ when !options.HasFlag(RegexOptions.Singleline):
                 result = "p";
