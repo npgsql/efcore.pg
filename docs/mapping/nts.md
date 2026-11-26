@@ -162,6 +162,8 @@ EF.Functions.IsWithinDistance(geom1, geom2, d, useSpheriod)      | [ST_DWithin(g
 geom.IsSimple()                                                  | [ST_IsSimple(geom)](https://postgis.net/docs/ST_IsSimple.html)
 geom.IsValid()                                                   | [ST_IsValid(geom)](https://postgis.net/docs/ST_IsValid.html)
 lineString.Length                                                | [ST_Length(lineString)](https://postgis.net/docs/ST_Length.html)
+polygon.Length                                                   | [ST_Perimeter(polygon)](https://postgis.net/docs/ST_Perimeter.html)
+multiPolygon.Length                                              | [ST_Perimeter(multiPolygon)](https://postgis.net/docs/ST_Perimeter.html)
 EF.Functions.LineInterpolatePoint(lineString, fraction)           | [ST_LineInterpolatePoint(lineString, fraction)](https://postgis.net/docs/ST_LineInterpolatePoint.html) | Added in 11.0
 EF.Functions.LineMerge(geom)                                     | [ST_LineMerge(geom)](https://postgis.net/docs/ST_LineMerge.html)                    | Added in 11.0
 geom.Normalized                                                  | [ST_Normalize(geom)](https://postgis.net/docs/ST_Normalize.html)
