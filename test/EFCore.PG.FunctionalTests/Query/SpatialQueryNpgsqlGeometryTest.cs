@@ -470,10 +470,128 @@ FROM "MultiLineStringEntity" AS m
     {
         await base.Length(async);
 
+        await using var context = Fixture.CreateContext();
+        var query = context.Set<PolygonEntity>().Where(e => e.Polygon != null).Select(e => e.Polygon.Length);
+        var polygonLengths = async ? await query.ToListAsync() : query.ToList();
+        Assert.InRange(Assert.Single(polygonLengths), 3.41421356, 3.41421357);
+
+        var polymorphicQuery = context.Set<PolygonEntity>()
+            .Where(e => e.Polygon != null)
+            .Select(e => ((Geometry)e.Polygon).Length);
+        var lengths = async ? await polymorphicQuery.ToListAsync() : polymorphicQuery.ToList();
+        Assert.Equal(polygonLengths, lengths);
+
         AssertSql(
             """
 SELECT l."Id", ST_Length(l."LineString") AS "Length"
 FROM "LineStringEntity" AS l
+""",
+            //
+            """
+SELECT ST_Perimeter(p."Polygon")
+FROM "PolygonEntity" AS p
+WHERE p."Polygon" IS NOT NULL
+""",
+            //
+            """
+SELECT CASE ST_GeometryType(p."Polygon")
+    WHEN 'ST_Polygon' THEN ST_Perimeter(p."Polygon")
+    WHEN 'ST_MultiPolygon' THEN ST_Perimeter(p."Polygon")
+    WHEN 'ST_GeometryCollection' THEN ST_Length(p."Polygon") + ST_Perimeter(p."Polygon")
+    ELSE ST_Length(p."Polygon")
+END
+FROM "PolygonEntity" AS p
+WHERE p."Polygon" IS NOT NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData("POINT(1 2)", 0d)]
+    [InlineData("MULTIPOINT((1 1),(2 2))", 0d)]
+    [InlineData("LINESTRING(0 0,3 4)", 5d)]
+    [InlineData("MULTILINESTRING((0 0,3 4),(0 0,3 0))", 8d)]
+    [InlineData("POLYGON((0 0,4 0,4 3,0 3,0 0),(1 1,2 1,2 2,1 2,1 1))", 18d)]
+    [InlineData("MULTIPOLYGON(((0 0,4 0,4 3,0 3,0 0)),((5 0,7 0,7 2,5 2,5 0)))", 22d)]
+    [InlineData("GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))", 19d)]
+    [InlineData("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0))),MULTILINESTRING((0 0,3 0)))", 22d)]
+    [InlineData("GEOMETRYCOLLECTION(MULTIPOLYGON(((0 0,1 0,1 1,0 1,0 0))))", 4d)]
+    [InlineData("GEOMETRYCOLLECTION EMPTY", 0d)]
+    [InlineData("POLYGON EMPTY", 0d)]
+    [InlineData("POLYGON M((0 0 2,4 0 3,4 3 4,0 3 5,0 0 2))", 14d)]
+    [InlineData("POLYGON ZM((0 0 1 2,4 0 2 3,4 3 3 4,0 3 4 5,0 0 1 2))", 14d)]
+    [InlineData("MULTIPOLYGON M(((0 0 1,1 0 2,1 1 3,0 1 4,0 0 1)))", 4d)]
+    [InlineData(null, null)]
+    public async Task Length_polymorphic_geometry_types(string wkt, double? expected)
+    {
+        await using var context = Fixture.CreateContext();
+        var query = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeomFromText({wkt}, 4326) AS \"Geometry\"")
+            .Select(e => e.Geometry == null ? (double?)null : e.Geometry.Length);
+
+        Assert.Equal(expected, query.Single());
+        Assert.Equal(expected, await query.SingleAsync());
+
+        var parameter = wkt is null ? "NULL (Nullable = false) (DbType = Object)" : $"'{wkt}'";
+        var sql =
+            $"""
+p0={parameter}
+
+SELECT CASE ST_GeometryType(m."Geometry")
+    WHEN 'ST_Polygon' THEN ST_Perimeter(m."Geometry")
+    WHEN 'ST_MultiPolygon' THEN ST_Perimeter(m."Geometry")
+    WHEN 'ST_GeometryCollection' THEN ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
+    ELSE ST_Length(m."Geometry")
+END
+FROM (
+    SELECT ST_GeomFromText(@p0, 4326) AS "Geometry"
+) AS m
+LIMIT 2
+""";
+        AssertSql(sql, sql);
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Length_multi_polygon_and_collection(bool async)
+    {
+        await using var context = Fixture.CreateContext();
+        var multiPolygon = "MULTIPOLYGON(((0 0,4 0,4 3,0 3,0 0)),((5 0,7 0,7 2,5 2,5 0)))";
+        var multiQuery = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeomFromText({multiPolygon}, 4326) AS \"Geometry\"")
+            .Select(e => new
+            {
+                MultiPolygon = ((MultiPolygon)e.Geometry).Length,
+                Collection = ((GeometryCollection)e.Geometry).Length
+            });
+        var result = async ? await multiQuery.SingleAsync() : multiQuery.Single();
+        Assert.Equal(22d, result.MultiPolygon);
+        Assert.Equal(22d, result.Collection);
+
+        var collection = "GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))";
+        var collectionQuery = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeomFromText({collection}, 4326) AS \"Geometry\"")
+            .Select(e => ((GeometryCollection)e.Geometry).Length);
+        Assert.Equal(19d, async ? await collectionQuery.SingleAsync() : collectionQuery.Single());
+
+        AssertSql(
+            $"""
+p0='{multiPolygon}'
+
+SELECT ST_Perimeter(m."Geometry") AS "MultiPolygon", ST_Length(m."Geometry") + ST_Perimeter(m."Geometry") AS "Collection"
+FROM (
+    SELECT ST_GeomFromText(@p0, 4326) AS "Geometry"
+) AS m
+LIMIT 2
+""",
+            //
+            $"""
+p0='{collection}'
+
+SELECT ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
+FROM (
+    SELECT ST_GeomFromText(@p0, 4326) AS "Geometry"
+) AS m
+LIMIT 2
 """);
     }
 
