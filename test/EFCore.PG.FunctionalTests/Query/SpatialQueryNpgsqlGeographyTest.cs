@@ -269,8 +269,13 @@ WHERE p."Polygon" IS NOT NULL
 """,
             //
             """
-SELECT CASE
-    WHEN GeometryType(p."Polygon") IN ('POLYGON', 'POLYGONM', 'MULTIPOLYGON', 'MULTIPOLYGONM') THEN ST_Perimeter(p."Polygon")
+SELECT CASE GeometryType(p."Polygon")
+    WHEN 'POLYGON' THEN ST_Perimeter(p."Polygon")
+    WHEN 'POLYGONM' THEN ST_Perimeter(p."Polygon")
+    WHEN 'MULTIPOLYGON' THEN ST_Perimeter(p."Polygon")
+    WHEN 'MULTIPOLYGONM' THEN ST_Perimeter(p."Polygon")
+    WHEN 'GEOMETRYCOLLECTION' THEN ST_Length(p."Polygon") + ST_Perimeter(p."Polygon")
+    WHEN 'GEOMETRYCOLLECTIONM' THEN ST_Length(p."Polygon") + ST_Perimeter(p."Polygon")
     ELSE ST_Length(p."Polygon")
 END
 FROM "PolygonEntity" AS p
@@ -285,9 +290,10 @@ WHERE p."Polygon" IS NOT NULL
     [InlineData("MULTILINESTRING((0 0,3 4),(0 0,3 0))", 888017.40)]
     [InlineData("POLYGON((0 0,4 0,4 3,0 3,0 0),(1 1,2 1,2 2,1 2,1 1))", 1997106.17)]
     [InlineData("MULTIPOLYGON(((0 0,4 0,4 3,0 3,0 0)),((5 0,7 0,7 2,5 2,5 0)))", 2440843.40)]
-    [InlineData("GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))", 554058.92)]
-    [InlineData("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0))),MULTILINESTRING((0 0,3 0)))", 888017.40)]
-    [InlineData("GEOMETRYCOLLECTION(MULTIPOLYGON(((0 0,1 0,1 1,0 1,0 0))))", 0d)]
+    [InlineData("GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))", 2107460.18)]
+    [InlineData("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0))),MULTILINESTRING((0 0,3 0)))", 2441418.65)]
+    [InlineData("GEOMETRYCOLLECTION(MULTIPOLYGON(((0 0,1 0,1 1,0 1,0 0))))", 443770.92)]
+    [InlineData("GEOMETRYCOLLECTION M(LINESTRING M(0 0 1,3 4 2),POLYGON M((0 0 1,4 0 2,4 3 3,0 3 4,0 0 1)))", 2107460.18)]
     [InlineData("GEOMETRYCOLLECTION EMPTY", 0d)]
     [InlineData("POLYGON EMPTY", 0d)]
     [InlineData("POLYGON M((0 0 2,4 0 3,4 3 4,0 3 5,0 0 2))", 1553401.26)]
@@ -317,8 +323,13 @@ WHERE p."Polygon" IS NOT NULL
             $"""
 p0={parameter}
 
-SELECT CASE
-    WHEN GeometryType(m."Geometry") IN ('POLYGON', 'POLYGONM', 'MULTIPOLYGON', 'MULTIPOLYGONM') THEN ST_Perimeter(m."Geometry")
+SELECT CASE GeometryType(m."Geometry")
+    WHEN 'POLYGON' THEN ST_Perimeter(m."Geometry")
+    WHEN 'POLYGONM' THEN ST_Perimeter(m."Geometry")
+    WHEN 'MULTIPOLYGON' THEN ST_Perimeter(m."Geometry")
+    WHEN 'MULTIPOLYGONM' THEN ST_Perimeter(m."Geometry")
+    WHEN 'GEOMETRYCOLLECTION' THEN ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
+    WHEN 'GEOMETRYCOLLECTIONM' THEN ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
     ELSE ST_Length(m."Geometry")
 END
 FROM (
@@ -350,16 +361,13 @@ LIMIT 2
         var collectionQuery = context.Set<PointEntity>()
             .FromSql($"SELECT ST_GeogFromText({collection}) AS \"Geometry\"")
             .Select(e => ((GeometryCollection)e.Geometry).Length);
-        Assert.InRange(async ? await collectionQuery.SingleAsync() : collectionQuery.Single(), 554057d, 554060d);
+        Assert.InRange(async ? await collectionQuery.SingleAsync() : collectionQuery.Single(), 2107459d, 2107462d);
 
         AssertSql(
             $"""
 p0='{multiPolygon}'
 
-SELECT ST_Perimeter(m."Geometry") AS "MultiPolygon", CASE
-    WHEN GeometryType(m."Geometry") IN ('MULTIPOLYGON', 'MULTIPOLYGONM') THEN ST_Perimeter(m."Geometry")
-    ELSE ST_Length(m."Geometry")
-END AS "Collection"
+SELECT ST_Perimeter(m."Geometry") AS "MultiPolygon", ST_Length(m."Geometry") + ST_Perimeter(m."Geometry") AS "Collection"
 FROM (
     SELECT ST_GeogFromText(@p0) AS "Geometry"
 ) AS m
@@ -369,10 +377,7 @@ LIMIT 2
             $"""
 p0='{collection}'
 
-SELECT CASE
-    WHEN GeometryType(m."Geometry") IN ('MULTIPOLYGON', 'MULTIPOLYGONM') THEN ST_Perimeter(m."Geometry")
-    ELSE ST_Length(m."Geometry")
-END
+SELECT ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
 FROM (
     SELECT ST_GeogFromText(@p0) AS "Geometry"
 ) AS m
@@ -412,8 +417,13 @@ LIMIT 2
             $"""
 p0='{polygon}'
 
-SELECT CASE
-    WHEN GeometryType(m."Polygon") IN ('POLYGON', 'POLYGONM', 'MULTIPOLYGON', 'MULTIPOLYGONM') THEN ST_Perimeter(m."Polygon")
+SELECT CASE GeometryType(m."Polygon")
+    WHEN 'POLYGON' THEN ST_Perimeter(m."Polygon")
+    WHEN 'POLYGONM' THEN ST_Perimeter(m."Polygon")
+    WHEN 'MULTIPOLYGON' THEN ST_Perimeter(m."Polygon")
+    WHEN 'MULTIPOLYGONM' THEN ST_Perimeter(m."Polygon")
+    WHEN 'GEOMETRYCOLLECTION' THEN ST_Length(m."Polygon") + ST_Perimeter(m."Polygon")
+    WHEN 'GEOMETRYCOLLECTIONM' THEN ST_Length(m."Polygon") + ST_Perimeter(m."Polygon")
     ELSE ST_Length(m."Polygon")
 END
 FROM (
@@ -425,10 +435,7 @@ LIMIT 2
             $"""
 p0='{multiPolygon}'
 
-SELECT CASE
-    WHEN GeometryType(m."Collection") IN ('MULTIPOLYGON', 'MULTIPOLYGONM') THEN ST_Perimeter(m."Collection")
-    ELSE ST_Length(m."Collection")
-END
+SELECT ST_Length(m."Collection") + ST_Perimeter(m."Collection")
 FROM (
     SELECT ST_GeogFromText(@p0) AS "Collection"
 ) AS m
@@ -438,10 +445,7 @@ LIMIT 2
             $"""
 p0='{multiPolygon}'
 
-SELECT CASE
-    WHEN GeometryType(m."Geometry") IN ('MULTIPOLYGON', 'MULTIPOLYGONM') THEN ST_Perimeter(m."Geometry")
-    ELSE ST_Length(m."Geometry")
-END
+SELECT ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
 FROM (
     SELECT ST_GeogFromText(@p0) AS "Geometry"
 ) AS m
