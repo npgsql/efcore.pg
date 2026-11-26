@@ -110,9 +110,23 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
             return null;
         }
 
+        var instanceType = instance.Type;
+        if (member.Name == nameof(Geometry.Length))
+        {
+            // CLR casts between geometry subtypes must not change a geography operand into geometry.
+            while (instance is SqlUnaryExpression { OperatorType: ExpressionType.Convert } unary
+                   && unary.Type != unary.Operand.Type
+                   && typeof(Geometry).IsAssignableFrom(unary.Operand.Type))
+            {
+                instance = unary.Operand;
+            }
+        }
+
         var typeMapping = instance.TypeMapping;
         Debug.Assert(typeMapping is not null, "Instance must have typeMapping assigned.");
-        var storeType = instance.TypeMapping!.StoreType;
+        var storeType = typeMapping!.StoreType;
+        var isGeography = member.Name == nameof(Geometry.Length)
+            && storeType.AsSpan().TrimStart().StartsWith("geography", StringComparison.OrdinalIgnoreCase);
 
         if (typeof(Point).IsAssignableFrom(declaringType))
         {
@@ -155,6 +169,18 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
             nameof(LineString.IsRing) => Function("ST_IsRing", [instance], typeof(bool)),
             nameof(Geometry.IsSimple) => Function("ST_IsSimple", [instance], typeof(bool)),
             nameof(Geometry.IsValid) => Function("ST_IsValid", [instance], typeof(bool)),
+            // Geography ST_Length measures only linear collection components; MultiPolygon also inherits GeometryCollection.
+            nameof(Geometry.Length) when typeof(Polygon).IsAssignableFrom(instanceType)
+                || typeof(MultiPolygon).IsAssignableFrom(instanceType)
+                => Function("ST_Perimeter", [instance], typeof(double)),
+            nameof(Geometry.Length) when instanceType == typeof(GeometryCollection)
+                => isGeography
+                    ? LengthByGeometryType()
+                    : _sqlExpressionFactory.Add(
+                        Function("ST_Length", [instance], typeof(double)),
+                        Function("ST_Perimeter", [instance], typeof(double))),
+            nameof(Geometry.Length) when instanceType == typeof(Geometry)
+                => LengthByGeometryType(),
             nameof(Geometry.Length) => Function("ST_Length", [instance], typeof(double)),
             nameof(Geometry.NumGeometries) => Function("ST_NumGeometries", [instance], typeof(int)),
             nameof(Polygon.NumInteriorRings) => Function("ST_NumInteriorRings", [instance], typeof(int)),
@@ -185,6 +211,41 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
         {
             Debug.Assert(typeof(Geometry).IsAssignableFrom(returnType));
             return _typeMappingSource.FindMapping(returnType, storeType)!;
+        }
+
+        SqlExpression LengthByGeometryType()
+        {
+            var length = Function("ST_Length", [instance], typeof(double));
+            var perimeter = Function("ST_Perimeter", [instance], typeof(double));
+
+            if (isGeography)
+            {
+                // GeometryType has a geography overload and appends M for XYM values.
+                SqlExpression[] polygonTypes = instanceType == typeof(GeometryCollection)
+                    ? [_sqlExpressionFactory.Constant("MULTIPOLYGON"), _sqlExpressionFactory.Constant("MULTIPOLYGONM")]
+                    :
+                    [
+                        _sqlExpressionFactory.Constant("POLYGON"),
+                        _sqlExpressionFactory.Constant("POLYGONM"),
+                        _sqlExpressionFactory.Constant("MULTIPOLYGON"),
+                        _sqlExpressionFactory.Constant("MULTIPOLYGONM")
+                    ];
+
+                return _sqlExpressionFactory.Case(
+                    [new CaseWhenClause(_sqlExpressionFactory.In(Function("GeometryType", [instance], typeof(string)), polygonTypes), perimeter)],
+                    length);
+            }
+
+            return _sqlExpressionFactory.Case(
+                Function("ST_GeometryType", [instance], typeof(string)),
+                [
+                    new CaseWhenClause(_sqlExpressionFactory.Constant("ST_Polygon"), perimeter),
+                    new CaseWhenClause(_sqlExpressionFactory.Constant("ST_MultiPolygon"), perimeter),
+                    new CaseWhenClause(
+                        _sqlExpressionFactory.Constant("ST_GeometryCollection"),
+                        _sqlExpressionFactory.Add(length, perimeter))
+                ],
+                length);
         }
     }
 }
