@@ -99,6 +99,15 @@ public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
             }
         }
 
+        // Converting character(1) to text strips spaces; pad back to one character.
+        if (instance.Type == typeof(char)
+            && instance.TypeMapping is NpgsqlCharacterCharTypeMapping { StoreTypeNameBase: "character" or "char" })
+        {
+            return _sqlExpressionFactory.Coalesce(
+                NpgsqlStringMethodTranslator.TranslateCharArgument(instance, _sqlExpressionFactory),
+                _sqlExpressionFactory.Constant(string.Empty));
+        }
+
         return _typeMapping.Contains(instance.Type)
             || instance.Type.UnwrapNullableType().IsEnum && instance.TypeMapping is NpgsqlEnumTypeMapping
                 ? _sqlExpressionFactory.Coalesce(

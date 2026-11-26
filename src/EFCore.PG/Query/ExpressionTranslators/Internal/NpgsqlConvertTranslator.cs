@@ -33,6 +33,17 @@ public class NpgsqlConvertTranslator(ISqlExpressionFactory sqlExpressionFactory)
             return null;
         }
 
+        // Casting a boolean to text yields true/false, whereas Convert.ToString(bool) returns True/False.
+        if (method.Name is nameof(Convert.ToString) && convertArg.Type == typeof(bool))
+        {
+            return sqlExpressionFactory.Case(
+                [
+                    new CaseWhenClause(convertArg, sqlExpressionFactory.Constant(bool.TrueString)),
+                    new CaseWhenClause(sqlExpressionFactory.Not(convertArg), sqlExpressionFactory.Constant(bool.FalseString))
+                ],
+                elseResult: null);
+        }
+
         return sqlExpressionFactory.Convert(convertArg, method.ReturnType);
     }
 
