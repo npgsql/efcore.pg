@@ -71,4 +71,4 @@
     - name: Other
       href: misc/other.md
 - name: API reference
-  href: /efcore/api/Microsoft.EntityFrameworkCore.html
+  href: ../../obj/api/EFCore.PG/
