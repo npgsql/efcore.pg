@@ -161,9 +161,7 @@ geom.IsWithinDistance(geom2,d)                                   | [ST_DWithin(g
 EF.Functions.IsWithinDistance(geom1, geom2, d, useSpheriod)      | [ST_DWithin(geom1, geom2, d, useSpheriod)](https://postgis.net/docs/ST_DWithin.html)
 geom.IsSimple()                                                  | [ST_IsSimple(geom)](https://postgis.net/docs/ST_IsSimple.html)
 geom.IsValid()                                                   | [ST_IsValid(geom)](https://postgis.net/docs/ST_IsValid.html)
-lineString.Length                                                | [ST_Length(lineString)](https://postgis.net/docs/ST_Length.html)
-polygon.Length                                                   | [ST_Perimeter(polygon)](https://postgis.net/docs/ST_Perimeter.html)
-multiPolygon.Length                                              | [ST_Perimeter(multiPolygon)](https://postgis.net/docs/ST_Perimeter.html)
+geom.Length                                                      | [ST_Length(geom)](https://postgis.net/docs/ST_Length.html) / [ST_Perimeter(geom)](https://postgis.net/docs/ST_Perimeter.html) | <sup>[1](#length-note)</sup>
 EF.Functions.LineInterpolatePoint(lineString, fraction)           | [ST_LineInterpolatePoint(lineString, fraction)](https://postgis.net/docs/ST_LineInterpolatePoint.html) | Added in 11.0
 EF.Functions.LineMerge(geom)                                     | [ST_LineMerge(geom)](https://postgis.net/docs/ST_LineMerge.html)                    | Added in 11.0
 geom.Normalized                                                  | [ST_Normalize(geom)](https://postgis.net/docs/ST_Normalize.html)
@@ -194,3 +192,5 @@ UnaryUnionOp.Union(geometries)                                   | [ST_Union(geo
 GeometryCombiner.Combine(geometries)                             | [ST_Collect(geometries)](https://postgis.net/docs/ST_Collect.html)                   | See [Aggregate functions](translations.md#aggregate-functions).
 EnvelopeCombiner.CombineAsGeometry(geometries)                   | [ST_Extent(geometries)::geometry](https://postgis.net/docs/ST_Extent.html)           | See [Aggregate functions](translations.md#aggregate-functions).
 ConvexHull.Create(geometries)                                    | [ST_ConvexHull(geometries)](https://postgis.net/docs/ST_ConvexHull.html)             | See [Aggregate functions](translations.md#aggregate-functions).
+
+<sup id="length-note">1</sup> Lines use `ST_Length`, polygons use `ST_Perimeter`, and collections may combine both; values typed as `Geometry` use `CASE`. Geography collections require PostGIS 3.6.4 or later for correct results.
