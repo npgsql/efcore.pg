@@ -245,10 +245,211 @@ FROM "PointEntity" AS p
     {
         await base.Length(async);
 
+        await using var context = Fixture.CreateContext();
+        var query = context.Set<PolygonEntity>().Where(e => e.Polygon != null).Select(e => e.Polygon.Length);
+        var polygonLengths = async ? await query.ToListAsync() : query.ToList();
+        Assert.InRange(Assert.Single(polygonLengths), 378_792, 378_795);
+
+        var polymorphicQuery = context.Set<PolygonEntity>()
+            .Where(e => e.Polygon != null)
+            .Select(e => ((Geometry)e.Polygon).Length);
+        var lengths = async ? await polymorphicQuery.ToListAsync() : polymorphicQuery.ToList();
+        Assert.Equal(polygonLengths, lengths);
+
         AssertSql(
             """
 SELECT l."Id", ST_Length(l."LineString") AS "Length"
 FROM "LineStringEntity" AS l
+""",
+            //
+            """
+SELECT ST_Perimeter(p."Polygon")
+FROM "PolygonEntity" AS p
+WHERE p."Polygon" IS NOT NULL
+""",
+            //
+            """
+SELECT CASE GeometryType(p."Polygon")
+    WHEN 'POLYGON' THEN ST_Perimeter(p."Polygon")
+    WHEN 'POLYGONM' THEN ST_Perimeter(p."Polygon")
+    WHEN 'MULTIPOLYGON' THEN ST_Perimeter(p."Polygon")
+    WHEN 'MULTIPOLYGONM' THEN ST_Perimeter(p."Polygon")
+    WHEN 'GEOMETRYCOLLECTION' THEN ST_Length(p."Polygon") + ST_Perimeter(p."Polygon")
+    WHEN 'GEOMETRYCOLLECTIONM' THEN ST_Length(p."Polygon") + ST_Perimeter(p."Polygon")
+    ELSE ST_Length(p."Polygon")
+END
+FROM "PolygonEntity" AS p
+WHERE p."Polygon" IS NOT NULL
+""");
+    }
+
+    [ConditionalTheory]
+    [InlineData("POINT(1 2)", 0d)]
+    [InlineData("MULTIPOINT((1 1),(2 2))", 0d)]
+    [InlineData("LINESTRING(0 0,3 4)", 554058.92)]
+    [InlineData("MULTILINESTRING((0 0,3 4),(0 0,3 0))", 888017.40)]
+    [InlineData("POLYGON((0 0,4 0,4 3,0 3,0 0),(1 1,2 1,2 2,1 2,1 1))", 1997106.17)]
+    [InlineData("MULTIPOLYGON(((0 0,4 0,4 3,0 3,0 0)),((5 0,7 0,7 2,5 2,5 0)))", 2440843.40)]
+    [InlineData("GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))", 2107460.18)]
+    [InlineData("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0))),MULTILINESTRING((0 0,3 0)))", 2441418.65)]
+    [InlineData("GEOMETRYCOLLECTION(MULTIPOLYGON(((0 0,1 0,1 1,0 1,0 0))))", 443770.92)]
+    [InlineData("GEOMETRYCOLLECTION M(LINESTRING M(0 0 1,3 4 2),POLYGON M((0 0 1,4 0 2,4 3 3,0 3 4,0 0 1)))", 2107460.18)]
+    [InlineData("GEOMETRYCOLLECTION EMPTY", 0d)]
+    [InlineData("POLYGON EMPTY", 0d)]
+    [InlineData("POLYGON M((0 0 2,4 0 3,4 3 4,0 3 5,0 0 2))", 1553401.26)]
+    [InlineData("POLYGON ZM((0 0 1 2,4 0 2 3,4 3 3 4,0 3 4 5,0 0 1 2))", 1553401.26)]
+    [InlineData("MULTIPOLYGON M(((0 0 1,1 0 2,1 1 3,0 1 4,0 0 1)))", 443770.92)]
+    [InlineData(null, null)]
+    public async Task Length_polymorphic_geography_types(string wkt, double? expected)
+    {
+        await using var context = Fixture.CreateContext();
+        var query = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeogFromText({wkt}) AS \"Geometry\"")
+            .Select(e => e.Geometry == null ? (double?)null : e.Geometry.Length);
+
+        var result = query.Single();
+        Assert.Equal(result, await query.SingleAsync());
+        if (expected is null or 0)
+        {
+            Assert.Equal(expected, result);
+        }
+        else
+        {
+            Assert.InRange(result.Value, expected.Value - 1, expected.Value + 1);
+        }
+
+        var parameter = wkt is null ? "NULL (Nullable = false) (DbType = Object)" : $"'{wkt}'";
+        var sql =
+            $"""
+p0={parameter}
+
+SELECT CASE GeometryType(m."Geometry")
+    WHEN 'POLYGON' THEN ST_Perimeter(m."Geometry")
+    WHEN 'POLYGONM' THEN ST_Perimeter(m."Geometry")
+    WHEN 'MULTIPOLYGON' THEN ST_Perimeter(m."Geometry")
+    WHEN 'MULTIPOLYGONM' THEN ST_Perimeter(m."Geometry")
+    WHEN 'GEOMETRYCOLLECTION' THEN ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
+    WHEN 'GEOMETRYCOLLECTIONM' THEN ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
+    ELSE ST_Length(m."Geometry")
+END
+FROM (
+    SELECT ST_GeogFromText(@p0) AS "Geometry"
+) AS m
+LIMIT 2
+""";
+        AssertSql(sql, sql);
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Length_multi_polygon_and_collection(bool async)
+    {
+        await using var context = Fixture.CreateContext();
+        var multiPolygon = "MULTIPOLYGON(((0 0,4 0,4 3,0 3,0 0)),((5 0,7 0,7 2,5 2,5 0)))";
+        var multiQuery = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeogFromText({multiPolygon}) AS \"Geometry\"")
+            .Select(e => new
+            {
+                MultiPolygon = ((MultiPolygon)e.Geometry).Length,
+                Collection = ((GeometryCollection)e.Geometry).Length
+            });
+        var result = async ? await multiQuery.SingleAsync() : multiQuery.Single();
+        Assert.InRange(result.MultiPolygon, 2440842d, 2440845d);
+        Assert.Equal(result.MultiPolygon, result.Collection);
+
+        var collection = "GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))";
+        var collectionQuery = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeogFromText({collection}) AS \"Geometry\"")
+            .Select(e => ((GeometryCollection)e.Geometry).Length);
+        Assert.InRange(async ? await collectionQuery.SingleAsync() : collectionQuery.Single(), 2107459d, 2107462d);
+
+        AssertSql(
+            $"""
+p0='{multiPolygon}'
+
+SELECT ST_Perimeter(m."Geometry") AS "MultiPolygon", ST_Length(m."Geometry") + ST_Perimeter(m."Geometry") AS "Collection"
+FROM (
+    SELECT ST_GeogFromText(@p0) AS "Geometry"
+) AS m
+LIMIT 2
+""",
+            //
+            $"""
+p0='{collection}'
+
+SELECT ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
+FROM (
+    SELECT ST_GeogFromText(@p0) AS "Geometry"
+) AS m
+LIMIT 2
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Length_geography_configured_per_property(bool async)
+    {
+        var options = new DbContextOptionsBuilder<GeographyPropertyContext>()
+            .UseNpgsql(Fixture.TestStore.ConnectionString, o => o.UseNetTopologySuite())
+            .UseLoggerFactory(Fixture.TestSqlLoggerFactory)
+            .EnableSensitiveDataLogging()
+            .Options;
+        await using var context = new GeographyPropertyContext(options);
+
+        var polygon = "POLYGON((0 0,1 0,1 1,0 1,0 0))";
+        var polygonQuery = context.Set<PolygonEntity>()
+            .FromSql($"SELECT ST_GeogFromText({polygon}) AS \"Polygon\"")
+            .Select(e => ((Geometry)e.Polygon).Length);
+        Assert.InRange(async ? await polygonQuery.SingleAsync() : polygonQuery.Single(), 443770d, 443772d);
+
+        var multiPolygon = "MULTIPOLYGON M(((0 0 1,1 0 2,1 1 3,0 1 4,0 0 1)))";
+        var collectionQuery = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeogFromText({multiPolygon}) AS \"Collection\"")
+            .Select(e => EF.Property<GeometryCollection>(e, "Collection").Length);
+        Assert.InRange(async ? await collectionQuery.SingleAsync() : collectionQuery.Single(), 443770d, 443772d);
+
+        var nestedCastQuery = context.Set<PointEntity>()
+            .FromSql($"SELECT ST_GeogFromText({multiPolygon}) AS \"Geometry\"")
+            .Select(e => ((GeometryCollection)(Geometry)(MultiPolygon)e.Geometry).Length);
+        Assert.InRange(async ? await nestedCastQuery.SingleAsync() : nestedCastQuery.Single(), 443770d, 443772d);
+
+        AssertSql(
+            $"""
+p0='{polygon}'
+
+SELECT CASE GeometryType(m."Polygon")
+    WHEN 'POLYGON' THEN ST_Perimeter(m."Polygon")
+    WHEN 'POLYGONM' THEN ST_Perimeter(m."Polygon")
+    WHEN 'MULTIPOLYGON' THEN ST_Perimeter(m."Polygon")
+    WHEN 'MULTIPOLYGONM' THEN ST_Perimeter(m."Polygon")
+    WHEN 'GEOMETRYCOLLECTION' THEN ST_Length(m."Polygon") + ST_Perimeter(m."Polygon")
+    WHEN 'GEOMETRYCOLLECTIONM' THEN ST_Length(m."Polygon") + ST_Perimeter(m."Polygon")
+    ELSE ST_Length(m."Polygon")
+END
+FROM (
+    SELECT ST_GeogFromText(@p0) AS "Polygon"
+) AS m
+LIMIT 2
+""",
+            //
+            $"""
+p0='{multiPolygon}'
+
+SELECT ST_Length(m."Collection") + ST_Perimeter(m."Collection")
+FROM (
+    SELECT ST_GeogFromText(@p0) AS "Collection"
+) AS m
+LIMIT 2
+""",
+            //
+            $"""
+p0='{multiPolygon}'
+
+SELECT ST_Length(m."Geometry") + ST_Perimeter(m."Geometry")
+FROM (
+    SELECT ST_GeogFromText(@p0) AS "Geometry"
+) AS m
+LIMIT 2
 """);
     }
 
@@ -447,6 +648,16 @@ FROM "PointEntity" AS p
 
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+
+    private sealed class GeographyPropertyContext(DbContextOptions<GeographyPropertyContext> options) : DbContext(options)
+    {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PolygonEntity>().Property(e => e.Polygon).HasColumnType(" GEOGRAPHY (POLYGON, 4326) ");
+            modelBuilder.Entity<PointEntity>().Property(e => e.Geometry).HasColumnType("geography");
+            modelBuilder.Entity<PointEntity>().Property<GeometryCollection>("Collection").HasColumnType("geography");
+        }
+    }
 
     public class SpatialQueryNpgsqlGeographyFixture : SpatialQueryNpgsqlFixture
     {
