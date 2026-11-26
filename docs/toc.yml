@@ -71,4 +71,4 @@
     - name: Other
       href: misc/other.md
 - name: API reference
-  href: "../../obj/api/EFCore.PG/"
+  href: /efcore/api/

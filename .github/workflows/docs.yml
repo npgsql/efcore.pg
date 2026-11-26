@@ -1,0 +1,38 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**']
+  pull_request:
+    paths: ['docs/**']
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24.x
+
+      - name: Run Markdownlint
+        run: |
+          npm i -g markdownlint-cli
+          markdownlint --config docs/.markdownlint.json "docs/**/*.md"
+
+  dispatch:
+    needs: lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'npgsql/efcore.pg'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger documentation build
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_DISPATCH_TOKEN }}
+        run: gh api --method POST repos/npgsql/doc/dispatches -f event_type=docs-changed

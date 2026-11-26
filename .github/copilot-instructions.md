@@ -2,6 +2,8 @@
 
 This is the PostgreSQL provider for [Entity Framework Core](https://github.com/dotnet/efcore), built on top of [Npgsql](https://github.com/npgsql/npgsql). It translates EF Core LINQ queries into PostgreSQL SQL and handles PostgreSQL-specific features like arrays, JSON, ranges, full-text search, NodaTime, and PostGIS/NetTopologySuite.
 
+Conceptual documentation lives in `docs/`. Update it as appropriate alongside code changes.
+
 ## Build and Test
 
 Use the SDK pinned in `global.json` and dependency versions centralized in `Directory.Packages.props`. Consult EF APIs and test bases matching the pinned version; do not upgrade dependencies just to make a change compile.
