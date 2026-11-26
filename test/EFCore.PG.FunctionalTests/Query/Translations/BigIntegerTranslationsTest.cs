@@ -124,6 +124,58 @@ WHERE e."BigInteger" % 2 = 0
 """);
     }
 
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Divide(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(e => e.BigInteger / 2 == 1));
+
+        AssertSql(
+            """
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE div(e."BigInteger", 2) = 1
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Divide_truncates_towards_zero(bool async)
+    {
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(e => e.BigInteger / 2 == 0));
+
+        AssertSql(
+            """
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE div(e."BigInteger", 2) = 0
+""");
+    }
+
+    [ConditionalTheory]
+    [MemberData(nameof(IsAsyncData))]
+    public async Task Divide_with_parameter(bool async)
+    {
+        var divisor = new BigInteger(2);
+
+        await AssertQuery(
+            async,
+            ss => ss.Set<Entity>().Where(e => e.BigInteger / divisor == 1));
+
+        AssertSql(
+            """
+@divisor='2' (DbType = Decimal)
+
+SELECT e."Id", e."BigInteger"
+FROM "Entities" AS e
+WHERE div(e."BigInteger", @divisor) = 1
+""");
+    }
+
     private void AssertSql(params string[] expected)
         => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
