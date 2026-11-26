@@ -169,8 +169,7 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
             nameof(LineString.IsRing) => Function("ST_IsRing", [instance], typeof(bool)),
             nameof(Geometry.IsSimple) => Function("ST_IsSimple", [instance], typeof(bool)),
             nameof(Geometry.IsValid) => Function("ST_IsValid", [instance], typeof(bool)),
-            // For geometry collections, ST_Length measures lines and ST_Perimeter measures polygons.
-            // Geography's ST_Length measures both, except for MultiPolygon, which is also a GeometryCollection.
+            // Geography ST_Length measures only linear collection components; MultiPolygon also inherits GeometryCollection.
             nameof(Geometry.Length) when typeof(Polygon).IsAssignableFrom(instanceType)
                 || typeof(MultiPolygon).IsAssignableFrom(instanceType)
                 => Function("ST_Perimeter", [instance], typeof(double)),

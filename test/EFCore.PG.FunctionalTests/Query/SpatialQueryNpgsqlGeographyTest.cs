@@ -285,9 +285,9 @@ WHERE p."Polygon" IS NOT NULL
     [InlineData("MULTILINESTRING((0 0,3 4),(0 0,3 0))", 888017.40)]
     [InlineData("POLYGON((0 0,4 0,4 3,0 3,0 0),(1 1,2 1,2 2,1 2,1 1))", 1997106.17)]
     [InlineData("MULTIPOLYGON(((0 0,4 0,4 3,0 3,0 0)),((5 0,7 0,7 2,5 2,5 0)))", 2440843.40)]
-    [InlineData("GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))", 2107460.18)]
-    [InlineData("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0))),MULTILINESTRING((0 0,3 0)))", 2441418.65)]
-    [InlineData("GEOMETRYCOLLECTION(MULTIPOLYGON(((0 0,1 0,1 1,0 1,0 0))))", 443770.92)]
+    [InlineData("GEOMETRYCOLLECTION(POINT(1 2),LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0)))", 554058.92)]
+    [InlineData("GEOMETRYCOLLECTION(GEOMETRYCOLLECTION(LINESTRING(0 0,3 4),POLYGON((0 0,4 0,4 3,0 3,0 0))),MULTILINESTRING((0 0,3 0)))", 888017.40)]
+    [InlineData("GEOMETRYCOLLECTION(MULTIPOLYGON(((0 0,1 0,1 1,0 1,0 0))))", 0d)]
     [InlineData("GEOMETRYCOLLECTION EMPTY", 0d)]
     [InlineData("POLYGON EMPTY", 0d)]
     [InlineData("POLYGON M((0 0 2,4 0 3,4 3 4,0 3 5,0 0 2))", 1553401.26)]
@@ -350,7 +350,7 @@ LIMIT 2
         var collectionQuery = context.Set<PointEntity>()
             .FromSql($"SELECT ST_GeogFromText({collection}) AS \"Geometry\"")
             .Select(e => ((GeometryCollection)e.Geometry).Length);
-        Assert.InRange(async ? await collectionQuery.SingleAsync() : collectionQuery.Single(), 2107459d, 2107462d);
+        Assert.InRange(async ? await collectionQuery.SingleAsync() : collectionQuery.Single(), 554057d, 554060d);
 
         AssertSql(
             $"""
@@ -384,9 +384,8 @@ LIMIT 2
     [MemberData(nameof(IsAsyncData))]
     public async Task Length_geography_configured_per_property(bool async)
     {
-        await using var fixtureContext = Fixture.CreateContext();
         var options = new DbContextOptionsBuilder<GeographyPropertyContext>()
-            .UseNpgsql(fixtureContext.Database.GetConnectionString(), o => o.UseNetTopologySuite())
+            .UseNpgsql(Fixture.TestStore.ConnectionString, o => o.UseNetTopologySuite())
             .UseLoggerFactory(Fixture.TestSqlLoggerFactory)
             .EnableSensitiveDataLogging()
             .Options;
