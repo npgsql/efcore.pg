@@ -1,0 +1,74 @@
+﻿- name: Getting started
+  href: index.md
+- name: Release notes
+  items:
+  - name: "11.0"
+    href: release-notes/11.0.md
+  - name: "10.0"
+    href: release-notes/10.0.md
+  - name: "9.0"
+    href: release-notes/9.0.md
+  - name: "8.0"
+    href: release-notes/8.0.md
+  - name: Out of support
+    items:
+    - name: "7.0"
+      href: release-notes/7.0.md
+    - name: "6.0"
+      href: release-notes/6.0.md
+    - name: "5.0"
+      href: release-notes/5.0.md
+    - name: "3.1"
+      href: release-notes/3.1.md
+    - name: "2.2"
+      href: release-notes/2.2.md
+    - name: "2.1"
+      href: release-notes/2.1.md
+    - name: "2.0"
+      href: release-notes/2.0.md
+    - name: "1.1"
+      href: release-notes/1.1.md
+- name: Creating a model
+  items:
+    - name: Tables
+      href: modeling/tables.md
+    - name: Generated properties
+      href: modeling/generated-properties.md
+    - name: Indexes
+      href: modeling/indexes.md
+    - name: Concurrency tokens
+      href: modeling/concurrency.md
+- name: Mapping and translation
+  items:
+    - name: General
+      href: mapping/general.md
+    - name: Translations
+      href: mapping/translations.md
+    - name: JSON
+      href: mapping/json.md
+    - name: Spatial data
+      href: mapping/nts.md
+    - name: Full text search
+      href: mapping/full-text-search.md
+    - name: Vector search
+      href: mapping/vector-search.md
+    - name: NodaTime
+      href: mapping/nodatime.md
+    - name: Arrays
+      href: mapping/array.md
+    - name: Enums
+      href: mapping/enum.md
+    - name: Ranges
+      href: mapping/range.md
+- name: Miscellaneous
+  items:
+    - name: Collations and case sensitivity
+      href: misc/collations-and-case-sensitivity.md
+    - name: Database creation
+      href: misc/database-creation.md
+    - name: Temporal constraints
+      href: misc/temporal-constraints.md
+    - name: Other
+      href: misc/other.md
+- name: API reference
+  href: "../../obj/api/EFCore.PG/"
