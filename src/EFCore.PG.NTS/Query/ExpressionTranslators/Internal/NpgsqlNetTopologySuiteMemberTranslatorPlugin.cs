@@ -169,16 +169,14 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
             nameof(LineString.IsRing) => Function("ST_IsRing", [instance], typeof(bool)),
             nameof(Geometry.IsSimple) => Function("ST_IsSimple", [instance], typeof(bool)),
             nameof(Geometry.IsValid) => Function("ST_IsValid", [instance], typeof(bool)),
-            // Geography ST_Length measures only linear collection components; MultiPolygon also inherits GeometryCollection.
+            // Collections can contain both lines and polygons; MultiPolygon also inherits GeometryCollection.
             nameof(Geometry.Length) when typeof(Polygon).IsAssignableFrom(instanceType)
                 || typeof(MultiPolygon).IsAssignableFrom(instanceType)
                 => Function("ST_Perimeter", [instance], typeof(double)),
             nameof(Geometry.Length) when instanceType == typeof(GeometryCollection)
-                => isGeography
-                    ? LengthByGeometryType()
-                    : _sqlExpressionFactory.Add(
-                        Function("ST_Length", [instance], typeof(double)),
-                        Function("ST_Perimeter", [instance], typeof(double))),
+                => _sqlExpressionFactory.Add(
+                    Function("ST_Length", [instance], typeof(double)),
+                    Function("ST_Perimeter", [instance], typeof(double))),
             nameof(Geometry.Length) when instanceType == typeof(Geometry)
                 => LengthByGeometryType(),
             nameof(Geometry.Length) => Function("ST_Length", [instance], typeof(double)),
@@ -221,18 +219,18 @@ public class NpgsqlGeometryMemberTranslator : IMemberTranslator
             if (isGeography)
             {
                 // GeometryType has a geography overload and appends M for XYM values.
-                SqlExpression[] polygonTypes = instanceType == typeof(GeometryCollection)
-                    ? [_sqlExpressionFactory.Constant("MULTIPOLYGON"), _sqlExpressionFactory.Constant("MULTIPOLYGONM")]
-                    :
-                    [
-                        _sqlExpressionFactory.Constant("POLYGON"),
-                        _sqlExpressionFactory.Constant("POLYGONM"),
-                        _sqlExpressionFactory.Constant("MULTIPOLYGON"),
-                        _sqlExpressionFactory.Constant("MULTIPOLYGONM")
-                    ];
+                var collectionLength = _sqlExpressionFactory.Add(length, perimeter);
 
                 return _sqlExpressionFactory.Case(
-                    [new CaseWhenClause(_sqlExpressionFactory.In(Function("GeometryType", [instance], typeof(string)), polygonTypes), perimeter)],
+                    Function("GeometryType", [instance], typeof(string)),
+                    [
+                        new CaseWhenClause(_sqlExpressionFactory.Constant("POLYGON"), perimeter),
+                        new CaseWhenClause(_sqlExpressionFactory.Constant("POLYGONM"), perimeter),
+                        new CaseWhenClause(_sqlExpressionFactory.Constant("MULTIPOLYGON"), perimeter),
+                        new CaseWhenClause(_sqlExpressionFactory.Constant("MULTIPOLYGONM"), perimeter),
+                        new CaseWhenClause(_sqlExpressionFactory.Constant("GEOMETRYCOLLECTION"), collectionLength),
+                        new CaseWhenClause(_sqlExpressionFactory.Constant("GEOMETRYCOLLECTIONM"), collectionLength)
+                    ],
                     length);
             }
 
