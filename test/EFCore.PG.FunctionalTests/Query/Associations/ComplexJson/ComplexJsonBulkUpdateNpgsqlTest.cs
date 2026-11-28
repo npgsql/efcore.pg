@@ -352,6 +352,35 @@ WHERE jsonb_array_length(r."RequiredAssociate" -> 'Ints') >= 2
 """);
     }
 
+    [ConditionalFact]
+    public virtual async Task Update_property_to_out_of_range_primitive_collection_element()
+    {
+        await TestHelpers.ExecuteWithStrategyInTransactionAsync(
+            Fixture.CreateContext,
+            Fixture.UseTransaction,
+            async context =>
+            {
+                await context.Set<RootEntity>()
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.RequiredAssociate.Int, x => x.RequiredAssociate.Ints[10]));
+
+                // The property becomes a JSON null and the rest of the document is kept
+                using (Fixture.ListLoggerFactory.SuspendRecordingEvents())
+                {
+                    Assert.Equal(
+                        0,
+                        await context.Database.SqlQueryRaw<int>(
+                                """SELECT count(*)::int AS "Value" FROM "RootEntity" WHERE "RequiredAssociate" -> 'Int' IS DISTINCT FROM 'null'::jsonb""")
+                            .SingleAsync());
+                }
+            });
+
+        AssertSql(
+            """
+UPDATE "RootEntity" AS r
+SET "RequiredAssociate" = jsonb_set_lax(r."RequiredAssociate", '{Int}', r."RequiredAssociate" #> '{Ints,10}')
+""");
+    }
+
     #endregion Update primitive collection
 
     #region Multiple updates
